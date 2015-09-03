@@ -70,7 +70,7 @@ bool server_init(int *svrSocket, char *puerto){
 	if (*svrSocket == -1)
 		return false;
 
-        int opcion = 1;
+        int option = 1;
         setsockopt(svrSocket,SOL_SOCKET,(SO_REUSEPORT | SO_REUSEADDR),(char*)&option,sizeof(option));
 
 	if (bind(*svrSocket,serverInfo->ai_addr, serverInfo->ai_addrlen) == -1){
