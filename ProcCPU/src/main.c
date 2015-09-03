@@ -48,7 +48,8 @@ int main(){
 		printf("\n%s\n", package);
 
 
-
+	close (socketCli);
+	close (serverSocket);
 	//creamos los hilos, ojo que no se verifica si falla. falla cuando devuelve distinto de cero
 	/*pthread_create(&tServer, NULL, (void*)&threadServer, NULL);
     pthread_create(&tClient, NULL, (void*)&threadClient, NULL);
