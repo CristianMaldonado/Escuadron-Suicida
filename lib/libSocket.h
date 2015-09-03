@@ -5,8 +5,8 @@
  *      Author: utnso
  */
 
-#ifndef SRC_LIBSOCKET_H_
-#define SRC_LIBSOCKET_H_
+#ifndef LIB_LIBSOCKET_H_
+#define LIB_LIBSOCKET_H_
 
 #include<sys/types.h>
 #include<sys/socket.h>
@@ -70,6 +70,9 @@ bool server_init(int *svrSocket, char *puerto){
 	if (*svrSocket == -1)
 		return false;
 
+        int opcion = 1;
+        setsockopt(svrSocket,SOL_SOCKET,(SO_REUSEPORT | SO_REUSEADDR),(char*)&option,sizeof(option));
+
 	if (bind(*svrSocket,serverInfo->ai_addr, serverInfo->ai_addrlen) == -1){
 		socket_close(*svrSocket);
 	 	return false;
@@ -96,4 +99,4 @@ bool server_acept(int serverSocket, int *clientSocket){
 
 
 
-#endif /* SRC_LIBSOCKET_H_ */
+#endif /* LIB_LIBSOCKET_H_ */
