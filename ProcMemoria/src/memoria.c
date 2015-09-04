@@ -24,15 +24,15 @@ int main(){
 		printf("aceptada CPU\n");
 
 	recv(socketClienteCPU, package, 10, 0);
-	printf("\n%s\n", package);
+	printf("%s\n", package);
 
 
 	char package2[PACKAGESIZE];
 	int status=1;
 
-	while (status){
+	while (status != 0){
 			status = recv(socketClienteCPU, (void*) package2, PACKAGESIZE, 0);
-			send(socketClienteSWAP,package2,PACKAGESIZE,0);
+			if(status) send(socketClienteSWAP,package2,PACKAGESIZE,0);
 			if (status) printf("%s", package2);
 	}
 

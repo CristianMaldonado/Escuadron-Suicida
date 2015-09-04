@@ -38,17 +38,18 @@ int main(){
 	if (client_init(&socketMemoria,"127.0.0.1", "4142"))
 		printf("Conectado a la Memoria\n");
 
-	char message[10]="Hola memo\n";
+	char message[10]="";
+	strcpy(message,"hola memo");
 
 	send(socketMemoria, message, strlen(message) + 1, 0);
 
 	char package[PACKAGESIZE];
 	int status=1;
 
-	while (status){
+	while (status != 0){
 			status = recv(socketPlanificador, (void*) package, PACKAGESIZE, 0);
-			send(socketMemoria,package,PACKAGESIZE,0);
-			if (status) printf("%s", package);
+			if(status) send(socketMemoria,package,PACKAGESIZE,0);
+			if (status) printf("%s",package);
 	}
 
 	printf("Finalizo el planificador\n");
