@@ -1,34 +1,34 @@
-/*
- * swap.c
- *
- *  Created on: 3/9/2015
- *      Author: utnso
- */
-#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "../../lib/libSocket.h"
+#define PACKAGESIZE 30
+
 
 int main(){
 
 	int serverSocket;
-	if(server_init(&serverSocket, "6666"))
-		printf("conexion establecida con Swap\n");
+	if(server_init(&serverSocket, "8881"))
+		printf("conexion establecida con el puerto\n");
+	// aceptamos a la memoria
 
 	int socketCli;
-	if (client_init(&socketCli,"192.168.1.1", "6666"))
-		printf("no hubo error");
-
 	if(server_acept(serverSocket, &socketCli))
-		printf("memoria aceptada");
-
-	char package[10];
-
-	recv(socketCli, package, 10, 0);
-		printf("\n%s\n", package);
+		printf("CPU aceptado\n");
 
 
-		close(serverSocket);
-		close(socketCli);
+	char package[PACKAGESIZE];
+	int status = 1;
 
-		return 0;
+	while (status != 0){
+		status = recv(socketCli, (void*) package, PACKAGESIZE, 0);
+		if (status != 0) printf("%s", package);
+		// esto que recibe de la memoria
+	}
+
+	close(socketCli);
+	close(serverSocket);
+
+	return 0;
 
 }

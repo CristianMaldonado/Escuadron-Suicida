@@ -32,22 +32,41 @@ int main(){
 	//pthread_t tServer;
 	//pthread_t tClient;
 
+
+	// conexion al planificador
 	int socketCli;
-	if (client_init(&socketCli,"127.0.0.1", "8888"))
+	if (client_init(&socketCli,"127.0.0.1", "6661"))
 		printf("no hubo error");
+
+
+	printf("Cliente conectado. Esperando mensajes:\n");
+
+
+	// conexion a la memoria
+	int socketCliMemoria;
+	if (client_init(&socketCliMemoria,"127.0.0.1", "7771"))
+		printf("no hubo error");
+
 
 
 	char package[PACKAGESIZE];
 	int status = 1;
-
-	printf("Cliente conectado. Esperando mensajes:\n");
+	int enviar = 1;
 
 	while (status != 0){
 		status = recv(socketCli, (void*) package, PACKAGESIZE, 0);
 		if (status != 0) printf("%s", package);
+		// esto que recibe lo tiene que enviar a la memoria
+
+		if (!strcmp(package,"exit\n")) enviar = 0;
+		if (enviar) send(socketCliMemoria, package, strlen(package) + 1, 0);
+
 	}
 
+
+
 	close (socketCli);
+	close(socketCliMemoria);
 
 	return 0;
 }

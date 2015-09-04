@@ -7,7 +7,7 @@
 int main() {
 
 	int serverSocket;
-	if(server_init(&serverSocket, "8888"))
+	if(server_init(&serverSocket, "6661"))
 		printf("conexion establecida con el puerto\n");
 	// acepatamos al cpu, para enviarle mensajes
 
@@ -30,6 +30,7 @@ int main() {
 
 	close(serverSocket);
 	close(socketCli);
+
 
 	return 0;
 }
