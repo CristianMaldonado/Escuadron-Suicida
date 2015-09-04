@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include "../../lib/libSocket.h"
+#include<stdio.h>
 #define PACKAGESIZE 30
 
 
@@ -30,29 +31,24 @@ int main(){
 
 	int socketPlanificador;
 	if (client_init(&socketPlanificador,"127.0.0.1", "4143"))
-		printf("Conectado al Planificador\n");
+		printf("Conectado al Planificador...\n");
 
 /*Inicia el Socket para conectarse con la Memoria*/
 
 	int socketMemoria;
 	if (client_init(&socketMemoria,"127.0.0.1", "4142"))
-		printf("Conectado a la Memoria\n");
-
-	char message[10]="";
-	strcpy(message,"hola memo");
-
-	send(socketMemoria, message, strlen(message) + 1, 0);
-
+		printf("Conectado a la Memoria...\n");
+/*Pasaje de mensaje*/
 	char package[PACKAGESIZE];
 	int status=1;
 
 	while (status != 0){
 			status = recv(socketPlanificador, (void*) package, PACKAGESIZE, 0);
-			if(status) send(socketMemoria,package,PACKAGESIZE,0);
+			if(status) send(socketMemoria,package, strlen(package) + 1,0);
 			if (status) printf("%s",package);
 	}
 
-	printf("Finalizo el planificador\n");
+	printf("Finalizo el planificador...\n");
 
 	close(socketMemoria);
 	close(socketPlanificador);
