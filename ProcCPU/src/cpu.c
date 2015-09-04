@@ -1,7 +1,8 @@
-
-#include <pthread.h>
+#include <stdlib.h>
+#include <string.h>
 #include "../../lib/libSocket.h"
-
+#include<stdio.h>
+#define PACKAGESIZE 30
 
 
 void threadClient(){
@@ -31,31 +32,22 @@ int main(){
 	//pthread_t tServer;
 	//pthread_t tClient;
 
-	int serverSocket;
-	if(server_init(&serverSocket, "8888"))
-		printf("conexion establecida");
-
 	int socketCli;
-	if (client_init(&socketCli,"192.168.1.1", "8888"))
+	if (client_init(&socketCli,"127.0.0.1", "8888"))
 		printf("no hubo error");
 
-	if(server_acept(serverSocket, &socketCli))
-		printf("acepada");
 
-	char package[10];
+	char package[PACKAGESIZE];
+	int status = 1;
 
-	recv(socketCli, package, 10, 0);
-		printf("\n%s\n", package);
+	printf("Cliente conectado. Esperando mensajes:\n");
 
+	while (status != 0){
+		status = recv(socketCli, (void*) package, PACKAGESIZE, 0);
+		if (status != 0) printf("%s", package);
+	}
 
 	close (socketCli);
-	close (serverSocket);
-	//creamos los hilos, ojo que no se verifica si falla. falla cuando devuelve distinto de cero
-	/*pthread_create(&tServer, NULL, (void*)&threadServer, NULL);
-    pthread_create(&tClient, NULL, (void*)&threadClient, NULL);
 
-    pthread_join(tServer, NULL);
-    pthread_join(tClient, NULL);
-    */
 	return 0;
 }

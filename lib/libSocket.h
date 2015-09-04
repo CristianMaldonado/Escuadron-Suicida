@@ -5,8 +5,8 @@
  *      Author: utnso
  */
 
-#ifndef SRC_LIBSOCKET_H_
-#define SRC_LIBSOCKET_H_
+#ifndef LIB_LIBSOCKET_H_
+#define LIB_LIBSOCKET_H_
 
 #include<sys/types.h>
 #include<sys/socket.h>
@@ -51,6 +51,7 @@ bool client_init(int * cliSocket, char *ip, char *puerto){
 	return true;
 }
 
+// recibe el puerto y devuelve el svrSocket que escucha las conexiones entrantes
 bool server_init(int *svrSocket, char *puerto){
 
 	struct addrinfo hints;
@@ -65,11 +66,15 @@ bool server_init(int *svrSocket, char *puerto){
 	if(getaddrinfo(NULL, puerto, &hints, &serverInfo))
 		return false;
 
-	/*creamos el socket*/
+	/*creamos el socket que escucha las conexiones entrantes*/
 	*svrSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);
 	if (*svrSocket == -1)
 		return false;
 
+        int option = 1;
+        setsockopt(*svrSocket,SOL_SOCKET,(SO_REUSEPORT | SO_REUSEADDR),(char*)&option,sizeof(option));
+
+	// le digo a que puerto quiero escuchar
 	if (bind(*svrSocket,serverInfo->ai_addr, serverInfo->ai_addrlen) == -1){
 		socket_close(*svrSocket);
 	 	return false;
@@ -78,7 +83,8 @@ bool server_init(int *svrSocket, char *puerto){
 	/*liberamos*/
 	freeaddrinfo(serverInfo);
 
-	if(listen(*svrSocket, SOMAXCONN) == -1){
+	// le digo que escuche 
+	if(listen(*svrSocket,  SOMAXCONN) == -1){ //SOMAXCONN
 		socket_close(*svrSocket);
 	 	return false;
 	}
@@ -86,6 +92,7 @@ bool server_init(int *svrSocket, char *puerto){
 	return true;
 }
 
+// recibe el serverSocket y devuelve clientSocket
 bool server_acept(int serverSocket, int *clientSocket){
 
 	struct sockaddr_in addr;
@@ -96,4 +103,4 @@ bool server_acept(int serverSocket, int *clientSocket){
 
 
 
-#endif /* SRC_LIBSOCKET_H_ */
+#endif /* LIB_LIBSOCKET_H_ */
