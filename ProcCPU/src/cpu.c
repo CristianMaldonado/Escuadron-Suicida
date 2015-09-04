@@ -1,12 +1,11 @@
-
 #include <pthread.h>
 #include "../../lib/libSocket.h"
-
+#define PACKAGESIZE 30
 
 
 void threadClient(){
 	int cli;
-	client_init(&cli, "192.168.1.1","3333");
+	client_init(&cli, "127.0.0.1","3333");
 
 	//recv
 
@@ -25,37 +24,36 @@ void threadServer(){
 
 	socket_close(svr);
 }
-
 int main(){
 
-	//pthread_t tServer;
-	//pthread_t tClient;
+/*Inicia el Socket para conectarse con el Planificador*/
 
-	int serverSocket;
-	if(server_init(&serverSocket, "8888"))
-		printf("conexion establecida");
+	int socketPlanificador;
+	if (client_init(&socketPlanificador,"127.0.0.1", "4143"))
+		printf("Conectado al Planificador\n");
 
-	int socketCli;
-	if (client_init(&socketCli,"192.168.1.1", "8888"))
-		printf("no hubo error");
+/*Inicia el Socket para conectarse con la Memoria*/
 
-	if(server_acept(serverSocket, &socketCli))
-		printf("acepada");
+	int socketMemoria;
+	if (client_init(&socketMemoria,"127.0.0.1", "4142"))
+		printf("Conectado a la Memoria\n");
 
-	char package[10];
+	char message[10]="Hola memo\n";
 
-	recv(socketCli, package, 10, 0);
-		printf("\n%s\n", package);
+	send(socketMemoria, message, strlen(message) + 1, 0);
 
+	char package[PACKAGESIZE];
+	int status=1;
 
-	close (socketCli);
-	close (serverSocket);
-	//creamos los hilos, ojo que no se verifica si falla. falla cuando devuelve distinto de cero
-	/*pthread_create(&tServer, NULL, (void*)&threadServer, NULL);
-    pthread_create(&tClient, NULL, (void*)&threadClient, NULL);
+	while (status){
+			status = recv(socketPlanificador, (void*) package, PACKAGESIZE, 0);
+			send(socketMemoria,package,PACKAGESIZE,0);
+			if (status) printf("%s", package);
+	}
 
-    pthread_join(tServer, NULL);
-    pthread_join(tClient, NULL);
-    */
+	printf("Finalizo el planificador\n");
+
+	close(socketMemoria);
+	close(socketPlanificador);
 	return 0;
 }

@@ -1,45 +1,46 @@
-/*
- * memoria.c
- *
- *  Created on: 3/9/2015
- *      Author: utnso
- */
-
 #include <pthread.h>
 #include "../../lib/libSocket.h"
+#define PACKAGESIZE 30
 
-int main() {
+int main(){
 
-	/* Definimos datos Server  */
-	int serverSocket;
-	if (server_init(&serverSocket, "7777"))
-		printf("conexion establecida");
+/*Definimos datos Cliente listener */
 
-	int socketCli;
-	if (client_init(&socketCli, "192.168.1.1", "7777"))
-		printf("no hubo error");
+	int socketClienteSWAP;
+	if (client_init(&socketClienteSWAP, "127.0.0.1", "4141"))
+		printf("Conectado al SWAP\n");
 
-	if (server_acept(serverSocket, &socketCli))
-		printf("aceptada CPU");
+	char package[10]="Hola Swap";
+	send(socketClienteSWAP, package, 10, 0);
 
-	char package[10];
 
-	recv(socketCli, package, 10, 0);
+/* Definimos datos Server*/
+	int socketServidorCPU;
+	if (server_init(&socketServidorCPU, "4142"))
+		printf("Memoria lista\n");
+
+	int socketClienteCPU;
+	if (server_acept(socketServidorCPU, &socketClienteCPU))
+		printf("aceptada CPU\n");
+
+	recv(socketClienteCPU, package, 10, 0);
 	printf("\n%s\n", package);
 
-	/*Definimos datos Cliente listener */
 
-	int clienteSocket;
-	/* abierto socket, para el cliente (planificador) */
-	if (!client_init(&clienteSocket, "127.0.0.1", "6666"))
-		printf(
-				"Conectado al SWAP. Bienvenido, ya puede enviar mensajes. Escriba 'exit' para salir\n");
+	char package2[PACKAGESIZE];
+	int status=1;
 
-	strcpy(package, "Hola SWAP");
-	send(clienteSocket, package, 10, 0);
+	while (status){
+			status = recv(socketClienteCPU, (void*) package2, PACKAGESIZE, 0);
+			send(socketClienteSWAP,package2,PACKAGESIZE,0);
+			if (status) printf("%s", package2);
+	}
 
-	close(clienteSocket);
-	close(socketCli);
+	printf("Finalizo el planificador\n");
+
+	close(socketClienteSWAP);
+	close(socketClienteCPU);
+	close(socketServidorCPU);
 
 	return 0;
 }

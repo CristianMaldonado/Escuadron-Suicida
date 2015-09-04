@@ -71,7 +71,7 @@ bool server_init(int *svrSocket, char *puerto){
 		return false;
 
         int option = 1;
-        setsockopt(svrSocket,SOL_SOCKET,(SO_REUSEPORT | SO_REUSEADDR),(char*)&option,sizeof(option));
+        setsockopt(*svrSocket,SOL_SOCKET,(SO_REUSEPORT | SO_REUSEADDR),&option,sizeof(option));
 
 	if (bind(*svrSocket,serverInfo->ai_addr, serverInfo->ai_addrlen) == -1){
 		socket_close(*svrSocket);
