@@ -12,7 +12,7 @@ typedef struct {
 tconfig_planif *leerConfiguracion(){
 	tconfig_planif *datosPlanif = malloc(sizeof(tconfig_planif));
 	t_config *config;
-	config = config_create("planificador.cfg");
+	config = config_create("../src/planificador.cfg");
 	datosPlanif->puertoEscucha = config_get_string_value(config,"PUERTO_ESCUCHA");
 	datosPlanif->algoritmo = config_get_string_value(config,"ALGORITMO_PLANIFICACION")[0];
 	datosPlanif->quantum = atoi(config_get_string_value(config,"QUANTUM"));

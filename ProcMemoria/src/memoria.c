@@ -21,7 +21,7 @@ typedef struct {
 tconfig_memoria* leerConfiguracion(){
 	tconfig_memoria* datosMemoria = malloc(sizeof(tconfig_memoria));
 	t_config* config;
-	config = config_create("memoria.cfg");
+	config = config_create("../src/memoria.cfg");
 	datosMemoria->puertoEscucha = config_get_string_value(config,"PUERTO_ESCUCHA");
 	datosMemoria->ipSwap = config_get_string_value(config,"IP_SWAP");
 	datosMemoria->puertoSwap = config_get_string_value(config,"PUERTO_SWAP");

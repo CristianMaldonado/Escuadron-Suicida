@@ -6,10 +6,10 @@
 
 
 typedef struct {
-	char* ipPLanificador;
-	int puertoPlanidicador;
+	char* ipPlanificador;
+	char* puertoPlanificador;
 	char* ipMemoria;
-	int puertoMemoria;
+	char* puertoMemoria;
 	int cantidadHilos;
 	int retardo;
 } tipoConfiguracionCPU;
@@ -18,12 +18,12 @@ typedef struct {
 tipoConfiguracionCPU* leerConfiguracion(){
 	tipoConfiguracionCPU* datosCPU = malloc(sizeof(tipoConfiguracionCPU));
 	t_config* config;
-	config = config_create("cpu.cfg");
+	config = config_create("../src/cpu.cfg");
 	datosCPU->cantidadHilos = atoi(config_get_string_value(config, "CANTIDAD_HILOS"));
-	datosCPU->ipPLanificador = config_get_string_value(config,"IP_PLANIFICADOR");
+	datosCPU->ipPlanificador = config_get_string_value(config,"IP_PLANIFICADOR");
 	datosCPU->ipMemoria = config_get_string_value(config,"IP_MEMORIA");
-	datosCPU->puertoMemoria = atoi(config_get_string_value(config,"PUERTO_MEMORIA"));
-	datosCPU->puertoPlanidicador = atoi(config_get_string_value(config,"PUERTO_PLANIFICADOR"));
+	datosCPU->puertoMemoria = config_get_string_value(config,"PUERTO_MEMORIA");
+	datosCPU->puertoPlanificador = config_get_string_value(config,"PUERTO_PLANIFICADOR");
 	datosCPU->retardo = atoi(config_get_string_value(config,"RETARDO"));
 	return datosCPU;
 }
@@ -54,6 +54,10 @@ void threadServer(){
 }
 
 int main(){
+
+	tipoConfiguracionCPU *config = leerConfiguracion();
+	  printf("%s\n", config->ipMemoria);
+
 
 /*Inicia el Socket para conectarse con el Planificador*/
 

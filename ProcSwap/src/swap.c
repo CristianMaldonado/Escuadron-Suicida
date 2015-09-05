@@ -17,7 +17,7 @@ typedef struct {
 tconfig_swap* leerConfiguracion(){
 	tconfig_swap* datosSwap = malloc(sizeof(tconfig_swap));
 	t_config* config;
-	config = config_create("swap.cfg");
+	config = config_create("../src/swap.cfg");
     datosSwap->puertoEscucha = config_get_string_value(config,"PUERTO_ESCUCHA");
     datosSwap->nombreSwap = config_get_string_value(config,"NOMBRE_SWAP");
     datosSwap->cantidadPaginas = atoi(config_get_string_value(config,"CANTIDAD_PAGINAS"));
