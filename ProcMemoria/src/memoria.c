@@ -5,9 +5,9 @@
 #define PACKAGESIZE 30
 
 typedef struct {
-	int puertoEscucha;
+	char* puertoEscucha;
 	char* ipSwap;
-	int puertoSwap;
+	char* puertoSwap;
 	int maximoMarcosPorProceso;
 	int cantidadMarcos;
 	int tamanioMarco;
@@ -25,9 +25,9 @@ tconfig_memoria* leerConfiguracion(){
 	t_config* config;
 	config = config_create("memoria.cfg");
     printf("%s", "holaaa\n");
-	datosMemoria->puertoEscucha = atoi(config_get_string_value(config,"PUERTO_ESCUCHA"));
+	datosMemoria->puertoEscucha = config_get_string_value(config,"PUERTO_ESCUCHA");
 	datosMemoria->ipSwap = config_get_string_value(config,"IP_SWAP");
-	datosMemoria->puertoSwap = atoi(config_get_string_value(config,"PUERTO_SWAP"));
+	datosMemoria->puertoSwap = config_get_string_value(config,"PUERTO_SWAP");
 	datosMemoria->maximoMarcosPorProceso = atoi(config_get_string_value(config,"MAXIMO_MARCOS_POR_PROCESO"));
 	datosMemoria->cantidadMarcos = atoi(config_get_string_value(config,"CANTIDAD_MARCOS"));
 	datosMemoria->tamanioMarco = atoi(config_get_string_value(config,"TAMANIO_MARCO"));

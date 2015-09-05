@@ -6,7 +6,7 @@
 
 
 typedef struct {
-	int puertoEscucha;
+	char* puertoEscucha;
 	char* nombreSwap;
 	int cantidadPaginas;
 	int tamanioPagina;
@@ -22,7 +22,7 @@ tconfig_swap* leerConfiguracion(){
 	t_config* config;
 	config = config_create("swap.cfg");
     printf("%s", "holaaa\n");
-    datosSwap->puertoEscucha = atoi(config_get_string_value(config,"PUERTO_ESCUCHA"));
+    datosSwap->puertoEscucha = config_get_string_value(config,"PUERTO_ESCUCHA");
     datosSwap->nombreSwap = config_get_string_value(config,"NOMBRE_SWAP");
     datosSwap->cantidadPaginas = atoi(config_get_string_value(config,"CANTIDAD_PAGINAS"));
     datosSwap->tamanioPagina = atoi(config_get_string_value(config,"TAMANIO_PAGINA"));

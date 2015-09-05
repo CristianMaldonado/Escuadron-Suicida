@@ -4,7 +4,7 @@
 #define PACKAGESIZE 30
 
 typedef struct {
-	int puertoEscucha;
+	char* puertoEscucha;
 	char algoritmo;
 	int quantum;
 
@@ -16,7 +16,7 @@ tconfig_planif* leerConfiguracion(){
 	t_config* config;
 	config = config_create("planificador.cfg");
     printf("%s", "holaaa\n");
-	datosPlanif->puertoEscucha = atoi(config_get_string_value(config,"PUERTO_ESCUCHA"));
+	datosPlanif->puertoEscucha = config_get_string_value(config,"PUERTO_ESCUCHA");
 	datosPlanif->algoritmo = config_get_string_value(config,"ALGORITMO_PLANIFICACION")[0];
 	datosPlanif->quantum = atoi(config_get_string_value(config,"QUANTUM"));
 	return datosPlanif;
@@ -28,6 +28,7 @@ int main(){
 
   tconfig_planif * config = leerConfiguracion();
   printf("%c\n", config->algoritmo);
+  printf("%s\n", config->puertoEscucha);
 
 /*Inicia el socket para escuchar*/
 	int serverSocket;
