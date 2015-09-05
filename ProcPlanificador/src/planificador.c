@@ -7,26 +7,21 @@ typedef struct {
 	char* puertoEscucha;
 	char algoritmo;
 	int quantum;
-
 }tconfig_planif;
 
-tconfig_planif* leerConfiguracion(){
-
-	tconfig_planif* datosPlanif = malloc(sizeof(tconfig_planif));
-	t_config* config;
+tconfig_planif *leerConfiguracion(){
+	tconfig_planif *datosPlanif = malloc(sizeof(tconfig_planif));
+	t_config *config;
 	config = config_create("planificador.cfg");
-    printf("%s", "holaaa\n");
 	datosPlanif->puertoEscucha = config_get_string_value(config,"PUERTO_ESCUCHA");
 	datosPlanif->algoritmo = config_get_string_value(config,"ALGORITMO_PLANIFICACION")[0];
 	datosPlanif->quantum = atoi(config_get_string_value(config,"QUANTUM"));
 	return datosPlanif;
-
-
 }
 
 int main(){
 
-  tconfig_planif * config = leerConfiguracion();
+  tconfig_planif *config = leerConfiguracion();
   printf("%c\n", config->algoritmo);
   printf("%s\n", config->puertoEscucha);
 

@@ -1,7 +1,34 @@
 #include <pthread.h>
 #include "../../lib/libSocket.h"
 #include<stdio.h>
+#include <commons/config.h>
 #define PACKAGESIZE 30
+
+
+typedef struct {
+	char* ipPLanificador;
+	int puertoPlanidicador;
+	char* ipMemoria;
+	int puertoMemoria;
+	int cantidadHilos;
+	int retardo;
+} tipoConfiguracionCPU;
+
+// funcion que obtiene los campos del archivo de configuracion del cpu
+tipoConfiguracionCPU* leerConfiguracion(){
+	tipoConfiguracionCPU* datosCPU = malloc(sizeof(tipoConfiguracionCPU));
+	t_config* config;
+	config = config_create("cpu.cfg");
+	datosCPU->cantidadHilos = atoi(config_get_string_value(config, "CANTIDAD_HILOS"));
+	datosCPU->ipPLanificador = config_get_string_value(config,"IP_PLANIFICADOR");
+	datosCPU->ipMemoria = config_get_string_value(config,"IP_MEMORIA");
+	datosCPU->puertoMemoria = atoi(config_get_string_value(config,"PUERTO_MEMORIA"));
+	datosCPU->puertoPlanidicador = atoi(config_get_string_value(config,"PUERTO_PLANIFICADOR"));
+	datosCPU->retardo = atoi(config_get_string_value(config,"RETARDO"));
+	return datosCPU;
+}
+
+
 
 
 void threadClient(){
@@ -25,6 +52,7 @@ void threadServer(){
 
 	socket_close(svr);
 }
+
 int main(){
 
 /*Inicia el Socket para conectarse con el Planificador*/

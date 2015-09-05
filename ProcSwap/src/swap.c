@@ -11,25 +11,19 @@ typedef struct {
 	int cantidadPaginas;
 	int tamanioPagina;
 	int retardo;
-
 }tconfig_swap;
-
 
 //Arma estructura del archivo en swap
 tconfig_swap* leerConfiguracion(){
-
 	tconfig_swap* datosSwap = malloc(sizeof(tconfig_swap));
 	t_config* config;
 	config = config_create("swap.cfg");
-    printf("%s", "holaaa\n");
     datosSwap->puertoEscucha = config_get_string_value(config,"PUERTO_ESCUCHA");
     datosSwap->nombreSwap = config_get_string_value(config,"NOMBRE_SWAP");
     datosSwap->cantidadPaginas = atoi(config_get_string_value(config,"CANTIDAD_PAGINAS"));
     datosSwap->tamanioPagina = atoi(config_get_string_value(config,"TAMANIO_PAGINA"));
     datosSwap->retardo = atoi(config_get_string_value(config,"RETARDO_COMPACTATION"));
-
 	return datosSwap;
-
 }
 
 int main(){

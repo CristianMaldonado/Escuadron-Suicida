@@ -14,17 +14,14 @@ typedef struct {
 	int entradasTLB;
 	char habilitadaTLB;
 	int retardoMemoria;
-
 }tconfig_memoria;
 
 
 //Arma estructura del archivo en memoria
 tconfig_memoria* leerConfiguracion(){
-
 	tconfig_memoria* datosMemoria = malloc(sizeof(tconfig_memoria));
 	t_config* config;
 	config = config_create("memoria.cfg");
-    printf("%s", "holaaa\n");
 	datosMemoria->puertoEscucha = config_get_string_value(config,"PUERTO_ESCUCHA");
 	datosMemoria->ipSwap = config_get_string_value(config,"IP_SWAP");
 	datosMemoria->puertoSwap = config_get_string_value(config,"PUERTO_SWAP");
@@ -34,10 +31,7 @@ tconfig_memoria* leerConfiguracion(){
 	datosMemoria->entradasTLB = atoi(config_get_string_value(config,"ENTRADAS_TLB"));
 	datosMemoria->habilitadaTLB = config_get_string_value(config,"TLB_HABILITADA")[0];
 	datosMemoria->retardoMemoria = atoi(config_get_string_value(config,"RETARDO_MEMORIA"));
-
-
 	return datosMemoria;
-
 }
 
 int main(){
