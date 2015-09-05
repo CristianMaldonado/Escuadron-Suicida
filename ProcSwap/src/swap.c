@@ -2,8 +2,41 @@
 #include "../../lib/libSocket.h"
 #include<stdio.h>
 #define PACKAGESIZE 30
+#include <commons/config.h>
+
+
+typedef struct {
+	int puertoEscucha;
+	char* nombreSwap;
+	int cantidadPaginas;
+	int tamanioPagina;
+	int retardo;
+
+}tconfig_swap;
+
+
+//Arma estructura del archivo en swap
+tconfig_swap* leerConfiguracion(){
+
+	tconfig_swap* datosSwap = malloc(sizeof(tconfig_swap));
+	t_config* config;
+	config = config_create("swap.cfg");
+    printf("%s", "holaaa\n");
+    datosSwap->puertoEscucha = atoi(config_get_string_value(config,"PUERTO_ESCUCHA"));
+    datosSwap->nombreSwap = config_get_string_value(config,"NOMBRE_SWAP");
+    datosSwap->cantidadPaginas = atoi(config_get_string_value(config,"CANTIDAD_PAGINAS"));
+    datosSwap->tamanioPagina = atoi(config_get_string_value(config,"TAMANIO_PAGINA"));
+    datosSwap->retardo = atoi(config_get_string_value(config,"RETARDO_COMPACTATION"));
+
+	return datosSwap;
+
+}
 
 int main(){
+
+	//Leemos datos del archivo de configuracion
+		 tconfig_swap * config = leerConfiguracion();
+		  printf("%s\n", config->nombreSwap); //Ejemplo
 
 /*Crea el socket para escuchar*/
 	int serverSocket;

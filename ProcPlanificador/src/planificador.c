@@ -1,8 +1,34 @@
 #include <stdio.h>
 #include "../../lib/libSocket.h"
+#include <commons/config.h>
 #define PACKAGESIZE 30
 
+typedef struct {
+	int puertoEscucha;
+	char algoritmo;
+	int quantum;
+
+}tconfig_planif;
+
+tconfig_planif* leerConfiguracion(){
+
+	tconfig_planif* datosPlanif = malloc(sizeof(tconfig_planif));
+	t_config* config;
+	config = config_create("planificador.cfg");
+    printf("%s", "holaaa\n");
+	datosPlanif->puertoEscucha = atoi(config_get_string_value(config,"PUERTO_ESCUCHA"));
+	datosPlanif->algoritmo = config_get_string_value(config,"ALGORITMO_PLANIFICACION")[0];
+	datosPlanif->quantum = atoi(config_get_string_value(config,"QUANTUM"));
+	return datosPlanif;
+
+
+}
+
 int main(){
+
+  tconfig_planif * config = leerConfiguracion();
+  printf("%c\n", config->algoritmo);
+
 /*Inicia el socket para escuchar*/
 	int serverSocket;
 	if(server_init(&serverSocket, "4143"))
