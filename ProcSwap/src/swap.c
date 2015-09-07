@@ -1,9 +1,8 @@
-#include <pthread.h>
-#include "../../lib/libSocket.h"
-#include<stdio.h>
-#define PACKAGESIZE 30
+#include <stdio.h>
 #include <commons/config.h>
+#include "../../lib/libSocket.h"
 
+#define PACKAGESIZE 30
 
 typedef struct {
 	char* puertoEscucha;
@@ -29,32 +28,35 @@ tconfig_swap* leerConfiguracion(){
 int main(){
 
 	//Leemos datos del archivo de configuracion
-		 tconfig_swap * config = leerConfiguracion();
-		  printf("%s\n", config->nombreSwap); //Ejemplo
+	tconfig_swap * config = leerConfiguracion();
+	printf("%s\n", config->nombreSwap); //Ejemplo
 
-/*Crea el socket para escuchar*/
+	/*Crea el socket para escuchar*/
 	int serverSocket;
 	if(server_init(&serverSocket, "4141"))
 		printf("SWAP listo...\n");
 
-/*Crea el socket para recibir a la memoria*/
-	int socketMemoria;
-	if(server_acept(serverSocket, &socketMemoria))
+	/*Crea el socket para recibir a la memoria*/
+	int socketMemoria = server_acept(serverSocket);
+	if(socketMemoria)
 		printf("Memoria aceptada...\n");
 
-/*Pasaje de mensaje*/
+	/*Pasaje de mensaje*/
 	char package[PACKAGESIZE];
 	int status=1;
 
 	while (status){
-		status = recv(socketMemoria, (void*) package, PACKAGESIZE, 0);
-		if (status) printf("%s", package);
+
+		if (!socket_recv_all(socketMemoria, (void*) package, PACKAGESIZE))
+			status = 0;
+
+		if (status)
+			printf("%s", package);
 	}
 
 	printf("Finalizo el planificador...\n");
 
-	close(serverSocket);
-	close(socketMemoria);
-
+	socket_close(serverSocket);
+	socket_close(socketMemoria);
 	return 0;
 }
