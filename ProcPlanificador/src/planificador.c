@@ -27,11 +27,11 @@ int main(){
 
 /*Inicia el socket para escuchar*/
 	int serverSocket;
-	if(server_init(&serverSocket, "4143"))
+	server_init(&serverSocket, "4143");
 		printf("Planificador listo...\n");
 /*Inicia el socket para atender al CPU*/
 	int socketCPU;
-	if(server_acept(serverSocket, &socketCPU))
+	server_acept(serverSocket, &socketCPU);
 		printf("CPU aceptado...\n");
 
 /*Pasaje de mensaje*/

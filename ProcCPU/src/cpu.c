@@ -62,13 +62,13 @@ int main(){
 /*Inicia el Socket para conectarse con el Planificador*/
 
 	int socketPlanificador;
-	if (client_init(&socketPlanificador,"127.0.0.1", "4143"))
+	client_init(&socketPlanificador,"127.0.0.1", "4143");
 		printf("Conectado al Planificador...\n");
 
 /*Inicia el Socket para conectarse con la Memoria*/
 
 	int socketMemoria;
-	if (client_init(&socketMemoria,"127.0.0.1", "4142"))
+	client_init(&socketMemoria,"127.0.0.1", "4142");
 		printf("Conectado a la Memoria...\n");
 /*Pasaje de mensaje*/
 	char package[PACKAGESIZE];
