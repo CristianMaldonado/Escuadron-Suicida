@@ -42,7 +42,7 @@ int main() {
 
 	/*Inicia el Socket para conectarse con el Planificador*/
 	int socketPlanificador;
-	printf("Conectando al Planificador (%s:%s)... ", config->ipPlanificador, config->puertoPlanificador);
+	printf("Conectando al Planificador (%s : %s)... ", config->ipPlanificador, config->puertoPlanificador);
 	client_init(&socketPlanificador, config->ipPlanificador, config->puertoPlanificador);
 	printf("OK\n");
 
@@ -50,9 +50,8 @@ int main() {
 	log_info(logCpu, "Conectado al Planificador");
 
 	/*Inicia el Socket para conectarse con la Memoria*/
-
 	int socketMemoria;
-	printf("Conectando a la Memoria (%s:%s)... ", config->ipMemoria, config->puertoMemoria);
+	printf("Conectando a la Memoria (%s : %s)... ", config->ipMemoria, config->puertoMemoria);
 	client_init(&socketMemoria, config->ipMemoria, config->puertoMemoria);
 	printf("OK\n");
 
@@ -75,5 +74,6 @@ int main() {
 
 	close(socketMemoria);
 	close(socketPlanificador);
+	log_info(logCpu, "Cerrada conexion saliente");
 	return 0;
 }

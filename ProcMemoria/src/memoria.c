@@ -26,18 +26,12 @@ tconfig_memoria* leerConfiguracion() {
 	datosMemoria->puertoEscucha = config_get_string_value(config, "PUERTO_ESCUCHA");
 	datosMemoria->ipSwap = config_get_string_value(config, "IP_SWAP");
 	datosMemoria->puertoSwap = config_get_string_value(config, "PUERTO_SWAP");
-	datosMemoria->maximoMarcosPorProceso = atoi(
-			config_get_string_value(config, "MAXIMO_MARCOS_POR_PROCESO"));
-	datosMemoria->cantidadMarcos = atoi(
-			config_get_string_value(config, "CANTIDAD_MARCOS"));
-	datosMemoria->tamanioMarco = atoi(
-			config_get_string_value(config, "TAMANIO_MARCO"));
-	datosMemoria->entradasTLB = atoi(
-			config_get_string_value(config, "ENTRADAS_TLB"));
-	datosMemoria->habilitadaTLB = config_get_string_value(config,
-			"TLB_HABILITADA")[0];
-	datosMemoria->retardoMemoria = atoi(
-			config_get_string_value(config, "RETARDO_MEMORIA"));
+	datosMemoria->maximoMarcosPorProceso = atoi(config_get_string_value(config, "MAXIMO_MARCOS_POR_PROCESO"));
+	datosMemoria->cantidadMarcos = atoi(config_get_string_value(config, "CANTIDAD_MARCOS"));
+	datosMemoria->tamanioMarco = atoi(config_get_string_value(config, "TAMANIO_MARCO"));
+	datosMemoria->entradasTLB = atoi(config_get_string_value(config, "ENTRADAS_TLB"));
+	datosMemoria->habilitadaTLB = config_get_string_value(config,"TLB_HABILITADA")[0];
+	datosMemoria->retardoMemoria = atoi(config_get_string_value(config, "RETARDO_MEMORIA"));
 	return datosMemoria;
 }
 
@@ -53,7 +47,7 @@ int main() {
 
 	/*Definimos datos Cliente listener */
 	int socketClienteSWAP;
-	printf("Conectando al SWAP (%s:%s)... ", config->ipSwap, config->puertoEscucha);
+	printf("Conectando al SWAP (%s : %s)... ", config->ipSwap, config->puertoEscucha);
 	client_init(&socketClienteSWAP, config->ipSwap, config->puertoEscucha);
 	printf("OK\n");
 
@@ -65,7 +59,7 @@ int main() {
 	server_init(&socketServidorCPU, "4142");
 	printf("Memoria lista...\n");
 
-	// loguea el inicio de la memoria
+	//loguea el inicio de la memoria
 	log_info(logMemoria, "Memoria iniciada");
 
 	int socketClienteCPU;
@@ -87,8 +81,10 @@ int main() {
 	printf("Finalizo el planificador...\n");
 
 	close(socketClienteSWAP);
+	log_info(logMemoria, "cerrada la conexion con Swap");
 	close(socketClienteCPU);
 	close(socketServidorCPU);
+	log_info(logMemoria, "Memoria finalizada");
 
 	return 0;
 }
