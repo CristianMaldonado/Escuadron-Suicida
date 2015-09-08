@@ -3,6 +3,8 @@
 #include<stdio.h>
 #define PACKAGESIZE 30
 #include <commons/config.h>
+#include <commons/log.h>
+
 
 typedef struct {
 	char* puertoEscucha;
@@ -31,6 +33,10 @@ tconfig_swap* leerConfiguracion() {
 
 int main() {
 	system("clear");
+
+	// creacion de la instancia de log
+		t_log *logSwap = log_create("../src/log.txt", "swap.c", false, LOG_LEVEL_INFO);
+
 	//Leemos datos del archivo de configuracion
 	tconfig_swap * config = leerConfiguracion();
 	printf("%s\n", config->nombreSwap); //Ejemplo
@@ -40,10 +46,16 @@ int main() {
 	server_init(&serverSocket, "4141");
 	printf("SWAP listo...\n");
 
+	// loguea Swap iniciado
+			log_info(logSwap, "SWAP iniciado");
+
 	/*Crea el socket para recibir a la memoria*/
 	int socketMemoria;
 	server_acept(serverSocket, &socketMemoria);
 	printf("Memoria aceptada...\n");
+
+	// loguea conexion con Memoria
+			log_info(logSwap, "Conectado a la memoria");
 
 	/*Pasaje de mensaje*/
 	char package[PACKAGESIZE];
@@ -58,7 +70,10 @@ int main() {
 	printf("Finalizo el planificador...\n");
 
 	close(serverSocket);
+	log_info(logSwap, "SWAP finalizado");
+
 	close(socketMemoria);
+	log_info(logSwap, "Cerrada conexion memoria");
 
 	return 0;
 }

@@ -26,8 +26,8 @@ int main(){
 	system("clear");
 
 	// creacion de la instancia de log
-	t_log *logPlanificaor = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
-	logPlanificaor->pid = 1;
+	t_log *logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
+	logPlanificador->pid = 1;
 
 	//Inicia el socket para escuchar
 	int serverSocket;
@@ -35,7 +35,7 @@ int main(){
 	printf("Planificador listo...\n");
 
 	// loguea el inicio del planificador
-	log_info(logPlanificaor, "planificador iniciado");
+	log_info(logPlanificador, "planificador iniciado");
 
 	//Inicia el socket para atender al CPU
 	int socketCPU;

@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include "../../lib/libSocket.h"
 #include <commons/config.h>
+#include <commons/log.h>
 #include<stdio.h>
 #define PACKAGESIZE 30
 
@@ -42,6 +43,10 @@ tconfig_memoria* leerConfiguracion() {
 
 int main() {
 	system("clear");
+	// creacion de la instancia de log
+	t_log *logMemoria = log_create("../src/log.txt", "memoria.c", false, LOG_LEVEL_INFO);
+
+
 	//Leemos datos del archivo de configuracion
 	tconfig_memoria * config = leerConfiguracion();
 	printf("%s\n", config->ipSwap);
@@ -52,6 +57,9 @@ int main() {
 	client_init(&socketClienteSWAP, "127.0.0.1", "4141");
 	printf("Conectado al SWAP...\n");
 
+	// loguea conexion con SWAP
+		log_info(logMemoria, "Conectado al SWAP");
+
 	/*
 	 char package[10]="Hola Swap";
 	 send(socketClienteSWAP, package, 10, 0);
@@ -61,6 +69,9 @@ int main() {
 	int socketServidorCPU;
 	server_init(&socketServidorCPU, "4142");
 	printf("Memoria lista...\n");
+
+	// loguea el inicio de la memoria
+		log_info(logMemoria, "Memoria iniciada");
 
 	int socketClienteCPU;
 	server_acept(socketServidorCPU, &socketClienteCPU);

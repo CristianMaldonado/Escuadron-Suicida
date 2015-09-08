@@ -2,8 +2,8 @@
 #include "../../lib/libSocket.h"
 #include<stdio.h>
 #include <commons/config.h>
+#include <commons/log.h>
 #define PACKAGESIZE 30
-
 
 typedef struct {
 	char* ipPlanificador;
@@ -15,32 +15,32 @@ typedef struct {
 } tipoConfiguracionCPU;
 
 // funcion que obtiene los campos del archivo de configuracion del cpu
-tipoConfiguracionCPU* leerConfiguracion(){
+tipoConfiguracionCPU* leerConfiguracion() {
 	tipoConfiguracionCPU* datosCPU = malloc(sizeof(tipoConfiguracionCPU));
 	t_config* config;
 	config = config_create("../src/cpu.cfg");
-	datosCPU->cantidadHilos = atoi(config_get_string_value(config, "CANTIDAD_HILOS"));
-	datosCPU->ipPlanificador = config_get_string_value(config,"IP_PLANIFICADOR");
-	datosCPU->ipMemoria = config_get_string_value(config,"IP_MEMORIA");
-	datosCPU->puertoMemoria = config_get_string_value(config,"PUERTO_MEMORIA");
-	datosCPU->puertoPlanificador = config_get_string_value(config,"PUERTO_PLANIFICADOR");
-	datosCPU->retardo = atoi(config_get_string_value(config,"RETARDO"));
+	datosCPU->cantidadHilos = atoi(
+			config_get_string_value(config, "CANTIDAD_HILOS"));
+	datosCPU->ipPlanificador = config_get_string_value(config,
+			"IP_PLANIFICADOR");
+	datosCPU->ipMemoria = config_get_string_value(config, "IP_MEMORIA");
+	datosCPU->puertoMemoria = config_get_string_value(config, "PUERTO_MEMORIA");
+	datosCPU->puertoPlanificador = config_get_string_value(config,
+			"PUERTO_PLANIFICADOR");
+	datosCPU->retardo = atoi(config_get_string_value(config, "RETARDO"));
 	return datosCPU;
 }
 
-
-
-
-void threadClient(){
+void threadClient() {
 	int cli;
-	client_init(&cli, "127.0.0.1","3333");
+	client_init(&cli, "127.0.0.1", "3333");
 
 	//recv
 
 	socket_close(cli);
 }
 
-void threadServer(){
+void threadServer() {
 
 	int svr;
 	server_init(&svr, "puerto");
@@ -53,31 +53,44 @@ void threadServer(){
 	socket_close(svr);
 }
 
-int main(){
+int main() {
 	system("clear");
+
+	// creacion de la instancia de log
+	t_log *logCpu = log_create("../src/log.txt", "cpu.c", false,
+			LOG_LEVEL_INFO);
+
 	tipoConfiguracionCPU *config = leerConfiguracion();
-	  printf("%s\n", config->ipMemoria);
+	printf("%s\n", config->ipMemoria);
 
-
-/*Inicia el Socket para conectarse con el Planificador*/
+	/*Inicia el Socket para conectarse con el Planificador*/
 
 	int socketPlanificador;
-	client_init(&socketPlanificador,"127.0.0.1", "4143");
-		printf("Conectado al Planificador...\n");
+	client_init(&socketPlanificador, "127.0.0.1", "4143");
+	printf("Conectado al Planificador...\n");
 
-/*Inicia el Socket para conectarse con la Memoria*/
+	// loguea conexion con Planificador
+	log_info(logCpu, "Conectado al Planificador");
+
+	/*Inicia el Socket para conectarse con la Memoria*/
 
 	int socketMemoria;
-	client_init(&socketMemoria,"127.0.0.1", "4142");
-		printf("Conectado a la Memoria...\n");
-/*Pasaje de mensaje*/
-	char package[PACKAGESIZE];
-	int status=1;
+	client_init(&socketMemoria, "127.0.0.1", "4142");
+	printf("Conectado a la Memoria...\n");
 
-	while (status != 0){
-			status = recv(socketPlanificador, (void*) package, PACKAGESIZE, 0);
-			if(status) send(socketMemoria,package, strlen(package) + 1,0);
-			if (status) printf("%s",package);
+	// loguea conexion con Memoria
+	log_info(logCpu, "Conectado a la Memoria");
+
+	/*Pasaje de mensaje*/
+	char package[PACKAGESIZE];
+	int status = 1;
+
+	while (status != 0) {
+		status = recv(socketPlanificador, (void*) package, PACKAGESIZE, 0);
+		if (status)
+			send(socketMemoria, package, strlen(package) + 1, 0);
+		if (status)
+			printf("%s", package);
 	}
 
 	printf("Finalizo el planificador...\n");
