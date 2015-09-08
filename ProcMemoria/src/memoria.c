@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include <commons/config.h>
+#include <pthread.h>
 #include "../../lib/libSocket.h"
-
+#include <commons/config.h>
+#include<stdio.h>
 #define PACKAGESIZE 30
 
 typedef struct {
@@ -37,11 +37,11 @@ tconfig_memoria* leerConfiguracion(){
 int main(){
 
 	//Leemos datos del archivo de configuracion
-	tconfig_memoria * config = leerConfiguracion();
-	printf("%s\n", config->ipSwap);
+	 tconfig_memoria * config = leerConfiguracion();
+	  printf("%s\n", config->ipSwap);
 
 
-	/*Definimos datos Cliente listener */
+/*Definimos datos Cliente listener */
 
 	int socketClienteSWAP;
 	if (client_init(&socketClienteSWAP, "127.0.0.1", "4141"))
@@ -50,38 +50,32 @@ int main(){
 	/*
 	char package[10]="Hola Swap";
 	send(socketClienteSWAP, package, 10, 0);
-	 */
+*/
 
-	/* Definimos datos Server*/
+/* Definimos datos Server*/
 	int socketServidorCPU;
 	if (server_init(&socketServidorCPU, "4142"))
 		printf("Memoria lista...\n");
 
-	int socketClienteCPU = server_acept(socketServidorCPU);
-	if (socketClienteCPU)
+	int socketClienteCPU;
+	if (server_acept(socketServidorCPU, &socketClienteCPU))
 		printf("CPU aceptado...\n");
 
-	/*Pasaje de mensaje*/
+/*Pasaje de mensaje*/
 	char package[PACKAGESIZE];
 	int status=1;
 
 	while (status != 0){
-
-		if (!socket_recv_all(socketClienteCPU, (void*) package, PACKAGESIZE))
-			status = 0;
-
-		if(status)
-			socket_send_all(socketClienteSWAP,package, strlen(package) + 1,0);
-
-		if (status)
-			printf("%s", package);
+			status = recv(socketClienteCPU, (void*) package, PACKAGESIZE, 0);
+			if(status) send(socketClienteSWAP,package, strlen(package) + 1,0);
+			if (status) printf("%s", package);
 	}
 
 	printf("Finalizo el planificador...\n");
 
-	socket_close(socketClienteSWAP);
-	socket_close(socketClienteCPU);
-	socket_close(socketServidorCPU);
+	close(socketClienteSWAP);
+	close(socketClienteCPU);
+	close(socketServidorCPU);
 
 	return 0;
 }

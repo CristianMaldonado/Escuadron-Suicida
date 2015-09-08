@@ -1,7 +1,6 @@
 #include <stdio.h>
-#include <commons/config.h>
 #include "../../lib/libSocket.h"
-
+#include <commons/config.h>
 #define PACKAGESIZE 30
 
 typedef struct {
@@ -26,29 +25,28 @@ int main(){
   printf("%c\n", config->algoritmo);
   printf("%s\n", config->puertoEscucha);
 
-  /*Inicia el socket para escuchar*/
-  int serverSocket;
-  if(server_init(&serverSocket, "4143"))
+/*Inicia el socket para escuchar*/
+	int serverSocket;
+	if(server_init(&serverSocket, "4143"))
 		printf("Planificador listo...\n");
+/*Inicia el socket para atender al CPU*/
+	int socketCPU;
+	if(server_acept(serverSocket, &socketCPU))
+		printf("CPU aceptado...\n");
 
-  	/*Inicia el socket para atender al CPU*/
-  	int socketCPU = server_acept(serverSocket);
-  	if(socketCPU)
-  		printf("CPU aceptado...\n");
+/*Pasaje de mensaje*/
+	int enviar = 1;
+	char message[PACKAGESIZE];
 
-  	/*Pasaje de mensaje*/
-  	int enviar = 1;
-  	char message[PACKAGESIZE];
+	while(enviar){
+		fgets(message, PACKAGESIZE, stdin);
+		if (!strcmp(message,"exit\n")) enviar = 0;
+		if (enviar) send(socketCPU, message, strlen(message) + 1, 0);
+	}
 
-  	while(enviar){
+	close(serverSocket);
+	close(socketCPU);
 
-  		fgets(message, PACKAGESIZE, stdin);
-  		if (!strcmp(message,"exit\n")) enviar = 0;
-  		if (enviar) socket_send_all(socketCPU, message, strlen(message) + 1);
-  	}
-
-  	socket_close(serverSocket);
-  	socket_close(socketCPU);
-  	return 0;
+	return 0;
 }
 
