@@ -54,7 +54,7 @@ void threadServer(){
 }
 
 int main(){
-
+	system("clear");
 	tipoConfiguracionCPU *config = leerConfiguracion();
 	  printf("%s\n", config->ipMemoria);
 

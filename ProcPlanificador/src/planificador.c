@@ -20,7 +20,7 @@ tconfig_planif *leerConfiguracion(){
 }
 
 int main(){
-
+	system("clear");
   tconfig_planif *config = leerConfiguracion();
   printf("%c\n", config->algoritmo);
   printf("%s\n", config->puertoEscucha);

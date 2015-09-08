@@ -41,7 +41,7 @@ tconfig_memoria* leerConfiguracion() {
 }
 
 int main() {
-
+	system("clear");
 	//Leemos datos del archivo de configuracion
 	tconfig_memoria * config = leerConfiguracion();
 	printf("%s\n", config->ipSwap);

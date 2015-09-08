@@ -30,7 +30,7 @@ tconfig_swap* leerConfiguracion() {
 }
 
 int main() {
-
+	system("clear");
 	//Leemos datos del archivo de configuracion
 	tconfig_swap * config = leerConfiguracion();
 	printf("%s\n", config->nombreSwap); //Ejemplo
