@@ -1,0 +1,4 @@
+[INFO] 10:14:50:502 planificador.c/(1:3463): planificador iniciado
+[INFO] 10:15:12:656 planificador.c/(1:3466): planificador iniciado
+[INFO] 10:20:20:890 planificador.c/(1:3530): planificador iniciado
+[INFO] 10:24:47:114 planificador.c/(3692:3692): planificador iniciado

@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "../../lib/libSocket.h"
 #include <commons/config.h>
+#include <commons/log.h>
+#include <sys/types.h>
 #define PACKAGESIZE 30
 
 typedef struct {
@@ -20,21 +22,27 @@ tconfig_planif *leerConfiguracion(){
 }
 
 int main(){
-	system("clear");
-  tconfig_planif *config = leerConfiguracion();
-  printf("%c\n", config->algoritmo);
-  printf("%s\n", config->puertoEscucha);
 
-/*Inicia el socket para escuchar*/
+	system("clear");
+
+	// creacion de la instancia de log
+	t_log *logPlanificaor = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
+	logPlanificaor->pid = 1;
+
+	//Inicia el socket para escuchar
 	int serverSocket;
 	server_init(&serverSocket, "4143");
-		printf("Planificador listo...\n");
-/*Inicia el socket para atender al CPU*/
+	printf("Planificador listo...\n");
+
+	// loguea el inicio del planificador
+	log_info(logPlanificaor, "planificador iniciado");
+
+	//Inicia el socket para atender al CPU
 	int socketCPU;
 	server_acept(serverSocket, &socketCPU);
-		printf("CPU aceptado...\n");
+	printf("CPU aceptado...\n");
 
-/*Pasaje de mensaje*/
+	//Pasaje de mensaje
 	int enviar = 1;
 	char message[PACKAGESIZE];
 
