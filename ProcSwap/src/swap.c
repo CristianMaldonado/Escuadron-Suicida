@@ -1,10 +1,10 @@
 #include <pthread.h>
 #include "../../lib/libSocket.h"
-#include<stdio.h>
-#define PACKAGESIZE 30
+#include <stdio.h>
 #include <commons/config.h>
 #include <commons/log.h>
 
+#define PACKAGESIZE 30
 
 typedef struct {
 	char* puertoEscucha;
@@ -47,7 +47,7 @@ int main() {
 	printf("SWAP listo...\n");
 
 	// loguea Swap iniciado
-			log_info(logSwap, "SWAP iniciado");
+	log_info(logSwap, "SWAP iniciado");
 
 	/*Crea el socket para recibir a la memoria*/
 	int socketMemoria;
@@ -55,7 +55,7 @@ int main() {
 	printf("Memoria aceptada...\n");
 
 	// loguea conexion con Memoria
-			log_info(logSwap, "Conectado a la memoria");
+	log_info(logSwap, "Conectado a la memoria");
 
 	/*Pasaje de mensaje*/
 	char package[PACKAGESIZE];

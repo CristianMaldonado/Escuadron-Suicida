@@ -1,8 +1,9 @@
 #include <pthread.h>
 #include "../../lib/libSocket.h"
-#include<stdio.h>
+#include <stdio.h>
 #include <commons/config.h>
 #include <commons/log.h>
+
 #define PACKAGESIZE 30
 
 typedef struct {
@@ -31,52 +32,29 @@ tipoConfiguracionCPU* leerConfiguracion() {
 	return datosCPU;
 }
 
-void threadClient() {
-	int cli;
-	client_init(&cli, "127.0.0.1", "3333");
-
-	//recv
-
-	socket_close(cli);
-}
-
-void threadServer() {
-
-	int svr;
-	server_init(&svr, "puerto");
-
-	int cli;
-	server_acept(svr, &cli);
-
-	//send
-
-	socket_close(svr);
-}
-
 int main() {
 	system("clear");
 
 	// creacion de la instancia de log
-	t_log *logCpu = log_create("../src/log.txt", "cpu.c", false,
-			LOG_LEVEL_INFO);
+	t_log *logCpu = log_create("../src/log.txt", "cpu.c", false, LOG_LEVEL_INFO);
 
 	tipoConfiguracionCPU *config = leerConfiguracion();
-	printf("%s\n", config->ipMemoria);
 
 	/*Inicia el Socket para conectarse con el Planificador*/
-
 	int socketPlanificador;
-	client_init(&socketPlanificador, "127.0.0.1", "4143");
-	printf("Conectado al Planificador...\n");
+	printf("Conectando al Planificador (%s:%s)... ", config->ipPlanificador, config->puertoPlanificador);
+	client_init(&socketPlanificador, config->ipPlanificador, config->puertoPlanificador);
+	printf("OK\n");
 
-	// loguea conexion con Planificador
+	//loguea conexion con Planificador
 	log_info(logCpu, "Conectado al Planificador");
 
 	/*Inicia el Socket para conectarse con la Memoria*/
 
 	int socketMemoria;
-	client_init(&socketMemoria, "127.0.0.1", "4142");
-	printf("Conectado a la Memoria...\n");
+	printf("Conectando a la Memoria (%s:%s)... ", config->ipMemoria, config->puertoMemoria);
+	client_init(&socketMemoria, config->ipMemoria, config->puertoMemoria);
+	printf("OK\n");
 
 	// loguea conexion con Memoria
 	log_info(logCpu, "Conectado a la Memoria");

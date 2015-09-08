@@ -2,7 +2,8 @@
 #include "../../lib/libSocket.h"
 #include <commons/config.h>
 #include <commons/log.h>
-#include<stdio.h>
+#include <stdio.h>
+
 #define PACKAGESIZE 30
 
 typedef struct {
@@ -22,8 +23,7 @@ tconfig_memoria* leerConfiguracion() {
 	tconfig_memoria* datosMemoria = malloc(sizeof(tconfig_memoria));
 	t_config* config;
 	config = config_create("../src/memoria.cfg");
-	datosMemoria->puertoEscucha = config_get_string_value(config,
-			"PUERTO_ESCUCHA");
+	datosMemoria->puertoEscucha = config_get_string_value(config, "PUERTO_ESCUCHA");
 	datosMemoria->ipSwap = config_get_string_value(config, "IP_SWAP");
 	datosMemoria->puertoSwap = config_get_string_value(config, "PUERTO_SWAP");
 	datosMemoria->maximoMarcosPorProceso = atoi(
@@ -42,28 +42,23 @@ tconfig_memoria* leerConfiguracion() {
 }
 
 int main() {
+
 	system("clear");
+
 	// creacion de la instancia de log
 	t_log *logMemoria = log_create("../src/log.txt", "memoria.c", false, LOG_LEVEL_INFO);
 
-
 	//Leemos datos del archivo de configuracion
 	tconfig_memoria * config = leerConfiguracion();
-	printf("%s\n", config->ipSwap);
 
 	/*Definimos datos Cliente listener */
-
 	int socketClienteSWAP;
-	client_init(&socketClienteSWAP, "127.0.0.1", "4141");
-	printf("Conectado al SWAP...\n");
+	printf("Conectando al SWAP (%s:%s)... ", config->ipSwap, config->puertoEscucha);
+	client_init(&socketClienteSWAP, config->ipSwap, config->puertoEscucha);
+	printf("OK\n");
 
 	// loguea conexion con SWAP
-		log_info(logMemoria, "Conectado al SWAP");
-
-	/*
-	 char package[10]="Hola Swap";
-	 send(socketClienteSWAP, package, 10, 0);
-	 */
+	log_info(logMemoria, "Conectado al SWAP");
 
 	/* Definimos datos Server*/
 	int socketServidorCPU;
@@ -71,7 +66,7 @@ int main() {
 	printf("Memoria lista...\n");
 
 	// loguea el inicio de la memoria
-		log_info(logMemoria, "Memoria iniciada");
+	log_info(logMemoria, "Memoria iniciada");
 
 	int socketClienteCPU;
 	server_acept(socketServidorCPU, &socketClienteCPU);
