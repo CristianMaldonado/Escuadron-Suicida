@@ -3,34 +3,9 @@
 #include <stdio.h>
 #include <commons/config.h>
 #include <commons/log.h>
+#include "estructuras.h"
 
 #define PACKAGESIZE 30
-
-typedef struct {
-	char* ipPlanificador;
-	char* puertoPlanificador;
-	char* ipMemoria;
-	char* puertoMemoria;
-	int cantidadHilos;
-	int retardo;
-} tipoConfiguracionCPU;
-
-// funcion que obtiene los campos del archivo de configuracion del cpu
-tipoConfiguracionCPU* leerConfiguracion() {
-	tipoConfiguracionCPU* datosCPU = malloc(sizeof(tipoConfiguracionCPU));
-	t_config* config;
-	config = config_create("../src/cpu.cfg");
-	datosCPU->cantidadHilos = atoi(
-			config_get_string_value(config, "CANTIDAD_HILOS"));
-	datosCPU->ipPlanificador = config_get_string_value(config,
-			"IP_PLANIFICADOR");
-	datosCPU->ipMemoria = config_get_string_value(config, "IP_MEMORIA");
-	datosCPU->puertoMemoria = config_get_string_value(config, "PUERTO_MEMORIA");
-	datosCPU->puertoPlanificador = config_get_string_value(config,
-			"PUERTO_PLANIFICADOR");
-	datosCPU->retardo = atoi(config_get_string_value(config, "RETARDO"));
-	return datosCPU;
-}
 
 int main() {
 	system("clear");

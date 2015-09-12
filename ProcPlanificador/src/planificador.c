@@ -3,24 +3,11 @@
 #include <commons/config.h>
 #include <commons/log.h>
 #include <sys/types.h>
+#include "estructuras.h"
 
 #define PACKAGESIZE 30
 
-typedef struct {
-	char* puertoEscucha;
-	char algoritmo;
-	int quantum;
-}tconfig_planif;
 
-tconfig_planif *leerConfiguracion(){
-	tconfig_planif *datosPlanif = malloc(sizeof(tconfig_planif));
-	t_config *config;
-	config = config_create("../src/planificador.cfg");
-	datosPlanif->puertoEscucha = config_get_string_value(config,"PUERTO_ESCUCHA");
-	datosPlanif->algoritmo = config_get_string_value(config,"ALGORITMO_PLANIFICACION")[0];
-	datosPlanif->quantum = atoi(config_get_string_value(config,"QUANTUM"));
-	return datosPlanif;
-}
 
 int main(){
 

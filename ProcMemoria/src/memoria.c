@@ -3,37 +3,11 @@
 #include <commons/config.h>
 #include <commons/log.h>
 #include <stdio.h>
+#include "estructuras.h"
 
 #define PACKAGESIZE 30
 
-typedef struct {
-	char* puertoEscucha;
-	char* ipSwap;
-	char* puertoSwap;
-	int maximoMarcosPorProceso;
-	int cantidadMarcos;
-	int tamanioMarco;
-	int entradasTLB;
-	char habilitadaTLB;
-	int retardoMemoria;
-} tconfig_memoria;
 
-//Arma estructura del archivo en memoria
-tconfig_memoria* leerConfiguracion() {
-	tconfig_memoria* datosMemoria = malloc(sizeof(tconfig_memoria));
-	t_config* config;
-	config = config_create("../src/memoria.cfg");
-	datosMemoria->puertoEscucha = config_get_string_value(config, "PUERTO_ESCUCHA");
-	datosMemoria->ipSwap = config_get_string_value(config, "IP_SWAP");
-	datosMemoria->puertoSwap = config_get_string_value(config, "PUERTO_SWAP");
-	datosMemoria->maximoMarcosPorProceso = atoi(config_get_string_value(config, "MAXIMO_MARCOS_POR_PROCESO"));
-	datosMemoria->cantidadMarcos = atoi(config_get_string_value(config, "CANTIDAD_MARCOS"));
-	datosMemoria->tamanioMarco = atoi(config_get_string_value(config, "TAMANIO_MARCO"));
-	datosMemoria->entradasTLB = atoi(config_get_string_value(config, "ENTRADAS_TLB"));
-	datosMemoria->habilitadaTLB = config_get_string_value(config,"TLB_HABILITADA")[0];
-	datosMemoria->retardoMemoria = atoi(config_get_string_value(config, "RETARDO_MEMORIA"));
-	return datosMemoria;
-}
 
 int main() {
 
