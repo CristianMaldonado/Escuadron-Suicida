@@ -17,6 +17,26 @@ typedef struct {
 	int retardo;
 } tipoConfiguracionCPU;
 
+typedef struct {
+	int pid;
+	char* path;
+	char* nombrePrograma;
+	char* estadoProceso;
+	int punteroInstruccion;
+} t_pcb;
 
+typedef struct {
+	char tipoMensaje;
+	int tamanioMensaje;
+	char* mensaje;
+} protocolo_planificador_cpu;                            //TO DO: REVISARRR
+
+typedef struct {
+	char codOperacion;
+	char codAux;
+	int pid;
+	int nroPagina;
+	char* mensaje;
+} protocolo_cpu_memoria;
 
 #endif /* SRC_ESTRUCTURAS_H_ */
