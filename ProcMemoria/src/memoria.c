@@ -8,6 +8,7 @@
 
 #define PACKAGESIZE 30
 
+void des_serializar_cpu(void* buffer, tProtocolo_Cpu_Memoria *paquete_Desde_Cpu);
 
 
 int main(void) {
@@ -87,24 +88,16 @@ int main(void) {
 
 	// deserializo
 	tProtocolo_Cpu_Memoria paquete_Desde_Cpu;
-
-	memcpy(&paquete_Desde_Cpu.codOp, buffer ,1 );
-	memcpy(&paquete_Desde_Cpu.pid, buffer + 1, 4);
-	memcpy(&paquete_Desde_Cpu.paginas, buffer + 5, 4);
-	memcpy(&paquete_Desde_Cpu.tamanio_mensaje, buffer + 9, 4);
-
-	//char * aux = malloc(paquete_Desde_Cpu.tamanio_mensaje + 1);
-
-	paquete_Desde_Cpu.mensaje = malloc(paquete_Desde_Cpu.tamanio_mensaje + 1);
-	memcpy(paquete_Desde_Cpu.mensaje, buffer + 13, paquete_Desde_Cpu.tamanio_mensaje);
-	paquete_Desde_Cpu.mensaje[paquete_Desde_Cpu.tamanio_mensaje] = '\0';
+	des_serializar_cpu(buffer, &paquete_Desde_Cpu);
 
 	printf("%c\n", paquete_Desde_Cpu.codOp);
 	printf("%d\n", paquete_Desde_Cpu.pid);
 	printf("%d\n", paquete_Desde_Cpu.paginas);
 	printf("%d\n", paquete_Desde_Cpu.tamanio_mensaje);
 	printf("%s\n", paquete_Desde_Cpu.mensaje);
+
 	free(paquete_Desde_Cpu.mensaje);
+
 
 	////////////////////////////////////////////////////////////////////////
 
@@ -168,3 +161,20 @@ int main(void) {
 */
 	return 0;
 }
+
+
+void des_serializar_cpu(void* buffer, tProtocolo_Cpu_Memoria *paquete_Desde_Cpu) {
+
+	//desde el buffer tomo parte por parte y lo copio en la estructura
+	memcpy(&(paquete_Desde_Cpu->codOp), buffer ,1 );
+	memcpy(&(paquete_Desde_Cpu->pid), buffer + 1, 4);
+	memcpy(&(paquete_Desde_Cpu->paginas), buffer + 5, 4);
+	memcpy(&(paquete_Desde_Cpu->tamanio_mensaje), buffer + 9, 4);
+
+	paquete_Desde_Cpu->mensaje = malloc(paquete_Desde_Cpu->tamanio_mensaje + 1);
+	memcpy(paquete_Desde_Cpu->mensaje, buffer + 13, paquete_Desde_Cpu->tamanio_mensaje);
+	paquete_Desde_Cpu->mensaje[paquete_Desde_Cpu->tamanio_mensaje] = '\0';
+
+}
+
+
