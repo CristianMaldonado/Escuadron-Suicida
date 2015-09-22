@@ -62,8 +62,16 @@ int main() {
 
 
 
-	//Pasaje de mensaje
 
+
+
+
+
+
+
+	//Pasaje de mensaje checkpoint 1
+
+	/*
 	char package[PACKAGESIZE];
 	int status = 1;
 
@@ -75,6 +83,7 @@ int main() {
 			printf("%s", package);
 	}
 
+	*/
 
 	printf("Finalizo el planificador...\n");
 
