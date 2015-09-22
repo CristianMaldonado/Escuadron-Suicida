@@ -19,6 +19,7 @@ int main() {
 	//Leemos datos del archivo de configuracion
 	tconfig_memoria * config = leerConfiguracion();
 
+
 	/*Definimos datos Cliente listener */
 	int socketClienteSWAP;
 	printf("Conectando al SWAP (%s : %s)... ", config->ipSwap, config->puertoEscucha);
@@ -28,6 +29,9 @@ int main() {
 	// loguea conexion con SWAP
 	log_info(logMemoria, "Conectado al SWAP");
 
+
+
+
 	/* Definimos datos Server*/
 	int socketServidorCPU;
 	server_init(&socketServidorCPU, "4142");
@@ -36,11 +40,30 @@ int main() {
 	//loguea el inicio de la memoria
 	log_info(logMemoria, "Memoria iniciada");
 
+
+
+
 	int socketClienteCPU;
 	server_acept(socketServidorCPU, &socketClienteCPU);
 	printf("CPU aceptado...\n");
 
-	/*Pasaje de mensaje*/
+	// ya esta aceptado algun hilo de cpu
+	///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	// hay que recibir el paquete con el protocolo de cpu a memoria
+
+	size_t mensajeLongitud;
+	recv(socketClienteCPU, &mensajeLongitud, 13, 0);
+	void *mensajePosta = malloc(mensajeLongitud);
+	// aca recivo el mensaje posta
+	recv(socketClienteCPU, mensajePosta, mensajeLongitud, 0);
+
+
+
+
+	//Pasaje de mensaje
+
 	char package[PACKAGESIZE];
 	int status = 1;
 
@@ -52,8 +75,19 @@ int main() {
 			printf("%s", package);
 	}
 
+
 	printf("Finalizo el planificador...\n");
 
+
+
+
+
+
+
+
+
+
+	/////////////////////////////////////////////////////////////////////////////////////////////
 	close(socketClienteSWAP);
 	log_info(logMemoria, "cerrada la conexion con Swap");
 	close(socketClienteCPU);
