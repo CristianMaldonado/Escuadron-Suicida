@@ -32,8 +32,6 @@ int main(void) {
 	log_info(logMemoria, "Conectado al SWAP");
 
 
-
-
 	//Definimos datos Server
 	int socketServidorCPU;
 	server_init(&socketServidorCPU, "4142");
@@ -41,8 +39,6 @@ int main(void) {
 
 	//loguea el inicio de la memoria
 	log_info(logMemoria, "Memoria iniciada");
-
-
 
 
 	int socketClienteCPU;
@@ -53,15 +49,15 @@ int main(void) {
 	///////////////////////////////////////////////////////////////////////////////////////////////
 
 
-	// hay que recibir el paquete con el protocolo de cpu a memoria
 
-	size_t mensajeLongitud;
-	recv(socketClienteCPU, &mensajeLongitud, 13, 0);
-	void *mensajePosta = malloc(mensajeLongitud);
-	// aca recivo el mensaje posta
-	recv(socketClienteCPU, mensajePosta, mensajeLongitud, 0);
+
+
+
+
+
+
 */
-	//mock serializado /////////////////////////////////////////////////////
+	//mock serializado desde la cpu /////////////////////////////////////////////////////
 
 	tProtocolo_Cpu_Memoria mock_protcolo;
 
@@ -84,44 +80,26 @@ int main(void) {
 	memcpy(buffer + 9, &messageLength, 4);
 	memcpy(buffer + 13, auxMsj, messageLength);
 
-
-
-	// deserializo
+	// deserializo desde la cpu
 	tProtocolo_Cpu_Memoria paquete_Desde_Cpu;
 	des_serializar_cpu(buffer, &paquete_Desde_Cpu);
-
-	printf("%c\n", paquete_Desde_Cpu.codOp);
-	printf("%d\n", paquete_Desde_Cpu.pid);
-	printf("%d\n", paquete_Desde_Cpu.paginas);
-	printf("%d\n", paquete_Desde_Cpu.tamanio_mensaje);
-	printf("%s\n", paquete_Desde_Cpu.mensaje);
-
 	free(paquete_Desde_Cpu.mensaje);
 
 
 	////////////////////////////////////////////////////////////////////////
 
+	// pasaje de mensaje checkpoint 2
+	// hay que recibir el paquete con el protocolo de cpu a memoria
 
 
-	// desSerializo el mensaje en la estructura para usar desde ahi cada parte
-/*
-	tProtocolo_Cpu_Memoria paquete_Desde_Cpu;
+	//size_t mensajeLongitud;
+	//recv(socketClienteCPU, &mensajeLongitud, 13, 0);
+	//void *mensajePosta = malloc(mensajeLongitud);
+	// aca recibo el mensaje posta
+	//recv(socketClienteCPU, mensajePosta, mensajeLongitud, 0);
 
-	memcpy(&paquete_Desde_Cpu.codOp, mensajePosta ,1 );
-	memcpy(&paquete_Desde_Cpu.pid, mensajePosta + 1, 4);
-	memcpy(&paquete_Desde_Cpu.paginas, mensajePosta + 5, 4);
-	memcpy(&paquete_Desde_Cpu.tamanio_mensaje, mensajePosta + 9, 4);
-	paquete_Desde_Cpu.mensaje = malloc(paquete_Desde_Cpu.tamanio_mensaje + 1);
-	memcpy(&paquete_Desde_Cpu.mensaje, mensajePosta + 13, paquete_Desde_Cpu.tamanio_mensaje + 1);
-
-	//paquete_Desde_Cpu.mensaje[paquete_Desde_Cpu.tamanio_mensaje] = '/0';
-
-
-
-
-*/
-
-
+	// deserializar y ya lo grabo en la struct, desde esta saco lo necesario para pasarselo al swap
+	// hay que plantear el protocolo para pasarle lo necesario al administrador de swap
 
 
 
@@ -142,13 +120,6 @@ int main(void) {
 	*/
 
 	printf("Finalizo el planificador...\n");
-
-
-
-
-
-
-
 
 
 
