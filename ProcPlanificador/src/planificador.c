@@ -1,11 +1,3 @@
-#include <stdio.h>
-#include <commons/config.h>
-#include <commons/log.h>
-#include <sys/types.h>
-#include <commons/collections/queue.h>
-#include <commons/collections/list.h>
-#include <pthread.h>
-#include <semaphore.h>
 #include "estructuras.h"
 #include "funcionesPlanificador.h"
 #include "../../lib/libSocket.h"

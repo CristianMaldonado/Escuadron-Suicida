@@ -1,26 +1,19 @@
-#include <stdio.h>
-#include <string.h>
-#include <commons/config.h>
-#include <commons/log.h>
-#include <sys/types.h>
-#include <commons/collections/queue.h>
-#include <semaphore.h>
+
 #include "estructuras.h"
 
 tpcb armarPCB (char* path,int cant){
 	tpcb pcb;
-	pcb.ruta=malloc(strlen(path)+1);
+	pcb.ruta=(char*)malloc(strlen(path)+1);
 	strcpy(pcb.ruta,path);
 	pcb.pid=cant;
-	pcb.nombre="";
-	testado std=LISTO;
-	pcb.estado=std;
+	strcpy(pcb.ruta,"");
+	pcb.estado=LISTO;
 	pcb.siguiente=1;
 	return pcb;
 }
 
 int clasificarComando(char* message){
-	char* comando=malloc(3);
+	char* comando=(char*)malloc(3);
 	memcpy(comando,message,2);
 			comando[2]=0;
 			if (!strcmp(comando,"ps\0")){free(comando);return 1;}
