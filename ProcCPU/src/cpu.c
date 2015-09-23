@@ -1,10 +1,9 @@
 #include <pthread.h>
 #include "../../lib/libSocket.h"
-#include <stdio.h>
 #include <commons/config.h>
 #include <commons/log.h>
-#include <commons/string.h>
 #include "estructuras.h"
+#include "funcionesCPU.h"
 
 #define PACKAGESIZE 30
 
@@ -12,7 +11,8 @@ void serializar(void* paquete) {
 	//TODO SERIALIZARRR !!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
-int clasificarComando(char* message) {
+
+int clasificarComando(char* message) {// a la mierda
 	char * comando = malloc(strlen(message) + 1);
 	strcpy(comando, message);
 
@@ -110,8 +110,7 @@ int main() {
 	system("clear");
 
 	pthread_t hilo;
-	pthread_attr_t atrib;
-//	pthread_create(&hilo, &atrib, procesarComando, parametro);
+	pthread_attr_t attr;
 
 // creacion de la instancia de log
 	t_log *logCpu = log_create("../src/log.txt", "cpu.c", false,
@@ -139,6 +138,9 @@ int main() {
 
 	// loguea conexion con Memoria
 	log_info(logCpu, "Conectado a la Memoria");
+
+	// crea hilo para ejecutar comandos del planificador
+	//pthread_create(&hilo, &atrib, procesarComando, parametro);
 
 	/*Pasaje de mensaje*/
 	char package[PACKAGESIZE];

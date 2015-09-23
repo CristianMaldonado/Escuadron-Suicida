@@ -8,6 +8,9 @@
 #ifndef SRC_FUNCIONESPLANIFICADOR_H_
 #define SRC_FUNCIONESPLANIFICADOR_H_
 
+#include "estructuras.h"
+
+
 tpcb armarPCB (char* path,int cant);
 
 int clasificarComando(char* message);

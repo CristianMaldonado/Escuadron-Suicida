@@ -7,6 +7,7 @@
 
 #ifndef SRC_ESTRUCTURAS_H_
 #define SRC_ESTRUCTURAS_H_
+
 #include <commons/collections/queue.h>
 #include <commons/collections/list.h>
 #include <commons/config.h>
@@ -19,7 +20,6 @@
 #include <semaphore.h>
 #include <stdlib.h>
 #include <pthread.h>
-
 
 typedef struct{
 	int socket;

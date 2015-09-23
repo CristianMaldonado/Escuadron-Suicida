@@ -1,5 +1,5 @@
-#include "estructuras.h"
 #include "funcionesPlanificador.h"
+#include "estructuras.h"
 #include "../../lib/libSocket.h"
 
 #define PACKAGESIZE 30
@@ -34,6 +34,7 @@ int main(){
 	int cantProc=1;
 	t_queue* colaProcesos;
 	pthread_t enviarAlCpu;
+	pthread_attr_t attr;
 	sem_init(&hayProgramas,0,0);
 
 	//creacion de la instancia de log
@@ -61,7 +62,7 @@ int main(){
 	tParametroEnviar envio;
 	envio.socket=socketCPU;
 	envio.procesos=colaProcesos;
-	pthread_create( &enviarAlCpu, NULL, (void*) enviar, &envio);
+	pthread_create( &enviarAlCpu, &attr, (void*) enviar, &envio);
 
 	int enviar2 = 1;
 	char message[PACKAGESIZE];
