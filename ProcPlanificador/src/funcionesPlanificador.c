@@ -1,5 +1,6 @@
 
 #include "estructuras.h"
+#include <commons/string.h>
 
 tpcb armarPCB (char* path,int cant){
 	tpcb pcb;
@@ -28,13 +29,13 @@ int clasificarComando(char* message){
 					comando = (char*)malloc(7);
 					memcpy(comando,message,6);
 					comando[6]=0;
-					if (!strcmp(comando,"correr\0")){free(comando);return 3;}
+					if (string_starts_with(comando,"correr")){free(comando);return 3;}
 					else {
 						free(comando);
 						comando = (char*)malloc(10);
 						memcpy(comando,message,9);
 						comando[9]=0;
-						if (!strcmp(comando,"finalizar\0")){free(comando);return 4;}
+						if (string_starts_with(comando,"finalizar")){free(comando);return 4;}
 						else {free(comando);return 0;}
 					}
 				}
@@ -51,9 +52,9 @@ void procesarComando(int nro_comando, char* message, int cantProc,t_queue* colaP
 			printf("Entro por cpu\n");
 			break;
 		case 3:
-			pcb= armarPCB(&message[7],cantProc);
+			/*pcb= armarPCB(&message[7],cantProc);
 			queue_push(colaProc,&pcb);
-			cantProc++;
+			cantProc++;*/
 			sem_post(sem);
 			break;
 		case 4:

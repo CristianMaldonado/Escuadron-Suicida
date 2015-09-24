@@ -6,32 +6,15 @@
  */
 
 #include "funcionesCPU.h"
+#include <commons/error.h>
 
-void interpretarInstruccion(char* instruccion){
+int interpretarInstruccion(char* instruccion){
 
-	if(string_starts_with(instruccion,"iniciar")){ pedirMemoria(); }
-	if(string_starts_with(instruccion,"leer")) { leerPagina(); }
-	if(string_starts_with(instruccion,"escribir")) { escribirTexto(); }
-	if(string_starts_with(instruccion,"entrada-salida")) { tenesQueEsperar(); }
-	if(string_starts_with(instruccion,"finalizar")) { processKill(); }
+	if(string_starts_with(instruccion,"iniciar")){ return 1; }
+	if(string_starts_with(instruccion,"leer")) { return 2; }
+	if(string_starts_with(instruccion,"escribir")) { return 3; }
+	if(string_starts_with(instruccion,"entrada-salida")) { return 4; }
+	if(string_starts_with(instruccion,"finalizar")) { return 5; }
+	else{ return 0; }
 }
 
-void pedirMemoria(){
-
-}
-
-void leerPagina(){
-
-}
-
-void escribirTexto(){
-
-}
-
-void tenesQueEsperar(){
-
-}
-
-void processKill(){
-
-}

@@ -33,8 +33,8 @@ typedef struct {
 }tconfig_planif;
 
 typedef enum {
-	LISTO, IO, EJECUTANDO, FINALIZADO}
-testado;
+	LISTO, IO, EJECUTANDO, FINALIZADO
+}testado;
 
 typedef struct {
 	char* ruta;

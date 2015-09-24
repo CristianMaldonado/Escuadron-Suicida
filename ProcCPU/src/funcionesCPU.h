@@ -11,7 +11,7 @@
 #include <commons/string.h>
 #include <stdio.h>
 
-void interpretarInstruccion(char* instruccion);
+int interpretarInstruccion(char* instruccion);
 
 
 #endif /* SRC_FUNCIONESCPU_H_ */

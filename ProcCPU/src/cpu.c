@@ -1,57 +1,17 @@
 #include <pthread.h>
+#include <semaphore.h>
 #include "../../lib/libSocket.h"
 #include <commons/config.h>
 #include <commons/log.h>
 #include "estructuras.h"
 #include "funcionesCPU.h"
+#include "serializacion.h"
 
 #define PACKAGESIZE 30
 
-void serializar(void* paquete) {
-	//TODO SERIALIZARRR !!!!!!!!!!!!!!!!!!!!!!!!!
-}
+sem_t ejecutaInstruccion;
 
-
-int clasificarComando(char* message) {// a la mierda
-	char * comando = malloc(strlen(message) + 1);
-	strcpy(comando, message);
-
-	if (!strcmp(comando, "iniciar\0")) {
-		free(comando);
-		return 1;
-	}
-
-	else {
-
-		if (!strcmp(comando, "leer\0")) {
-			free(comando);
-			return 2;
-		}
-
-		else {
-			if (!strcmp(comando, "escribir\0")) {
-				free(comando);
-				return 3;
-			} else {
-				if (!strcmp(comando, "entrada-salida\0")) {
-					free(comando);
-					return 4;
-				}
-				if (!strcmp(comando, "finalizar\0")) {
-					free(comando);
-					return 5;
-				} else {
-					free(comando);
-					return 0;
-
-				}
-			}
-		}
-	}
-
-}
-
-void armarPaquete(protocolo_cpu_memoria* aux, char codOperacion, char codAux,
+void armarPaquete(protocolo_cpu_memoria* aux, char codOperacion, char codAux,//tendria que ir en serializacion
 		int pid, int nroPagina, char* mensaje) {
 
 	aux->codOperacion = codOperacion;
@@ -63,54 +23,53 @@ void armarPaquete(protocolo_cpu_memoria* aux, char codOperacion, char codAux,
 	//TODO Hacerlo mas genérico con un booleano y cargue la estructura (sin mandar todos los parametros)
 }
 
-void procesarComando(int nro_comando, char* instruccion, int pid,
-		int socketPlanificador, int socketMemoria) { //RECIBE PID O PCB ?
+// la funcion que procesa el hilo
+/*void* procesarInstruccion(void* arg){
 
-	protocolo_cpu_memoria paquete;
-	string_n_split(instruccion, 3, " ");
-
-	switch (nro_comando) {
-	case 1:
-		armarPaquete(&paquete, 'i', '\0', pid, instruccion[1], '\0');
-		serializar(&paquete);
-		//send(socketMemoria, paquete, sizeof(paquete), 0); paquete es tipo estructura hay que serializar
-		break;
-	case 2:
-		armarPaquete(&paquete, 'l', '\0', pid, instruccion[1], '\0');
-		serializar(&paquete);
-		//send(socketMemoria, paquete, sizeof(paquete), 0); idem
-		break;
-
-	case 3:
-		armarPaquete(&paquete, 'e', '\0', pid, instruccion[1], '\0');
-		serializar(&paquete);
-		//send(socketMemoria, paquete, sizeof(paquete), 0);
-		break;
-
-	case 4: //TODO definir protocolo con planificador
-		armarPaquete(&paquete, 'i', '\0', pid, instruccion[1], '\0');
-		serializar(&paquete);
-		//send(socketPlanificador, paquete, sizeof(paquete), 0);
-		break;
-
-	case 5:
-		armarPaquete(&paquete, 'f', '\0', pid, 0, '\0');
-		serializar(&paquete);
-		//send(socketMemoria, paquete, sizeof(paquete), 0);
-		break;
-
-	default:
-		printf("Comando Incorrecto");
-		break;
+	string_n_split(linea, 3, " ");
+	while (1){
+		sem_wait(&ejecutaInstruccion);
+		swith(instruccion){
+			case 1:
+				armarPaquete(&paquete, 'i', '\0', pid, linea[1], '\0');
+				serializar(&paquete);
+				//send(socketMemoria, paquete, sizeof(paquete), 0); paquete es tipo estructura hay que serializar
+				break;
+			case 2:
+				armarPaquete(&paquete, 'l', '\0', pid, linea[1], '\0');
+				serializar(&paquete);
+				//send(socketMemoria, paquete, sizeof(paquete), 0); paquete es tipo estructura hay que serializar
+				break;
+			case 3:
+				armarPaquete(&paquete, 'e', '\0', pid, linea[1], '\0');
+				serializar(&paquete);
+				//send(socketMemoria, paquete, sizeof(paquete), 0); paquete es tipo estructura hay que serializar
+				break;
+			case 4:
+				armarPaquete(&paquete, 'i', '\0', pid, linea[1], '\0');
+				serializar(&paquete);
+				//send(socketMemoria, paquete, sizeof(paquete), 0); paquete es tipo estructura hay que serializar
+				break;
+			case 5:
+				armarPaquete(&paquete, 'f', '\0', pid, 0, '\0');
+				serializar(&paquete);
+				//send(socketMemoria, paquete, sizeof(paquete), 0); paquete es tipo estructura hay que serializar
+				break;
+			default:
+				error_show("Archivo dañado / linea imposible de interpretar");
+				break;
+		}
 
 	}
-}
+}*/
+
 
 int main() {
 	system("clear");
 
 	pthread_t hilo;
 	pthread_attr_t attr;
+	int id_instruccion;
 
 // creacion de la instancia de log
 	t_log *logCpu = log_create("../src/log.txt", "cpu.c", false,
@@ -140,7 +99,12 @@ int main() {
 	log_info(logCpu, "Conectado a la Memoria");
 
 	// crea hilo para ejecutar comandos del planificador
-	//pthread_create(&hilo, &atrib, procesarComando, parametro);
+	//pthread_create(&hilo, &atrib, procesarInstruccion,(void*) parametros);
+	//pthread_attr_init(attr);
+	//while(){
+	//	revc(socketPlanificador);
+	//	id_instruccion = interpretarInstruccion(instruccion);
+	//}
 
 	/*Pasaje de mensaje*/
 	char package[PACKAGESIZE];

@@ -1,6 +1,7 @@
 #include "funcionesPlanificador.h"
 #include "estructuras.h"
 #include "../../lib/libSocket.h"
+#include <commons/string.h>
 
 #define PACKAGESIZE 30
 sem_t hayProgramas;
@@ -17,14 +18,20 @@ void definirMensaje(tpcb* pcb,char* message){
 	strcpy(&message[22],pcb[0].ruta);
 }
 
-void enviar(tParametroEnviar parametros){
-	tpcb* pcb;
+void *enviar(void *arg){
+	tpcb* pcb; // che por mas que lo mire supongo que te falto escribir algo este pcb esta al pedo nunca se carga y asigna nada a message
+	tParametroEnviar* parametros;
+	parametros = (tParametroEnviar*) arg;
+	puts("estas en el hilo bien por vos");
 	while(1){
 		sem_wait(&hayProgramas);
-		pcb=queue_peek(parametros.procesos);
-		char* message=malloc(strlen(pcb[0].ruta)+(2*sizeof(int))+sizeof(testado)+10+1);
-		definirMensaje(pcb,message);
-		send(parametros.socket,message,strlen(message)+1,0);
+		puts("pasaste el semaforo");
+		//pcb=queue_peek(parametros->procesos);
+		//char* message=malloc(strlen(pcb[0].ruta)+(2*sizeof(int))+sizeof(testado)+10+1);
+		char* message=malloc(30);
+		strcpy(message,"river campeon!!!\n");
+		//definirMensaje(pcb,message);
+		send(parametros->socket,message,strlen(message)+1,0);
 		free(message);
 	}
 }
@@ -62,7 +69,9 @@ int main(){
 	tParametroEnviar envio;
 	envio.socket=socketCPU;
 	envio.procesos=colaProcesos;
-	pthread_create( &enviarAlCpu, &attr, (void*) enviar, &envio);
+
+	pthread_attr_init(&attr);
+	pthread_create( &enviarAlCpu, &attr, enviar,(void*) &envio);
 
 	int enviar2 = 1;
 	char message[PACKAGESIZE];
