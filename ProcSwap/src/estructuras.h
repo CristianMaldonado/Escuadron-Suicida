@@ -32,9 +32,21 @@ typedef struct {
 	char *mensaje;
 }  __attribute__((packed)) tprotocolo_swap_memoria;
 
+typedef struct{
+	int pid;
+	int comienzo;
+	int paginas_ocupadas;
+} tlista_ocupado;
 
+typedef struct{
+	int comienzo;
+	int paginas_ocupadas;
+} tlista_vacio;
 
-
-
+typedef struct{
+	int pid;
+	int tamanio;
+	char *buffer;
+} tdatos_paginas;
 
 #endif /* SRC_ESTRUCTURAS_H_ */
