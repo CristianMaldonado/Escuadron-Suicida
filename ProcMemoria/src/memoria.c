@@ -5,12 +5,9 @@
 #include <stdio.h>
 #include "estructuras.h"
 #include <string.h>
+#include "paquetes.h"
 
 #define PACKAGESIZE 30
-
-void des_serializar_cpu(void* buffer, tprotocolo *paquete_Desde_Cpu);
-void armar_estructura(tprotocolo *protocolo, char cod_op, int pid, int paginas, char* mensaje);
-void* serializar_a_swap(tprotocolo *protocolo);
 
 
 int main(void) {
@@ -53,17 +50,12 @@ int main(void) {
 
 
 
-
-
-
-
-
 */
 	//mock serializado desde la cpu /////////////////////////////////////////////////////
 
 	char *mensaje = "holaChe";
 	tprotocolo mock_protcolo;
-	armar_estructura(&mock_protcolo,'e',2,1, mensaje);
+	armar_estructura_protocolo(&mock_protcolo,'e',2,1, mensaje);
 
 	void* buffer = malloc(13 + strlen(mensaje));
 	buffer = serializar_a_swap(&mock_protcolo);
@@ -72,12 +64,7 @@ int main(void) {
 
 	tprotocolo paquete_Desde_Cpu;
 	des_serializar_cpu(buffer, &paquete_Desde_Cpu);
-	// imprimo para ver si llegaron los datos
-	printf("%d\n", paquete_Desde_Cpu.paginas);
-	printf("%d\n", paquete_Desde_Cpu.pid);
-	printf("%d\n", paquete_Desde_Cpu.tamanio_mensaje);
-	printf("%s\n", paquete_Desde_Cpu.mensaje);
-	printf("%c\n", paquete_Desde_Cpu.cod_op);
+
 
 	free(paquete_Desde_Cpu.mensaje);
 
@@ -130,44 +117,3 @@ int main(void) {
 */
 	return 0;
 }
-
-
-
-void armar_estructura(tprotocolo *protocolo, char cod_op, int pid, int paginas, char* mensaje) {
-
-	protocolo->cod_op = cod_op;
-	protocolo->pid = pid;
-	protocolo->paginas = paginas;
-	protocolo->mensaje = malloc(strlen(mensaje) + 1);
-	strcpy(protocolo->mensaje, mensaje);
-	protocolo->tamanio_mensaje = strlen(protocolo->mensaje) +1;
-}
-
-// para usarlo primero uso malloc de la catidad del chorro
-void* serializar_a_swap(tprotocolo *protocolo) {
-
-	size_t messageLength = strlen(protocolo->mensaje);
-	void * chorro = malloc(13 + messageLength);
-	memcpy(chorro, &(protocolo->cod_op), 1);
-	memcpy(chorro + 1, &(protocolo->pid), 4);
-	memcpy(chorro + 5, &(protocolo->paginas), 4);
-	memcpy(chorro + 9, &messageLength, 4);
-	memcpy(chorro + 13, protocolo->mensaje, messageLength);
-	return chorro;
-}
-
-
-void des_serializar_cpu(void* buffer, tprotocolo *paquete_Desde_Cpu) {
-
-	//desde el buffer tomo parte por parte y lo copio en la estructura
-	memcpy(&(paquete_Desde_Cpu->cod_op), buffer ,1 );
-	memcpy(&(paquete_Desde_Cpu->pid), buffer + 1, 4);
-	memcpy(&(paquete_Desde_Cpu->paginas), buffer + 5, 4);
-	memcpy(&(paquete_Desde_Cpu->tamanio_mensaje), buffer + 9, 4);
-
-	paquete_Desde_Cpu->mensaje = malloc(paquete_Desde_Cpu->tamanio_mensaje + 1);
-	memcpy(paquete_Desde_Cpu->mensaje, buffer + 13, paquete_Desde_Cpu->tamanio_mensaje);
-	paquete_Desde_Cpu->mensaje[paquete_Desde_Cpu->tamanio_mensaje] = '\0';
-}
-
-
