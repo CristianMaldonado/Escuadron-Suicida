@@ -39,4 +39,10 @@ typedef struct {
 	char* mensaje;
 } protocolo_cpu_memoria;
 
+typedef struct{
+	int socket;
+	char* lineaDeProceso;
+	protocolo_cpu_memoria paquete;
+}tMensajeAMemoria;
+
 #endif /* SRC_ESTRUCTURAS_H_ */

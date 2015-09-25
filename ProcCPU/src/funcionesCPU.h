@@ -10,8 +10,14 @@
 
 #include <commons/string.h>
 #include <stdio.h>
+#include "estructuras.h"
 
-int interpretarInstruccion(char* instruccion);
-
+void interpretarInstruccion(tMensajeAMemoria* message);
+void armarPaquete(protocolo_cpu_memoria* aux, char codOperacion, char codAux,int pid, int nroPagina, char* mensaje);
+void processKill(tMensajeAMemoria* message);
+void tenesQueEsperar(tMensajeAMemoria* message);
+void leerTexto(tMensajeAMemoria* message);
+void pedirMemoria(tMensajeAMemoria* message);
+void leerPagina(tMensajeAMemoria* message);
 
 #endif /* SRC_FUNCIONESCPU_H_ */

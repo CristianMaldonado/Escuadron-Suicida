@@ -11,18 +11,16 @@
 
 sem_t ejecutaInstruccion;
 
-void armarPaquete(protocolo_cpu_memoria* aux, char codOperacion, char codAux,//tendria que ir en serializacion
-		int pid, int nroPagina, char* mensaje) {
+void *procesarInstruccion(void *argumento){
+	tMensajeAMemoria* message;
+	message = (tMensajeAMemoria*)argumento;
 
-	aux->codOperacion = codOperacion;
-	aux->codAux = codAux;
-	aux->pid = pid;
-	aux->nroPagina = nroPagina;
-	strcpy(aux->mensaje, mensaje);
-
-	//TODO Hacerlo mas genérico con un booleano y cargue la estructura (sin mandar todos los parametros)
+	while(1){
+		sem_wait(&ejecutaInstruccion);
+		//message=(tMensajeAMemoria*)malloc(sizeof(tMensajeAMemoria));
+		//interpretarInstruccion(message);
+	}
 }
-
 // la funcion que procesa el hilo
 /*void* procesarInstruccion(void* arg){
 
