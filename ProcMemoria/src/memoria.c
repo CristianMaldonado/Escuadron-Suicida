@@ -11,11 +11,11 @@
 
 
 int main(void) {
-/*
+
 	system("clear");
 
 	// creacion de la instancia de log
-	t_log *logMemoria = log_create("../src/log.txt", "memoria.c", false, LOG_LEVEL_INFO);
+	//t_log *logMemoria = log_create("../src/log.txt", "memoria.c", false, LOG_LEVEL_INFO);
 
 	//Leemos datos del archivo de configuracion
 	tconfig_memoria * config = leerConfiguracion();
@@ -28,21 +28,21 @@ int main(void) {
 	printf("OK\n");
 
 	// loguea conexion con SWAP
-	log_info(logMemoria, "Conectado al SWAP");
+	//log_info(logMemoria, "Conectado al SWAP");
 
 
 	//Definimos datos Server
-	int socketServidorCPU;
-	server_init(&socketServidorCPU, "4142");
-	printf("Memoria lista...\n");
+	//int socketServidorCPU;
+	//server_init(&socketServidorCPU, "4142");
+	//printf("Memoria lista...\n");
 
 	//loguea el inicio de la memoria
-	log_info(logMemoria, "Memoria iniciada");
+	//log_info(logMemoria, "Memoria iniciada");
 
 
-	int socketClienteCPU;
-	server_acept(socketServidorCPU, &socketClienteCPU);
-	printf("CPU aceptado...\n");
+	//int socketClienteCPU;
+	//server_acept(socketServidorCPU, &socketClienteCPU);
+	//printf("CPU aceptado...\n");
 
 	// ya esta aceptado algun hilo de cpu
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,6 @@ int main(void) {
 
 
 
-*/
 	//mock serializado desde la cpu /////////////////////////////////////////////////////
 
 	char *mensaje = "holaChe";
@@ -60,13 +59,25 @@ int main(void) {
 	void* buffer = malloc(13 + strlen(mensaje));
 	buffer = serializar_a_swap(&mock_protcolo);
 
-	// deserializo desde la cpu y lo meto en una struct
+	//deserializo desde la cpu y lo meto en una struct
 
-	tprotocolo paquete_Desde_Cpu;
-	des_serializar_cpu(buffer, &paquete_Desde_Cpu);
+	//tprotocolo paquete_Desde_Cpu;
+	//des_serializar_cpu(buffer, &paquete_Desde_Cpu);
 
 
-	free(paquete_Desde_Cpu.mensaje);
+
+// pasaje de mensaje prueba envio del chorrro al swap
+		send(socketClienteSWAP, buffer, 13 + strlen(mensaje), 0);
+
+////////////////////
+
+
+
+
+
+
+
+	//free(paquete_Desde_Cpu.mensaje);
 
 	// ahora tengo que interpretar los mensajes iniciar y leer,
 
@@ -77,11 +88,11 @@ int main(void) {
 	// y reenviarlo al swap
 
 
-	//size_t mensajeLongitud;
-	//recv(socketClienteCPU, &mensajeLongitud, 13, 0);
-	//void *mensajePosta = malloc(mensajeLongitud);
+	//size_t paqueteLongitud;
+	//recv(socketClienteCPU, &paqueteLongitud, 13, 0);
+	//void *mensajePosta = malloc(paqueteLongitud);
 	// aca recibo el mensaje posta
-	//recv(socketClienteCPU, mensajePosta, mensajeLongitud, 0);
+	//recv(socketClienteCPU, mensajePosta, paqueteLongitud, 0);
 
 	// deserializar y ya lo grabo en la struct, desde esta saco lo necesario para pasarselo al swap
 	// hay que plantear el protocolo para pasarle lo necesario al administrador de swap
@@ -109,11 +120,11 @@ int main(void) {
 
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
-/*	close(socketClienteSWAP);
-	log_info(logMemoria, "cerrada la conexion con Swap");
-	close(socketClienteCPU);
-	close(socketServidorCPU);
-	log_info(logMemoria, "Memoria finalizada");
-*/
+	close(socketClienteSWAP);
+	//log_info(logMemoria, "cerrada la conexion con Swap");
+	//close(socketClienteCPU);
+	//close(socketServidorCPU);
+	//log_info(logMemoria, "Memoria finalizada");
+
 	return 0;
 }
