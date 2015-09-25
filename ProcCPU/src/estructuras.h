@@ -8,6 +8,9 @@
 #ifndef SRC_ESTRUCTURAS_H_
 #define SRC_ESTRUCTURAS_H_
 
+#include <semaphore.h>
+sem_t ejecutaInstruccion;
+
 typedef struct {
 	char* ipPlanificador;
 	char* puertoPlanificador;
@@ -17,30 +20,30 @@ typedef struct {
 	int retardo;
 } tipoConfiguracionCPU;
 
-typedef struct {
-	int pid;
-	char* path;
-	char* nombrePrograma;
-	char* estadoProceso;
-	int punteroInstruccion;
-} t_pcb;
 
 typedef struct {
+	char tipoProceso;
 	char tipoMensaje;
+	enum estado;
+	int pid;
+	int siguiente;
+	int quantum;
 	int tamanioMensaje;
 	char* mensaje;
-} protocolo_planificador_cpu;                            //TO DO: REVISARRR
+} protocolo_planificador_cpu;                            //TODO: REVISARRR
 
 typedef struct {
 	char codOperacion;
 	char codAux;
 	int pid;
 	int nroPagina;
+	int tamanio; //Agregado el tamaño del mensaje
 	char* mensaje;
 } protocolo_cpu_memoria;
 
 typedef struct{
-	int socket;
+	int socketMemoria;
+	int socketPlanificador;
 	char* lineaDeProceso;
 	protocolo_cpu_memoria paquete;
 }tMensajeAMemoria;

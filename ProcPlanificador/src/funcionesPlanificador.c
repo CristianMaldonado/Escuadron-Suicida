@@ -7,36 +7,21 @@ tpcb armarPCB (char* path,int cant){
 	pcb.ruta=(char*)malloc(strlen(path)+1);
 	strcpy(pcb.ruta,path);
 	pcb.pid=cant;
-	strcpy(pcb.ruta,"");
+	strcpy(pcb.nombre,"");
 	pcb.estado=LISTO;
 	pcb.siguiente=1;
 	return pcb;
 }
 
 int clasificarComando(char* message){
-	char* comando=(char*)malloc(3);
-	memcpy(comando,message,2);
-			comando[2]=0;
-			if (!strcmp(comando,"ps\0")){free(comando);return 1;}
+			if (!strcmp(message,"ps\n")){return 1;}
 			else {
-				free(comando);
-				comando = (char*)malloc(4);
-				memcpy(comando,message,3);
-				comando[3]=0;
-				if (!strcmp(comando,"cpu\0")){free(comando);return 2;}
+				if (!strcmp(message,"cpu\n")){return 2;}
 				else {
-					free(comando);
-					comando = (char*)malloc(7);
-					memcpy(comando,message,6);
-					comando[6]=0;
-					if (string_starts_with(comando,"correr")){free(comando);return 3;}
+					if (string_starts_with(message,"correr")){return 3;}
 					else {
-						free(comando);
-						comando = (char*)malloc(10);
-						memcpy(comando,message,9);
-						comando[9]=0;
-						if (string_starts_with(comando,"finalizar")){free(comando);return 4;}
-						else {free(comando);return 0;}
+						if (string_starts_with(message,"finalizar")){return 4;}
+						else {return 0;}
 					}
 				}
 			}
@@ -52,9 +37,9 @@ void procesarComando(int nro_comando, char* message, int cantProc,t_queue* colaP
 			printf("Entro por cpu\n");
 			break;
 		case 3:
-			/*pcb= armarPCB(&message[7],cantProc);
+			pcb= armarPCB(&message[7],cantProc);
 			queue_push(colaProc,&pcb);
-			cantProc++;*/
+			cantProc++;
 			sem_post(sem);
 			break;
 		case 4:

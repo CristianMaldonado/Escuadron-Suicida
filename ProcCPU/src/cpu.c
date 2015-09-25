@@ -9,7 +9,6 @@
 
 #define PACKAGESIZE 30
 
-sem_t ejecutaInstruccion;
 
 void *procesarInstruccion(void *argumento){
 	tMensajeAMemoria* message;
@@ -68,6 +67,7 @@ int main() {
 	pthread_t hilo;
 	pthread_attr_t attr;
 	int id_instruccion;
+	sem_init(&ejecutaInstruccion,0,0);
 
 // creacion de la instancia de log
 	t_log *logCpu = log_create("../src/log.txt", "cpu.c", false,

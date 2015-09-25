@@ -9,42 +9,24 @@
 #include "serializacion.h"
 #include <commons/error.h>
 #include "estructuras.h"
-
+/*
 void interpretarInstruccion(tMensajeAMemoria* message){
 
-	if(string_starts_with(message->lineaDeProceso,"iniciar")){ pedirMemoria(message); }
-	if(string_starts_with(message->lineaDeProceso,"leer")) { leerPagina(message); }
-	if(string_starts_with(message->lineaDeProceso,"escribir")) { escribirTexto(message); }
-	if(string_starts_with(message->lineaDeProceso,"entrada-salida")) { tenesQueEsperar(message); }
-	if(string_starts_with(message->lineaDeProceso,"finalizar")) { processKill(message); }
+	if(string_starts_with(message->lineaDeProceso,"iniciar")){ enviar(message); }
+	if(string_starts_with(message->lineaDeProceso,"leer")) { enviar(message); }
+	//if(string_starts_with(message->lineaDeProceso,"escribir")) { enviar(message); }
+	//if(string_starts_with(message->lineaDeProceso,"entrada-salida")) { enviar(message); }
+	if(string_starts_with(message->lineaDeProceso,"finalizar")) { enviar(message); }
 }
 
-void pedirMemoria(tMensajeAMemoria* message){
-	//armarPaquete();
-	//serializar();
-	//send(message.socket);
-	//sem_post(&ejecutaInstruccion);
-}
+void enviar(tMensajeAMemoria* message){
+	protocolo_cpu_memoria paquete = armarPaquete(message->lineaDeProceso);
+	protocolo_cpu_memoria empaquetado = serializar(paquete); //TODO : REVISAR ARMAR PAQUETE (PARAM A ENVIAR)
+	send(message->socketMemoria, empaquetado, sizeof(empaquetado));
+	sem_post(&ejecutaInstruccion);
+}*/
 
-void leerPagina(tMensajeAMemoria* message){
-	//armarPaquete();
-	//serializar();
-	//send(message.socket);
-	//sem_post(&ejecutaInstruccion);
-}
-
-void escribirTexto(tMensajeAMemoria* message){
-
-}
-
-void tenesQueEsperar(tMensajeAMemoria* message){
-
-}
-
-void processKill(tMensajeAMemoria* message){
-
-}
-
+//MODIFICAR ARMAR PAQUETE PARAMETROS
 void armarPaquete(protocolo_cpu_memoria* aux, char codOperacion, char codAux,//tendria que ir en serializacion
 		int pid, int nroPagina, char* mensaje) {
 
