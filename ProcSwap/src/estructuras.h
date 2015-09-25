@@ -17,4 +17,15 @@ typedef struct {
 	int retardo;
 } tconfig_swap;
 
+typedef struct {
+	int pid;
+	char codigo_op;
+	int cantidad_pagina;
+	int tamanio_mensaje;
+	char *mensaje;
+} tprotocolo_memoria_swap;
+
+
+
+
 #endif /* SRC_ESTRUCTURAS_H_ */
