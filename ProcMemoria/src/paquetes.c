@@ -36,31 +36,35 @@ void* serializar_a_swap(tprotocolo *protocolo) {
 	return chorro;
 }
 
+void recibir_paquete_desde_cpu(int socket_cpu, tprotocolo *paquete_desde_cpu) {
+	void* buffer = malloc(13);
+	recv(socket_cpu, buffer, 13, 0);
 
-void des_serializar_cpu(void* buffer, tprotocolo *paquete_Desde_Cpu) {
+	memcpy(&(paquete_desde_cpu->cod_op), buffer ,1);
+	memcpy(&(paquete_desde_cpu->pid), buffer + 1 ,4);
+	memcpy(&(paquete_desde_cpu->paginas), buffer + 5 ,4);
+	memcpy(&(paquete_desde_cpu->tamanio_mensaje), buffer + 9 ,4);
+	// ahora el mensaje posta
+	paquete_desde_cpu->mensaje = malloc(paquete_desde_cpu->tamanio_mensaje + 1);
+	recv(socket_cpu, paquete_desde_cpu->mensaje, paquete_desde_cpu->tamanio_mensaje, 0);
+	paquete_desde_cpu->mensaje[paquete_desde_cpu->tamanio_mensaje] = '\0';
 
-	//desde el buffer tomo parte por parte y lo copio en la estructura
-	memcpy(&(paquete_Desde_Cpu->cod_op), buffer ,1 );
-	memcpy(&(paquete_Desde_Cpu->pid), buffer + 1, 4);
-	memcpy(&(paquete_Desde_Cpu->paginas), buffer + 5, 4);
-	memcpy(&(paquete_Desde_Cpu->tamanio_mensaje), buffer + 9, 4);
-
-	paquete_Desde_Cpu->mensaje = malloc(paquete_Desde_Cpu->tamanio_mensaje + 1);
-	memcpy(paquete_Desde_Cpu->mensaje, buffer + 13, paquete_Desde_Cpu->tamanio_mensaje);
-	paquete_Desde_Cpu->mensaje[paquete_Desde_Cpu->tamanio_mensaje] = '\0';
 }
 
-void des_serializar_swap(void* buffer, tprotocolo_memoria_swap *paquete_desde_swap) {
+void recibir_paquete_desde_swap(int socket_swap, tprotocolo_swap_memoria *paquete_desde_swap) {
+	void* buffer = malloc(9);
+	recv(socket_swap, buffer, 9, 0);
 
-	//desde el buffer tomo parte por parte y lo copio en la estructura
 	memcpy(&(paquete_desde_swap->pid), buffer, 4);
-	memcpy(&(paquete_desde_swap->error), buffer + 4, 1);
-	memcpy(&(paquete_desde_swap->tamanio), buffer + 5, 4);
-
+	memcpy(&(paquete_desde_swap->error), buffer + 4 ,1);
+	memcpy(&(paquete_desde_swap->tamanio), buffer + 5 ,4);
+	// ahora el mensaje posta
 	paquete_desde_swap->mensaje = malloc(paquete_desde_swap->tamanio + 1);
-	memcpy(paquete_desde_swap->mensaje, buffer + 9, paquete_desde_swap->tamanio);
+	recv(socket_swap, paquete_desde_swap->mensaje, paquete_desde_swap->tamanio, 0);
 	paquete_desde_swap->mensaje[paquete_desde_swap->tamanio] = '\0';
+
 }
+
 
 void armar_estructura_protocolo_a_cpu(tprotocolo_memoria_cpu *protocolo, char cod_op, char cod_aux, int pid, int numero_pagina, char* mensaje) {
 
@@ -85,7 +89,5 @@ void* serializar_a_cpu(tprotocolo_memoria_cpu *protocolo) {
 	memcpy(chorro + 14, protocolo->mensaje, messageLength);
 	return chorro;
 }
-
-
 
 

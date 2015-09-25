@@ -34,7 +34,7 @@ typedef struct {
 	char error; // 's'=hubo error,  'n'= no hubo error
 	int tamanio;
 	char *mensaje;
-}   __attribute__((packed)) tprotocolo_memoria_swap;
+}   __attribute__((packed)) tprotocolo_swap_memoria;
 
 typedef struct {
 	char cod_op;

@@ -14,8 +14,8 @@
 int main(void) {
 	system("clear");
 
-	// iniciamos en cero el archivo swap
-//	iniciar_archivo_swap();
+	 //iniciamos en cero el archivo swap
+	 iniciar_archivo_swap();
 
 	// inicializamos lista de ocupados
 
@@ -63,41 +63,6 @@ int main(void) {
 	printf("%d\n", prot->pid);
 	printf("%d\n", prot->tamanio_mensaje);
 	printf("%s\n", prot->mensaje);
-
-
-	/*
-	//Pasaje de mensaje checkpoint 1
-	char package[PACKAGESIZE];
-	int status = 1;
-
-	while (status) {
-		status = recv(socketMemoria, (void*) package, PACKAGESIZE, 0);
-		if (status)
-			printf("%s", package);
-	}
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
