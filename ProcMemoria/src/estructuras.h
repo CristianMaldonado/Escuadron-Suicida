@@ -22,12 +22,11 @@ typedef struct {
 
 // estructura para leer el protocolo desde el cpu a la memoria
 typedef struct {
-	char codOp;
+	char cod_op;
 	int pid;
 	int paginas;
 	int tamanio_mensaje;
 	char* mensaje;
-}
-tProtocolo_Cpu_Memoria;
+} tprotocolo;
 
 #endif /* SRC_ESTRUCTURAS_H_ */

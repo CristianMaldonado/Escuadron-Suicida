@@ -8,7 +8,9 @@
 
 #define PACKAGESIZE 30
 
-void des_serializar_cpu(void* buffer, tProtocolo_Cpu_Memoria *paquete_Desde_Cpu);
+void des_serializar_cpu(void* buffer, tprotocolo *paquete_Desde_Cpu);
+void armar_estructura(tprotocolo *protocolo, char cod_op, int pid, int paginas, char* mensaje);
+void* serializar_a_swap(tprotocolo *protocolo);
 
 
 int main(void) {
@@ -59,37 +61,33 @@ int main(void) {
 */
 	//mock serializado desde la cpu /////////////////////////////////////////////////////
 
-	tProtocolo_Cpu_Memoria mock_protcolo;
+	char *mensaje = "holaChe";
+	tprotocolo mock_protcolo;
+	armar_estructura(&mock_protcolo,'e',2,1, mensaje);
 
-	char* auxMsj = "holaChe";
+	void* buffer = malloc(13 + strlen(mensaje));
+	buffer = serializar_a_swap(&mock_protcolo);
 
-	mock_protcolo.codOp = 'e';
-	mock_protcolo.pid = 2;
-	mock_protcolo.paginas = 1;
-	mock_protcolo.mensaje = malloc(7 + 1);
-	strcpy(mock_protcolo.mensaje, auxMsj);
-	mock_protcolo.tamanio_mensaje = strlen(mock_protcolo.mensaje) +1;
+	// deserializo desde la cpu y lo meto en una struct
 
-
-	// convierto este struct en un stream
-	size_t messageLength = strlen(auxMsj);
-	void * buffer = malloc(13 + messageLength);
-	memcpy(buffer, &(mock_protcolo.codOp), 1);
-	memcpy(buffer + 1, &(mock_protcolo.pid), 4);
-	memcpy(buffer + 5, &(mock_protcolo.paginas), 4);
-	memcpy(buffer + 9, &messageLength, 4);
-	memcpy(buffer + 13, auxMsj, messageLength);
-
-	// deserializo desde la cpu
-	tProtocolo_Cpu_Memoria paquete_Desde_Cpu;
+	tprotocolo paquete_Desde_Cpu;
 	des_serializar_cpu(buffer, &paquete_Desde_Cpu);
+	// imprimo para ver si llegaron los datos
+	printf("%d\n", paquete_Desde_Cpu.paginas);
+	printf("%d\n", paquete_Desde_Cpu.pid);
+	printf("%d\n", paquete_Desde_Cpu.tamanio_mensaje);
+	printf("%s\n", paquete_Desde_Cpu.mensaje);
+	printf("%c\n", paquete_Desde_Cpu.cod_op);
+
 	free(paquete_Desde_Cpu.mensaje);
 
+	// ahora tengo que interpretar los mensajes iniciar y leer,
 
 	////////////////////////////////////////////////////////////////////////
 
 	// pasaje de mensaje checkpoint 2
 	// hay que recibir el paquete con el protocolo de cpu a memoria
+	// y reenviarlo al swap
 
 
 	//size_t mensajeLongitud;
@@ -134,10 +132,35 @@ int main(void) {
 }
 
 
-void des_serializar_cpu(void* buffer, tProtocolo_Cpu_Memoria *paquete_Desde_Cpu) {
+
+void armar_estructura(tprotocolo *protocolo, char cod_op, int pid, int paginas, char* mensaje) {
+
+	protocolo->cod_op = cod_op;
+	protocolo->pid = pid;
+	protocolo->paginas = paginas;
+	protocolo->mensaje = malloc(strlen(mensaje) + 1);
+	strcpy(protocolo->mensaje, mensaje);
+	protocolo->tamanio_mensaje = strlen(protocolo->mensaje) +1;
+}
+
+// para usarlo primero uso malloc de la catidad del chorro
+void* serializar_a_swap(tprotocolo *protocolo) {
+
+	size_t messageLength = strlen(protocolo->mensaje);
+	void * chorro = malloc(13 + messageLength);
+	memcpy(chorro, &(protocolo->cod_op), 1);
+	memcpy(chorro + 1, &(protocolo->pid), 4);
+	memcpy(chorro + 5, &(protocolo->paginas), 4);
+	memcpy(chorro + 9, &messageLength, 4);
+	memcpy(chorro + 13, protocolo->mensaje, messageLength);
+	return chorro;
+}
+
+
+void des_serializar_cpu(void* buffer, tprotocolo *paquete_Desde_Cpu) {
 
 	//desde el buffer tomo parte por parte y lo copio en la estructura
-	memcpy(&(paquete_Desde_Cpu->codOp), buffer ,1 );
+	memcpy(&(paquete_Desde_Cpu->cod_op), buffer ,1 );
 	memcpy(&(paquete_Desde_Cpu->pid), buffer + 1, 4);
 	memcpy(&(paquete_Desde_Cpu->paginas), buffer + 5, 4);
 	memcpy(&(paquete_Desde_Cpu->tamanio_mensaje), buffer + 9, 4);
@@ -145,7 +168,6 @@ void des_serializar_cpu(void* buffer, tProtocolo_Cpu_Memoria *paquete_Desde_Cpu)
 	paquete_Desde_Cpu->mensaje = malloc(paquete_Desde_Cpu->tamanio_mensaje + 1);
 	memcpy(paquete_Desde_Cpu->mensaje, buffer + 13, paquete_Desde_Cpu->tamanio_mensaje);
 	paquete_Desde_Cpu->mensaje[paquete_Desde_Cpu->tamanio_mensaje] = '\0';
-
 }
 
 
