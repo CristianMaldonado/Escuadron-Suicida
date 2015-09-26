@@ -164,20 +164,23 @@ int main(void) {
 	// loguea conexion con Memoria
 	//log_info(logSwap, "Conectado a la memoria");
 
-	while(true){
+	tprotocolo_memoria_swap *prot;
+	recibir_paquete_desde_memoria(socketMemoria, prot);
+	printf("%d", prot->pid);
 
-		tprotocolo_memoria_swap *prot = NULL;
-		recibir_paquete_desde_memoria(socketMemoria, prot);
+	/*while(true){
+
+
 
 		switch(prot->codigo_op){
 
-			/*inicializar*/
+			//inicializar
 			case 'i':
 			{
 				int comienzo = dame_si_hay_espacio(lista_vacia, prot->cantidad_pagina, config_swap->tamanioPagina);
 				if (comienzo >= 0){
 
-					/*ocupo espacio*/
+					//ocupo espacio
 					tlista_ocupado ocupado;
 					ocupado.pid = prot->pid;
 					ocupado.comienzo = comienzo;
@@ -188,10 +191,10 @@ int main(void) {
 				{
 					if (espacio_total_disponible(lista_vacia) >= prot->cantidad_pagina){
 
-						/*compactamos*/
+						//compactamos
 						int comienzo = compactar_swap(swap,lista_vacia,lista_ocupado,config_swap->tamanioPagina, config_swap->cantidadPaginas);
 
-						/*ocupo espacio*/
+						//ocupo espacio
 						tlista_ocupado ocupado;
 						ocupado.pid = prot->pid;
 						ocupado.comienzo = comienzo;
@@ -201,7 +204,7 @@ int main(void) {
 					}
 					else
 					{
-						/*le avisamos que explote*/
+						//le avisamos que explote
 					}
 				}
 			}
@@ -209,23 +212,23 @@ int main(void) {
 
 				break;
 
-			/*finalizar*/
+			//finalizar
 			case 'f':
 
 				break;
-			/*leer pagina*/
+			//leer pagina
 			case 'l':
 
 				break;
-			/*escribir pagina*/
+			//escribir pagina
 			case 'e':
-
+			{printf("hola\n");}
 				break;
 		}
 	}
 
 
-
+*/
 	printf("Finalizo el planificador...\n");
 
 	close(serverSocket);
