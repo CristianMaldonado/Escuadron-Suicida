@@ -8,6 +8,7 @@
 #include "paquetes.h"
 #include <sys/types.h>
 #include <sys/socket.h>
+#include "config.h"
 
 
 #define PACKAGESIZE 30
