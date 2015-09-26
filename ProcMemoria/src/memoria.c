@@ -6,6 +6,9 @@
 #include "estructuras.h"
 #include <string.h>
 #include "paquetes.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+
 
 #define PACKAGESIZE 30
 

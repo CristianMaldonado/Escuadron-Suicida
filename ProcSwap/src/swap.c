@@ -7,6 +7,9 @@
 #include "estructuras.h"
 #include "paquetes.h"
 #include <stdbool.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
 
 #define PACKAGESIZE 30
 
@@ -118,7 +121,7 @@ int compactar_swap(FILE * swap, t_list* lista_vacia, t_list* lista_ocupada,int t
 */
 int main(void) {
 	system("clear");
-
+/*
 	tconfig_swap* config_swap = leerConfiguracion();
 
 	//iniciamos en cero el archivo swap
@@ -132,7 +135,7 @@ int main(void) {
 	vacio.comienzo = 0;
 	vacio.paginas_ocupadas = config_swap->cantidadPaginas;
 	list_add(lista_vacia, (void*)&vacio);
-
+*/
 
 
 	//creacion de la instancia de log
@@ -164,11 +167,12 @@ int main(void) {
 	// loguea conexion con Memoria
 	//log_info(logSwap, "Conectado a la memoria");
 
-	tprotocolo_memoria_swap *prot;
+	tprotocolo_memoria_swap *prot = malloc(sizeof(tprotocolo_memoria_swap));
 	recibir_paquete_desde_memoria(&socketMemoria, prot);
 	printf("%d\n", prot->pid);
 	printf("%s\n", prot->mensaje);
 	free(prot->mensaje);
+	free(prot);
 
 	/*while(true){
 
@@ -238,7 +242,7 @@ int main(void) {
 	close(socketMemoria);
 	//log_info(logSwap, "Cerrada conexion con memoria");
 
-	fclose(swap);
+	//fclose(swap);
 
 	return 0;
 }
