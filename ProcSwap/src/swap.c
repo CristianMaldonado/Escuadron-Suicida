@@ -167,12 +167,12 @@ int main(void) {
 	// loguea conexion con Memoria
 	//log_info(logSwap, "Conectado a la memoria");
 
-	tprotocolo_memoria_swap *prot = malloc(sizeof(tprotocolo_memoria_swap));
-	recibir_paquete_desde_memoria(&socketMemoria, prot);
-	printf("%d\n", prot->pid);
-	printf("%s\n", prot->mensaje);
-	free(prot->mensaje);
-	free(prot);
+	tprotocolo_memoria_swap prot;
+	recibir_paquete_desde_memoria(&socketMemoria, &prot);
+	printf("%d\n", prot.pid);
+	printf("%s\n", prot.mensaje);
+	free(prot.mensaje);
+
 
 	/*while(true){
 
