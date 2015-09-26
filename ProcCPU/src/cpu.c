@@ -10,13 +10,17 @@
 
 
 void *procesarInstruccion(void *argumento){
-	tMensajeAMemoria* message;
-	message = (tMensajeAMemoria*)argumento;
+	tParametroHilo* datosParaProcesar;
+	datosParaProcesar = (tParametroHilo*)argumento;
 
 	while(1){
-		sem_wait(&ejecutaInstruccion);
+		sem_wait(&ejecutaInstruccion); //TODO
 		//message=(tMensajeAMemoria*)malloc(sizeof(tMensajeAMemoria));
-		//interpretarInstruccion(message);
+		//funcion leer() que lea el archivo especificado en la ruta (datosParaProcesar.mensajeAPlanificador.mensaje) return instruccion
+		//interpretarInstruccion(instruccion,datosParaProcesar);
+		//char* mensajeParaMemoria=malloc();//////
+		//enviar(&mensajeParaMemoria);
+		//liberar_paquete();
 		//free(message);
 	}
 }
@@ -56,19 +60,22 @@ int main() {
 	// loguea conexion con Memoria
 	log_info(logCpu, "Conectado a la Memoria");
 
-	// crea hilo para ejecutar comandos del planificador
+	// crea hilo para ejecutar comandos del planificador TODO
 	// Lo que recibimos del planificador lo enviamos al hilo
 	//pthread_create(&hilo, &atrib, procesarInstruccion,(void*) parametros);
 	//pthread_attr_init(attr);
-	//while(){
+	//while(){ aca se produce la magia
 	//	revc(socketPlanificador);
+	//	cargo estructura para hilo
+	//	recv(memoria);
+	//	sem_post();
 	//}
 
 	/*Pasaje de mensaje*/
 	char package[PACKAGESIZE];
 	int status = 1;
 
-	while (status != 0) {
+	while (status != 0) { //TODO volar a la mierda
 		status = recv(socketPlanificador, (void*) package, PACKAGESIZE, 0);
 		if (status)
 			send(socketMemoria, package, strlen(package) + 1, 0);

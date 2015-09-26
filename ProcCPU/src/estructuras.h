@@ -33,7 +33,7 @@ typedef struct {
 	int counterProgram;
 	int quantum;
 	int tamanioMensaje;
-	char* mensaje;
+	char* mensaje;//en este caso es la ruta del "mprod"
 } protocolo_planificador_cpu;
 
 
@@ -49,14 +49,9 @@ typedef struct {
 
 typedef struct{
 	int socketMemoria;
-	char* lineaDeProceso;
-	int pid;
-	protocolo_cpu_memoria* paquete;
-}tMensajeAMemoria;
-
-typedef struct{
 	int socketPlanificador;
-    //protocolo cpu a planif
-}tMensajeAPlanificador;
+	protocolo_cpu_memoria* mensajeAMemoria;
+	protocolo_planificador_cpu* mensajeAPlanificador;
+}tParametroHilo;
 
 #endif /* SRC_ESTRUCTURAS_H_ */

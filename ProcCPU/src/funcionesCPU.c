@@ -9,6 +9,7 @@
 #include <commons/error.h>
 #include "estructuras.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include<sys/socket.h>
 
@@ -46,28 +47,25 @@ char* serializarPaquete(protocolo_cpu_memoria* paquete) {
 
 }
 
-void enviar(tMensajeAMemoria* message) {
-	//protocolo_cpu_memoria* paquete = armarPaquete(message->lineaDeProceso);
-	char* empaquetado = serializarPaquete(message->paquete); //TODO : REVISAR ARMAR PAQUETE (PARAM A ENVIAR)
-	send(message->socketMemoria, empaquetado, sizeof(empaquetado), 0);
-	sem_post(&ejecutaInstruccion);
+void enviar(tParametroHilo* message) {
+	char* empaquetado = serializarPaquete(message->mensajeAMemoria);
+	send(message->socketMemoria, empaquetado, string_length(empaquetado)+1, 0);
 }
 
 
-void interpretarInstruccion(tMensajeAMemoria* message) {
+void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar) {
 
-	char** linea = string_n_split(message->lineaDeProceso, 3, " ");
-	if (string_starts_with(message->lineaDeProceso, "iniciar")) {
-		armarPaquete(message->paquete, 'c', 'i', message->pid, atoi(linea[1]),"\0");
-		//enviar(message);
+	char** linea = string_split(instruccion, " ");
+	if (string_starts_with(instruccion, "iniciar")) {
+		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'i', mensajeParaArmar->mensajeAPlanificador->pid, atoi(linea[1]),"\0");
 	}
-	if (string_starts_with(message->lineaDeProceso, "leer")) {
-		enviar(message);
+	if (string_starts_with(instruccion, "leer")) {
+		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'l', mensajeParaArmar->mensajeAPlanificador->pid, atoi(linea[1]),"\0");
 	}
-	//if(string_starts_with(message->lineaDeProceso,"escribir")) { enviar(message); }
-	//if(string_starts_with(message->lineaDeProceso,"entrada-salida")) { enviar(message); }
-	if (string_starts_with(message->lineaDeProceso, "finalizar")) {
-		enviar(message);
+	//if(string_starts_with(message->lineaDeProceso,"escribir")) {  } //TODO cheackpoint 3 supongo
+	//if(string_starts_with(message->lineaDeProceso,"entrada-salida")) { }
+	if (string_starts_with(instruccion, "finalizar")) {
+		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'f', mensajeParaArmar->mensajeAPlanificador->pid, 0,"\0");
 	}
 }
 
@@ -85,6 +83,18 @@ void armarPaquete(protocolo_cpu_memoria* paquete,char tipoProceso, char codOpera
 	//TODO Hacerlo mas genérico con un booleano y cargue la estructura (sin mandar todos los parametros)
 }
 
+char* leerMprod(char* rutaDelMprod, int instructionPointer){//ruta+instruction pointer => leo la linea del ip y la devuelvo
+	char* lineaLeida;//TODO pedir memoria,
+	FILE* archivo = fopen(rutaDelMprod,"r");
+	while(!feof(archivo)){
+
+		//buscar alguna funcion o forma de leer una linea hasta \n (ciclo for?) y usar strcpy
+		//usar esto o podria haber una funcion abrir archivo, leer linea, etc
+	}
+
+	fclose(archivo);
+	return lineaLeida;
+}
 
 void liberar_paquete(char **paquete){
 	free(*paquete);

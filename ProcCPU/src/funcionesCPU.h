@@ -12,10 +12,11 @@
 #include <stdio.h>
 #include "estructuras.h"
 
-void interpretarInstruccion(tMensajeAMemoria* message);
+void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar);
 char* serializarPaquete(protocolo_cpu_memoria* paquete);
-void enviar(tMensajeAMemoria* message);
+void enviar(tParametroHilo* message);
 void armarPaquete(protocolo_cpu_memoria* paquete,char tipoProceso, char codOperacion, int pid, int nroPagina, char* mensaje);
 void liberar_paquete(char **paquete);
+char* leerMprod(char* rutaDelMprod, int instructionPointer);
 
 #endif /* SRC_FUNCIONESCPU_H_ */
