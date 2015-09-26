@@ -15,7 +15,7 @@ typedef struct {
 	int cantidadPaginas;
 	int tamanioPagina;
 	int retardo;
-}  __attribute__((packed)) tconfig_swap;
+}   tconfig_swap;
 
 typedef struct {
 	int pid;

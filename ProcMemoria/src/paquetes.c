@@ -12,6 +12,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <stdbool.h>
 
 
 
@@ -37,32 +38,34 @@ void* serializar_a_swap(tprotocolo_desde_cpu_y_hacia_swap *protocolo) {
 	return chorro;
 }
 
-void recibir_paquete_desde_cpu(int *socket_cpu, tprotocolo_desde_cpu_y_hacia_swap *paquete_desde_cpu) {
+bool recibir_paquete_desde_cpu(int *socket_cpu, tprotocolo_desde_cpu_y_hacia_swap *paquete_desde_cpu) {
 	void* buffer = malloc(13 * sizeof(int));
-	recv(*socket_cpu, buffer, 13, 0);
+	if(recv(*socket_cpu, buffer, 13, 0) <= 0) return false;
 	memcpy(&(paquete_desde_cpu->cod_op), buffer ,1);
 	memcpy(&(paquete_desde_cpu->pid), buffer + 1 ,4);
 	memcpy(&(paquete_desde_cpu->paginas), buffer + 5 ,4);
 	memcpy(&(paquete_desde_cpu->tamanio_mensaje), buffer + 9 ,4);
 	// ahora el mensaje posta
 	paquete_desde_cpu->mensaje = (char*)malloc(paquete_desde_cpu->tamanio_mensaje + 1);
-	recv(*socket_cpu, paquete_desde_cpu->mensaje, paquete_desde_cpu->tamanio_mensaje, 0);
+	if(recv(*socket_cpu, paquete_desde_cpu->mensaje, paquete_desde_cpu->tamanio_mensaje, 0) <= 0) return false;
 	paquete_desde_cpu->mensaje[paquete_desde_cpu->tamanio_mensaje] = '\0';
 	free(buffer);
+	return true;
 }
 
 // usar free() para el mensaje, en la estructura despues de usarlo
-void recibir_paquete_desde_swap(int socket_swap, tprotocolo_swap_memoria *paquete_desde_swap) {
+bool recibir_paquete_desde_swap(int socket_swap, tprotocolo_swap_memoria *paquete_desde_swap) {
 	void* buffer = malloc(9 * sizeof(int));
-	recv(socket_swap, buffer, 9, 0);
+	if(recv(socket_swap, buffer, 9, 0) <= 0) return false;
 	memcpy(&(paquete_desde_swap->pid), buffer, 4);
 	memcpy(&(paquete_desde_swap->error), buffer + 4 ,1);
 	memcpy(&(paquete_desde_swap->tamanio), buffer + 5 ,4);
 	// ahora el mensaje posta
 	paquete_desde_swap->mensaje = (char*)malloc(paquete_desde_swap->tamanio + 1);
-	recv(socket_swap, paquete_desde_swap->mensaje, paquete_desde_swap->tamanio, 0);
+	if(recv(socket_swap, paquete_desde_swap->mensaje, paquete_desde_swap->tamanio, 0) <= 0) return false;
 	paquete_desde_swap->mensaje[paquete_desde_swap->tamanio] = '\0';
 	free(buffer);
+	return true;
 }
 
 // usar free() despues de usar el mensaje en la estructura

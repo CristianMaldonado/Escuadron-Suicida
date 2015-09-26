@@ -10,7 +10,7 @@
 
 FILE * iniciar_archivo_swap(void);
 
-void recibir_paquete_desde_memoria(int *socket_memoria, tprotocolo_memoria_swap *paquete_desde_memoria);
+bool recibir_paquete_desde_memoria(int *socket_memoria, tprotocolo_memoria_swap *paquete_desde_memoria);
 void* serializar_a_memoria(tprotocolo_swap_memoria *protocolo);
 
 

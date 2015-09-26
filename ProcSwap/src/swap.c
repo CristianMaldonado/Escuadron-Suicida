@@ -12,6 +12,7 @@
 #include "config.h"
 
 
+
 int get_comienzo_espacio_asignado(t_list * lista_ocupado, int pid){
 
 	int i;
@@ -139,16 +140,21 @@ int compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,in
 int main(void) {
 	system("clear");
 
-	tconfig_swap* config_swap = leerConfiguracion();
 
-	//iniciamos en cero el archivo swap
-	FILE *swap = iniciar_archivo_swap();
 
 	// inicializamos lista de ocupados
 	t_list * lista_ocupado = list_create();
 	t_list * lista_vacia = list_create();
 
+
 	tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
+
+
+	//iniciamos en cero el archivo swap
+	FILE *swap = iniciar_archivo_swap();
+
+	tconfig_swap* config_swap = leerConfiguracion();
+
 	vacio->comienzo = 0;
 	vacio->paginas_ocupadas = config_swap->cantidadPaginas;
 	list_add(lista_vacia, (void*)vacio);
@@ -184,14 +190,22 @@ int main(void) {
 	// loguea conexion con Memoria
 	//log_info(logSwap, "Conectado a la memoria");
 
-	tprotocolo_memoria_swap prot;
-	recibir_paquete_desde_memoria(&socketMemoria, &prot);
-	printf("%d\n", prot.pid);
-	printf("%s\n", prot.mensaje);
-	free(prot.mensaje);
 
 
-	while(true){
+	int salir = 0;
+
+	while(salir == 0){
+		tprotocolo_memoria_swap prot;
+		if(!recibir_paquete_desde_memoria(&socketMemoria, &prot)) {
+			salir = 1;
+			continue;
+		}
+
+		printf("%c", prot.codigo_op);
+
+
+
+
 
 
 
@@ -209,7 +223,11 @@ int main(void) {
 					ocupado->comienzo = comienzo;
 					ocupado->paginas_ocupadas = prot.cantidad_pagina;
 					list_add(lista_ocupado, (void*)ocupado);
+
+
 				}
+
+
 				else
 				{
 					if (espacio_total_disponible(lista_vacia) >= prot.cantidad_pagina){
@@ -287,6 +305,8 @@ int main(void) {
 			case 'e':
 				break;
 		}
+
+		free(prot.mensaje);
 	}
 
 
@@ -302,7 +322,7 @@ int main(void) {
 	close(socketMemoria);
 	//log_info(logSwap, "Cerrada conexion con memoria");
 
-	//fclose(swap);
+	fclose(swap);
 
 	return 0;
 }

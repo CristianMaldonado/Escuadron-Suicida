@@ -18,7 +18,7 @@ typedef struct {
 	int entradasTLB;
 	char habilitadaTLB;
 	int retardoMemoria;
-}  __attribute__((packed)) tconfig_memoria;
+}   tconfig_memoria;
 
 // estructura para leer el protocolo desde el cpu a la memoria
 typedef struct {
