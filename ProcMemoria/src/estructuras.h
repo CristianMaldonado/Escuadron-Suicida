@@ -27,7 +27,7 @@ typedef struct {
 	int paginas;
 	int tamanio_mensaje;
 	char* mensaje;
-}  __attribute__((packed))  tprotocolo;
+}  __attribute__((packed))  tprotocolo_desde_cpu_y_hacia_swap;
 
 typedef struct {
 	int pid;
@@ -37,6 +37,7 @@ typedef struct {
 }   __attribute__((packed)) tprotocolo_swap_memoria;
 
 typedef struct {
+	char cod_proceso; // siempre una 'm'
 	char cod_op;
 	char cod_aux;
 	int pid;

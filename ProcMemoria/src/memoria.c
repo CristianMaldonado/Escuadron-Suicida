@@ -53,8 +53,8 @@ int main(void) {
 	//mock serializado desde la cpu /////////////////////////////////////////////////////
 
 	char *mensaje = "holaChe";
-	tprotocolo mock_protcolo;
-	armar_estructura_protocolo(&mock_protcolo,'e',2,1, mensaje);
+	tprotocolo_desde_cpu_y_hacia_swap mock_protcolo;
+	armar_estructura_desde_cpu_y_hacia_swap(&mock_protcolo,'e',2,1, mensaje);
 
 	void* buffer = malloc(13 + strlen(mensaje));
 	buffer = serializar_a_swap(&mock_protcolo);
@@ -66,8 +66,9 @@ int main(void) {
 
 
 
-// pasaje de mensaje prueba envio del chorrro al swap
-		send(socketClienteSWAP, buffer, 13 + strlen(mensaje), 0);
+	// pasaje de mensaje prueba envio del chorrro al swap
+	send(socketClienteSWAP, buffer, 13 + strlen(mensaje), 0);
+	free(buffer);
 
 ////////////////////
 

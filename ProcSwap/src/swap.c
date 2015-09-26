@@ -10,7 +10,7 @@
 
 #define PACKAGESIZE 30
 
-
+/*
 int dame_si_hay_espacio(t_list* lista_vacia, int paginas_pedidas, int tamanio_pagina){
 
 	int i;
@@ -21,10 +21,10 @@ int dame_si_hay_espacio(t_list* lista_vacia, int paginas_pedidas, int tamanio_pa
 
 		if (aux->paginas_ocupadas >= paginas_pedidas){
 
-			/*actualizar el hueco vacio*/
+			//actualizar el hueco vacio
 			list_remove(lista_vacia, i);
 
-			/*si sigue existiendo un hueco*/
+			//si sigue existiendo un hueco
 			if (aux->paginas_ocupadas > paginas_pedidas){
 
 				aux->comienzo += paginas_pedidas;
@@ -69,7 +69,7 @@ int compactar_swap(FILE * swap, t_list* lista_vacia, t_list* lista_ocupada,int t
 		data->tamanio = elem->paginas_ocupadas*tamanio_pagina;//en bytes
 		data->buffer = (char*)malloc(data->tamanio);
 
-		/*leemos los datos*/
+		//leemos los datos
 		fseek(swap,SEEK_SET,elem->comienzo*tamanio_pagina);
 		fread(data->buffer, data->tamanio,1, swap);
 
@@ -77,7 +77,7 @@ int compactar_swap(FILE * swap, t_list* lista_vacia, t_list* lista_ocupada,int t
 	}
 	///////////////////////////////////////////////////////////////////////////////////77
 
-	/*reiniciar swap*/
+	//reiniciar swap
 	fclose(swap);
 	swap = iniciar_archivo_swap();
 	fseek(swap, SEEK_SET, 0);
@@ -115,7 +115,7 @@ int compactar_swap(FILE * swap, t_list* lista_vacia, t_list* lista_ocupada,int t
 
 	return vacio.comienzo;
 }
-
+*/
 int main(void) {
 	system("clear");
 
@@ -165,8 +165,10 @@ int main(void) {
 	//log_info(logSwap, "Conectado a la memoria");
 
 	tprotocolo_memoria_swap *prot;
-	recibir_paquete_desde_memoria(socketMemoria, prot);
-	printf("%d", prot->pid);
+	recibir_paquete_desde_memoria(&socketMemoria, prot);
+	printf("%d\n", prot->pid);
+	printf("%s\n", prot->mensaje);
+	free(prot->mensaje);
 
 	/*while(true){
 
@@ -222,7 +224,6 @@ int main(void) {
 				break;
 			//escribir pagina
 			case 'e':
-			{printf("hola\n");}
 				break;
 		}
 	}
