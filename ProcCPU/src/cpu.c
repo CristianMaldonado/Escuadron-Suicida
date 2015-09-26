@@ -5,7 +5,6 @@
 #include <commons/log.h>
 #include "estructuras.h"
 #include "funcionesCPU.h"
-#include "serializacion.h"
 
 #define PACKAGESIZE 30
 
@@ -18,47 +17,9 @@ void *procesarInstruccion(void *argumento){
 		sem_wait(&ejecutaInstruccion);
 		//message=(tMensajeAMemoria*)malloc(sizeof(tMensajeAMemoria));
 		//interpretarInstruccion(message);
+		//free(message);
 	}
 }
-// la funcion que procesa el hilo
-/*void* procesarInstruccion(void* arg){
-
-	string_n_split(linea, 3, " ");
-	while (1){
-		sem_wait(&ejecutaInstruccion);
-		swith(instruccion){
-			case 1:
-				armarPaquete(&paquete, 'i', '\0', pid, linea[1], '\0');
-				serializar(&paquete);
-				//send(socketMemoria, paquete, sizeof(paquete), 0); paquete es tipo estructura hay que serializar
-				break;
-			case 2:
-				armarPaquete(&paquete, 'l', '\0', pid, linea[1], '\0');
-				serializar(&paquete);
-				//send(socketMemoria, paquete, sizeof(paquete), 0); paquete es tipo estructura hay que serializar
-				break;
-			case 3:
-				armarPaquete(&paquete, 'e', '\0', pid, linea[1], '\0');
-				serializar(&paquete);
-				//send(socketMemoria, paquete, sizeof(paquete), 0); paquete es tipo estructura hay que serializar
-				break;
-			case 4:
-				armarPaquete(&paquete, 'i', '\0', pid, linea[1], '\0');
-				serializar(&paquete);
-				//send(socketMemoria, paquete, sizeof(paquete), 0); paquete es tipo estructura hay que serializar
-				break;
-			case 5:
-				armarPaquete(&paquete, 'f', '\0', pid, 0, '\0');
-				serializar(&paquete);
-				//send(socketMemoria, paquete, sizeof(paquete), 0); paquete es tipo estructura hay que serializar
-				break;
-			default:
-				error_show("Archivo dañado / linea imposible de interpretar");
-				break;
-		}
-
-	}
-}*/
 
 
 int main() {
@@ -66,7 +27,6 @@ int main() {
 
 	pthread_t hilo;
 	pthread_attr_t attr;
-	int id_instruccion;
 	sem_init(&ejecutaInstruccion,0,0);
 
 // creacion de la instancia de log
@@ -97,11 +57,11 @@ int main() {
 	log_info(logCpu, "Conectado a la Memoria");
 
 	// crea hilo para ejecutar comandos del planificador
+	// Lo que recibimos del planificador lo enviamos al hilo
 	//pthread_create(&hilo, &atrib, procesarInstruccion,(void*) parametros);
 	//pthread_attr_init(attr);
 	//while(){
 	//	revc(socketPlanificador);
-	//	id_instruccion = interpretarInstruccion(instruccion);
 	//}
 
 	/*Pasaje de mensaje*/

@@ -13,11 +13,9 @@
 #include "estructuras.h"
 
 void interpretarInstruccion(tMensajeAMemoria* message);
-void armarPaquete(protocolo_cpu_memoria* aux, char codOperacion, char codAux,int pid, int nroPagina, char* mensaje);
-void processKill(tMensajeAMemoria* message);
-void tenesQueEsperar(tMensajeAMemoria* message);
-void leerTexto(tMensajeAMemoria* message);
-void pedirMemoria(tMensajeAMemoria* message);
-void leerPagina(tMensajeAMemoria* message);
+char* serializarPaquete(protocolo_cpu_memoria* paquete);
+void enviar(tMensajeAMemoria* message);
+void armarPaquete(protocolo_cpu_memoria* paquete,char tipoProceso, char codOperacion, int pid, int nroPagina, char* mensaje);
+void liberar_paquete(char **paquete);
 
 #endif /* SRC_FUNCIONESCPU_H_ */

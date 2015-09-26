@@ -11,6 +11,10 @@
 #include <semaphore.h>
 sem_t ejecutaInstruccion;
 
+typedef enum {
+	LISTO, IO, EJECUTANDO, FINALIZADO
+}testado;
+
 typedef struct {
 	char* ipPlanificador;
 	char* puertoPlanificador;
@@ -23,29 +27,36 @@ typedef struct {
 
 typedef struct {
 	char tipoProceso;
-	char tipoMensaje;
-	enum estado;
+	char tipoOperacion;
+	testado estado;
 	int pid;
-	int siguiente;
+	int counterProgram;
 	int quantum;
 	int tamanioMensaje;
 	char* mensaje;
-} protocolo_planificador_cpu;                            //TODO: REVISARRR
+} protocolo_planificador_cpu;
+
 
 typedef struct {
-	char codOperacion;
-	char codAux;
+	char tipoProceso;
+	char tipoOperacion;
+	//char codAux;
 	int pid;
 	int nroPagina;
-	int tamanio; //Agregado el tamaño del mensaje
+	int tamanioMensaje;
 	char* mensaje;
 } protocolo_cpu_memoria;
 
 typedef struct{
 	int socketMemoria;
-	int socketPlanificador;
 	char* lineaDeProceso;
-	protocolo_cpu_memoria paquete;
+	int pid;
+	protocolo_cpu_memoria* paquete;
 }tMensajeAMemoria;
+
+typedef struct{
+	int socketPlanificador;
+    //protocolo cpu a planif
+}tMensajeAPlanificador;
 
 #endif /* SRC_ESTRUCTURAS_H_ */
