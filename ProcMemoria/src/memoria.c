@@ -72,11 +72,16 @@ int main(void) {
 
 
 	// pasaje de mensaje prueba envio del chorrro al swap
-	send(socketClienteSWAP, buffer, 13 + strlen(mensaje), 0);
+
+	int enviar = 1;
+	while(enviar){
+		scanf("%d", &enviar);
+		if (enviar)
+			send(socketClienteSWAP, buffer, strlen(mensaje) + 13, 0);
+	}
 	free(buffer);
 
 ////////////////////
-
 
 
 

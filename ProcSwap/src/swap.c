@@ -140,6 +140,7 @@ int compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,in
 int main(void) {
 	system("clear");
 
+	tconfig_swap* config_swap = leerConfiguracion();
 
 
 	// inicializamos lista de ocupados
@@ -153,12 +154,9 @@ int main(void) {
 	//iniciamos en cero el archivo swap
 	FILE *swap = iniciar_archivo_swap();
 
-	tconfig_swap* config_swap = leerConfiguracion();
-
 	vacio->comienzo = 0;
 	vacio->paginas_ocupadas = config_swap->cantidadPaginas;
 	list_add(lista_vacia, (void*)vacio);
-
 
 
 	//creacion de la instancia de log
@@ -174,7 +172,7 @@ int main(void) {
 
 
 
-	/*Crea el socket para escuchar*/
+	//Crea el socket para escuchar
 	int serverSocket;
 	server_init(&serverSocket, "4141");
 	printf("SWAP listo...\n");
@@ -191,19 +189,16 @@ int main(void) {
 	//log_info(logSwap, "Conectado a la memoria");
 
 
-
+	tprotocolo_memoria_swap prot;
 	int salir = 0;
+	while(!salir){
 
-	while(salir == 0){
-		tprotocolo_memoria_swap prot;
-		if(!recibir_paquete_desde_memoria(&socketMemoria, &prot)) {
+		if(recibir_paquete_desde_memoria(&socketMemoria, &prot))
+			// para probar si recibe
+			printf("%s\n", prot.mensaje);
+		else
+			// si no recibe termina el swap
 			salir = 1;
-			continue;
-		}
-
-		printf("%c", prot.codigo_op);
-
-
 
 
 
@@ -265,10 +260,10 @@ int main(void) {
 
 					if (espacio_ocupado->pid == prot.pid){
 
-						/*saco espacio de lista ocupado*/
+						//saco espacio de lista ocupado
 						list_remove(lista_ocupado, i);
 
-						/*agrego a la lista vacia el espacio que voy a liberar*/
+						//agrego a la lista vacia el espacio que voy a liberar
 						tlista_vacio * espacio_vacio = malloc(sizeof(tlista_vacio));
 						espacio_vacio->comienzo = espacio_ocupado->comienzo;
 						espacio_vacio->paginas_ocupadas = espacio_ocupado->paginas_ocupadas;
@@ -285,10 +280,10 @@ int main(void) {
 
 			{
 				int pag_inicio = get_comienzo_espacio_asignado(lista_ocupado, prot.pid);
-				/*indica la pagina a leer*/
+				//indica la pagina a leer
 				int pag_leer = prot.cantidad_pagina;
 
-				/*me posiciono sobre la pagina a leer*/
+				//me posiciono sobre la pagina a leer
 				int desplazamiento_en_bytes = (pag_inicio + pag_leer)*config_swap->tamanioPagina;
 				fseek(swap, SEEK_SET, desplazamiento_en_bytes);
 
