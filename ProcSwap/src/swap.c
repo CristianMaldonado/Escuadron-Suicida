@@ -16,73 +16,56 @@
 
 //devuelve la posicion del espacio libre disponible
 int compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,int tamanio_pagina, int total_de_paginas){
-
 	t_list *lista_aux = list_create();
-
-	///////////////////////////////////////////////////////////////////////////////////
 	//pasamos los datos a una lista
+	int count = 0;
 	while (!list_is_empty(*lista_ocupada)){
-
-		tlista_ocupado *elem;
-		elem = (void*)list_remove(*lista_ocupada, 0);
-
-		tdatos_paginas *data = (tdatos_paginas*)malloc(sizeof (tdatos_paginas));
-
+		tlista_ocupado *elem = malloc(sizeof(tlista_ocupado));
+		elem = list_remove(*lista_ocupada, count);
+		tdatos_paginas *data = malloc(sizeof(tdatos_paginas));
 		data->pid = elem->pid;
 		data->tamanio = elem->paginas_ocupadas*tamanio_pagina;//en bytes
-		data->buffer = (char*)malloc(data->tamanio);
-
+		data->buffer = (char*)malloc(data->tamanio);// puede haber igual o menor del tamanio
 		//leemos los datos
 		fseek(*swap,SEEK_SET,elem->comienzo*tamanio_pagina);
-		fread(data->buffer, data->tamanio,1, *swap);
-
+		fread(data->buffer, sizeof(char), tamanio_pagina*elem->paginas_ocupadas , *swap); // lee y guarda en buffer pero tiene ceros al final
 		list_add(lista_aux,data);
+		count++;
 	}
-	///////////////////////////////////////////////////////////////////////////////////
-
 	//reiniciar swap
 	fclose(*swap);
 	*swap = iniciar_archivo_swap();
-	fseek(*swap, SEEK_SET, 0);
 	list_destroy_and_destroy_elements(*lista_ocupada, free);
-
-	///////////////////////////////////////////////////////////////////////////////////
 	//compactamos la swap
 	int cont_pagina = 0;
+	int nodo_lista_aux = 0;
 	while (!list_is_empty(lista_aux)){
-
-		tdatos_paginas *elem;
-		elem = (void*)list_remove(lista_aux, 0);
-
+		tdatos_paginas *elem = malloc(sizeof(tdatos_paginas));
+		elem = list_remove(lista_aux, nodo_lista_aux);
 		fwrite(elem->buffer, elem->tamanio, 1, *swap);
-
 		//actualizamos lista ocupada
 		tlista_ocupado *elem_ocupada = malloc(sizeof (tlista_ocupado));
 		elem_ocupada->pid = elem->pid;
 		elem_ocupada->comienzo = cont_pagina;
-		elem_ocupada->paginas_ocupadas = elem->tamanio/tamanio_pagina;
+		elem_ocupada->paginas_ocupadas = (int)elem->tamanio/tamanio_pagina;
 		cont_pagina += elem_ocupada->paginas_ocupadas;
-
-		list_add(*lista_ocupada,elem_ocupada);
+		list_add(*lista_ocupada, elem_ocupada);
+		nodo_lista_aux++;
 	}
-
 	list_destroy_and_destroy_elements(lista_aux, free);
-	///////////////////////////////////////////////////////////////////////////////////
 	//actualizar lista vacia
 	list_destroy_and_destroy_elements(*lista_vacia, free);
-
 	tlista_vacio *vacio = malloc(sizeof(lista_vacia));
 	vacio->comienzo = ftell(*swap)/tamanio_pagina;
 	vacio->paginas_vacias = total_de_paginas - vacio->comienzo;
-	list_add(*lista_vacia, (void*)vacio);
-
+	list_add(*lista_vacia, vacio);
 	return vacio->comienzo;
 }
 
 int main(void) {
 
 
-	tconfig_swap* config_swap = leerConfiguracion();
+ 	//tconfig_swap* config_swap = leerConfiguracion();
 
 	// inicializamos lista de ocupados
 	t_list * lista_ocupado = list_create();
@@ -91,7 +74,16 @@ int main(void) {
 	//tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
 
 	//iniciamos en cero el archivo swap
-	FILE *swap = iniciar_archivo_swap();
+	//FILE *swap = iniciar_archivo_swap();
+
+	FILE *swap = fopen("swap.txt", "r");
+
+	char l[36];
+	fread(l, sizeof(char), 36, swap);
+	printf("%s\n\n", l);
+
+	printf("\n\nespacio\n\n");
+
 
 	//iniciamos la lista de paginas vacias
 	//vacio->comienzo = 0;
@@ -139,19 +131,67 @@ int main(void) {
 		tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
 */
 
+
+	// armo lista test vacio
 	tlista_vacio *vacio1 = malloc(sizeof(tlista_vacio));
 	tlista_vacio *vacio2 = malloc(sizeof(tlista_vacio));
 
 	vacio1->comienzo = 3;
-	vacio1->paginas_vacias = 0;
+	vacio1->paginas_vacias = 3;
 	vacio2->comienzo = 9;
-	vacio2->paginas_vacias = 0;
+	vacio2->paginas_vacias = 1;
 
 	list_add(lista_vacia, vacio1);
 	list_add(lista_vacia, vacio2);
 
 	int aux = espacio_total_disponible(lista_vacia);
-	printf("total disponible de paginas: %d\n", aux);
+	//printf("total disponible de paginas: %d\n", aux);
+
+
+	// armo lista test ocupado
+	tlista_ocupado *nodo1 = malloc(sizeof(tlista_ocupado));
+		nodo1->pid = 1;
+		nodo1->comienzo = 0;
+		nodo1->paginas_ocupadas = 2;
+		tlista_ocupado *nodo2 = malloc(sizeof(tlista_ocupado));
+		nodo2->pid = 2;
+		nodo2->comienzo = 2;
+		nodo2->paginas_ocupadas = 1;
+		tlista_ocupado *nodo3 = malloc(sizeof(tlista_ocupado));
+		nodo3->pid = 3;
+		nodo3->comienzo = 7;
+		nodo3->paginas_ocupadas = 2;
+
+		list_add(lista_ocupado, nodo1);
+		list_add(lista_ocupado, nodo2);
+		list_add(lista_ocupado, nodo3);
+
+		//printf("%d\n", list_size(lista_ocupado));
+		tlista_ocupado *oc = malloc(sizeof(tlista_ocupado));
+		oc = list_get(lista_ocupado, 0);
+		//printf("%d\n", oc->comienzo);
+
+		int resultado_de_get = get_comienzo_espacio_asignado(lista_ocupado, 4);
+		//printf("comienzo con el pid 2 : %d\n", resultado_de_get);
+
+
+
+		// compacto
+		compactar_swap(&swap, &lista_vacia, &lista_ocupado, 4, 9);
+
+
+
+
+
+
+		char m[40];
+		fseek(swap, 0l, SEEK_SET);
+		fread(m, sizeof(char), 40, swap);
+			printf("\n%s\n", l);
+
+
+
+
 
 
 
@@ -343,7 +383,7 @@ int main(void) {
 	//log_info(logSwap, "Cerrada conexion con memoria");
 
 	fclose(swap);
-	free(config_swap);
+	//free(config_swap);
 
 	return 0;
 }
