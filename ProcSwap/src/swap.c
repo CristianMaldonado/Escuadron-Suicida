@@ -343,6 +343,7 @@ int main(void) {
 	//log_info(logSwap, "Cerrada conexion con memoria");
 
 	fclose(swap);
+	free(config_swap);
 
 	return 0;
 }

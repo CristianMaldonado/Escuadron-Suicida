@@ -19,9 +19,10 @@ FILE* iniciar_archivo_swap(void) {
 	FILE* swap = fopen(config_swap->nombreSwap, "w+");
 	size_t tamanio_swap = config_swap->tamanioPagina * config_swap->cantidadPaginas;
 	// rellenamos en cero (char '/0' es 0)
-	int i ; char cero = 0;
+	int i ;
+	char cero[] = "0";
 	for (i = 0 ; i < tamanio_swap; i++)
-		fwrite(&cero, sizeof(cero), 1, swap);
+		fwrite(cero, sizeof(char), 1, swap);
 	return swap;
 }
 
