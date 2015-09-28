@@ -3,24 +3,37 @@
 #include "../../lib/libSocket.h"
 #include <commons/config.h>
 #include <commons/log.h>
+#include <commons/process.h>
 #include "estructuras.h"
 #include "funcionesCPU.h"
-
-#define PACKAGESIZE 30
 
 
 void *procesarInstruccion(void *argumento){
 	tParametroHilo* datosParaProcesar;
 	datosParaProcesar = (tParametroHilo*)argumento;
+	int tid = process_get_thread_id();
+
+	//LOGUEO DE CONEXION CON MEMORIA ---------> TODO PREGUNTAR POR LOG_TRACE
+	char* log=(char*)malloc(4);//malloc(2)----> NO PRESTES ATENCION A ESTOS MALLOC CON NUMERO ES PARA GUIARME SI A UN MALLOC LE TIRO UN FREE
+	strcpy(log,"CPU ");
+	string_append(&log,string_itoa(tid));
+	if(datosParaProcesar->socketMemoria == -1){
+		string_append(&log," falló al conectar con Memoria");
+		log_info(logCpu, log);
+	}
+	else{
+		string_append(&log," conectado a la Memoria");
+		log_info(logCpu, log);
+	}
+	free(log);//malloc(2)----> NO PRESTES ATENCION A ESTOS MALLOC CON NUMERO ES PARA GUIARME SI A UN MALLOC LE TIRO UN FREE
 
 	while(1){
 		sem_wait(&ejecutaInstruccion); //TODO
-		//message=(tMensajeAMemoria*)malloc(sizeof(tMensajeAMemoria));
-		//funcion leer() que lea el archivo especificado en la ruta (datosParaProcesar.mensajeAPlanificador.mensaje) return instruccion
+		//funcion leer() que lea el archivo especificado en la ruta (datosParaProcesar.mensajeAPlanificador.mensaje)
+		//return instruccion
 		//interpretarInstruccion(instruccion,datosParaProcesar);
 		//char* mensajeParaMemoria=malloc();//////
 		//enviar(&mensajeParaMemoria);
-		//liberar_paquete();
 		//free(message);
 	}
 }
@@ -29,13 +42,8 @@ void *procesarInstruccion(void *argumento){
 int main() {
 	system("clear");
 
-	pthread_t hilo;
-	pthread_attr_t attr;
-	sem_init(&ejecutaInstruccion,0,0);
-
-// creacion de la instancia de log
-	t_log *logCpu = log_create("../src/log.txt", "cpu.c", false,
-			LOG_LEVEL_INFO);
+	// creacion de la instancia de log
+	logCpu = log_create("../src/log.txt", "cpu.c", false,LOG_LEVEL_INFO);
 
 	tipoConfiguracionCPU *config = leerConfiguracion();
 
@@ -48,7 +56,8 @@ int main() {
 	printf("OK\n");
 
 	//loguea conexion con Planificador
-	log_info(logCpu, "Conectado al Planificador");
+	if(socketPlanificador == -1){log_info(logCpu, "Fallo al conectar con Planificador");}
+	else{log_info(logCpu, "Conectado al Planificador");}
 
 	/*Inicia el Socket para conectarse con la Memoria*/
 	int socketMemoria;
@@ -57,30 +66,28 @@ int main() {
 	client_init(&socketMemoria, config->ipMemoria, config->puertoMemoria);
 	printf("OK\n");
 
-	// loguea conexion con Memoria
-	log_info(logCpu, "Conectado a la Memoria");
+	//loguea conexion con Memoria
+	//if(socketMemoria == -1){log_info(logCpu, "Fallo al conectar con Memoria");}
+	//else{log_info(logCpu, "Conectado a la Memoria");}
 
-	// crea hilo para ejecutar comandos del planificador TODO
+	//Hilo
+	pthread_t hilo;
+	pthread_attr_t atrib;
+	sem_init(&ejecutaInstruccion,0,0);
+	tParametroHilo* parametros;
+
 	// Lo que recibimos del planificador lo enviamos al hilo
-	//pthread_create(&hilo, &atrib, procesarInstruccion,(void*) parametros);
-	//pthread_attr_init(attr);
-	//while(){ aca se produce la magia
-	//	revc(socketPlanificador);
-	//	cargo estructura para hilo
-	//	recv(memoria);
-	//	sem_post();
-	//}
+	pthread_attr_init(&atrib);
+	pthread_create(&hilo, &atrib, procesarInstruccion,(void*) parametros);
 
-	/*Pasaje de mensaje*/
-	char package[PACKAGESIZE];
+	protocolo_planificador_cpu package;
 	int status = 1;
 
-	while (status != 0) { //TODO volar a la mierda
-		status = recv(socketPlanificador, (void*) package, PACKAGESIZE, 0);
-		if (status)
-			send(socketMemoria, package, strlen(package) + 1, 0);
-		if (status)
-			printf("%s", package);
+	while (status != 0) {
+		status = recivir_deserializar(&package,socketPlanificador);
+		logueoRecepcionDePlanif(&package);
+		cargarParametrosHilo(socketPlanificador,socketMemoria,&package,parametros);//puntero al paquqete deserializado?
+		sem_post(&ejecutaInstruccion);
 	}
 
 	printf("Finalizo el planificador...\n");

@@ -11,9 +11,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include<sys/socket.h>
+#include <sys/socket.h>
 
-char* serializarPaquete(protocolo_cpu_memoria* paquete) {
+void liberar_paquete(char **paquete){
+	free(*paquete);
+}
+
+char* serializarPaquete(protocolo_cpu_memoria* paquete) {//malloc(1)
 	char* paqueteSerializado = malloc(sizeof(paquete));
 	int offset = 0;
 	int size_to_send;
@@ -47,11 +51,41 @@ char* serializarPaquete(protocolo_cpu_memoria* paquete) {
 
 }
 
+int recivir_deserializar(protocolo_planificador_cpu *package, int socketPlanificador){//TODO deserializar mensaje de planificador
+	int status;/*
+	int buffer_size;
+	char *buffer = malloc(buffer_size = sizeof(uint32_t));
+
+	uint32_t username_long;
+
+	status = recv(socketPlanificador, buffer, sizeof(package->tipoProceso), 0);
+
+	memcpy(&(username_long), buffer, buffer_size);
+
+	if (!status) return 0;
+	status = recv(socketPlanificador, package->tipoOperacion, username_long, 0);
+    if (!status) return 0;
+
+    uint32_t message_long;
+
+    status = recv(socketPlanificador, buffer, sizeof(package->tamanioMensaje), 0);
+
+    memcpy(&(message_long), buffer, buffer_size);
+
+    if (!status) return 0;
+
+    status = recv(socketPlanificador, package->mensaje, message_long, 0);
+
+    if (!status) return 0;
+    free(buffer);*/
+    return status;
+}
+
 void enviar(tParametroHilo* message) {
 	char* empaquetado = serializarPaquete(message->mensajeAMemoria);
 	send(message->socketMemoria, empaquetado, string_length(empaquetado)+1, 0);
+	liberar_paquete(&empaquetado);//free(1)
 }
-
 
 void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar) {
 
@@ -69,7 +103,6 @@ void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar)
 	}
 }
 
-
 //MODIFICAR ARMAR PAQUETE PARAMETROS
 void armarPaquete(protocolo_cpu_memoria* paquete,char tipoProceso, char codOperacion, int pid, int nroPagina, char* mensaje) {
 
@@ -86,6 +119,7 @@ void armarPaquete(protocolo_cpu_memoria* paquete,char tipoProceso, char codOpera
 char* leerMprod(char* rutaDelMprod, int instructionPointer){//ruta+instruction pointer => leo la linea del ip y la devuelvo
 	char* lineaLeida;//TODO pedir memoria,
 	FILE* archivo = fopen(rutaDelMprod,"r");
+	fseek(archivo,instructionPointer,SEEK_CUR);
 	while(!feof(archivo)){
 
 		//buscar alguna funcion o forma de leer una linea hasta \n (ciclo for?) y usar strcpy
@@ -96,6 +130,59 @@ char* leerMprod(char* rutaDelMprod, int instructionPointer){//ruta+instruction p
 	return lineaLeida;
 }
 
-void liberar_paquete(char **paquete){
-	free(*paquete);
+void cargarParametrosHilo(int socketPlanificador,int socketMemoria,protocolo_planificador_cpu* mensajeDePlanif,tParametroHilo* parametros){
+
+	parametros->socketMemoria = socketMemoria;
+	parametros->socketPlanificador = socketPlanificador;
+	parametros->mensajeAPlanificador->tipoProceso = mensajeDePlanif->tipoProceso;
+	parametros->mensajeAPlanificador->tipoOperacion = mensajeDePlanif->tipoOperacion;
+	parametros->mensajeAPlanificador->estado = mensajeDePlanif->estado;
+	parametros->mensajeAPlanificador->counterProgram = mensajeDePlanif->counterProgram;
+	parametros->mensajeAPlanificador->quantum = mensajeDePlanif->quantum;
+	parametros->mensajeAPlanificador->tamanioMensaje = mensajeDePlanif->tamanioMensaje;
+	strcpy(parametros->mensajeAPlanificador->mensaje,mensajeDePlanif->mensaje);
 }
+
+
+void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion){
+	char* logueoContexto=malloc(37);
+	char* estado=malloc(sizeof(testado));
+	if(contextoDeEjecucion->estado == LISTO){strcpy(estado," LISTO");}
+	if(contextoDeEjecucion->estado == IO){strcpy(estado," IO");}
+	if(contextoDeEjecucion->estado == EJECUTANDO){strcpy(estado," EJECUTANDO");}
+	if(contextoDeEjecucion->estado == FINALIZADO){strcpy(estado," FINALIZADO");}
+
+	strcpy(logueoContexto,"Contexto de ejecucion recibido: PID: ");
+	string_append(&logueoContexto,string_itoa(contextoDeEjecucion->pid));
+	string_append(&logueoContexto," Instruccion: ");
+	string_append(&logueoContexto,string_itoa(contextoDeEjecucion->counterProgram));
+	string_append(&logueoContexto," Quantum: ");
+	string_append(&logueoContexto,string_itoa(contextoDeEjecucion->quantum));
+	string_append(&logueoContexto," Estado: ");
+	string_append(&logueoContexto,estado);
+	string_append(&logueoContexto," Ruta: ");
+	string_append(&logueoContexto,contextoDeEjecucion->mensaje);
+
+	log_info(logCpu,logueoContexto);
+	free(estado);
+	free(logueoContexto);
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

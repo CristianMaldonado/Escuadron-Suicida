@@ -9,7 +9,9 @@
 #define SRC_ESTRUCTURAS_H_
 
 #include <semaphore.h>
+#include <commons/log.h>
 sem_t ejecutaInstruccion;
+t_log *logCpu;
 
 typedef enum {
 	LISTO, IO, EJECUTANDO, FINALIZADO

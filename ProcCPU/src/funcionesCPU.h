@@ -18,5 +18,8 @@ void enviar(tParametroHilo* message);
 void armarPaquete(protocolo_cpu_memoria* paquete,char tipoProceso, char codOperacion, int pid, int nroPagina, char* mensaje);
 void liberar_paquete(char **paquete);
 char* leerMprod(char* rutaDelMprod, int instructionPointer);
+int recivir_deserializar(protocolo_planificador_cpu *package, int socketPlanificador);
+void cargarParametrosHilo(int socketPlanificador,int socketMemoria,protocolo_planificador_cpu* mensajeDePlanif,tParametroHilo* parametros);
+void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion);
 
 #endif /* SRC_FUNCIONESCPU_H_ */
