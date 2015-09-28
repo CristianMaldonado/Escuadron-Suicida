@@ -16,20 +16,15 @@
 
 FILE* iniciar_archivo_swap(void) {
 	tconfig_swap *config_swap = leerConfiguracion();
-
 	FILE* swap = fopen(config_swap->nombreSwap, "w+");
-
 	size_t tamanio_swap = config_swap->tamanioPagina * config_swap->cantidadPaginas;
-
 	// rellenamos en cero (char '/0' es 0)
 	int i ; char cero = 0;
 	for (i = 0 ; i < tamanio_swap; i++)
 		fwrite(&cero, sizeof(cero), 1, swap);
-
 	return swap;
 }
 
-// hacer el free para el mensaje en la estructura
 bool recibir_paquete_desde_memoria(int *socket_memoria, tprotocolo_memoria_swap *paquete_desde_memoria) {
 	void* buffer = malloc(13 * sizeof(int));
 	if (recv(*socket_memoria, buffer, 13, 0) <= 0) return false;
@@ -46,7 +41,7 @@ bool recibir_paquete_desde_memoria(int *socket_memoria, tprotocolo_memoria_swap 
 	return true;
 }
 
-// usar un free() despues de enviar el paquete
+
 void* serializar_a_memoria(tprotocolo_swap_memoria *protocolo) {
 	size_t messageLength = strlen(protocolo->mensaje);
 	void * chorro = malloc(9 + messageLength);

@@ -40,7 +40,7 @@ typedef struct{
 
 typedef struct{
 	int comienzo;
-	int paginas_ocupadas;
+	int paginas_vacias;
 } tlista_vacio;
 
 typedef struct{
