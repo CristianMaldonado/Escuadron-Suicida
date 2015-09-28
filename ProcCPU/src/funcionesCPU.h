@@ -13,11 +13,11 @@
 #include "estructuras.h"
 
 void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar);
-char* serializarPaquete(protocolo_cpu_memoria* paquete);
+char* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete);
 void enviar(tParametroHilo* message);
 void armarPaquete(protocolo_cpu_memoria* paquete,char tipoProceso, char codOperacion, int pid, int nroPagina, char* mensaje);
 void liberar_paquete(char **paquete);
-char* leerMprod(char* rutaDelMprod, int instructionPointer);
+char* leerInstruccion(int* instructionPointer, FILE* archivo);
 int recivir_deserializar(protocolo_planificador_cpu *package, int socketPlanificador);
 void cargarParametrosHilo(int socketPlanificador,int socketMemoria,protocolo_planificador_cpu* mensajeDePlanif,tParametroHilo* parametros);
 void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion);

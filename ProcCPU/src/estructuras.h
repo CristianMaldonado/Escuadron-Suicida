@@ -33,7 +33,7 @@ typedef struct {
 	testado estado;
 	int pid;
 	int counterProgram;
-	int quantum;
+	int quantum;           //SI ES 0 EL ALGORITMO ES FIFO, SINO RR
 	int tamanioMensaje;
 	char* mensaje;//en este caso es la ruta del "mprod"
 } protocolo_planificador_cpu;

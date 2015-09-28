@@ -13,11 +13,11 @@
 #include <string.h>
 #include <sys/socket.h>
 
-void liberar_paquete(char **paquete){
+void liberar_paquete(char **paquete) {
 	free(*paquete);
 }
 
-char* serializarPaquete(protocolo_cpu_memoria* paquete) {//malloc(1)
+char* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete) { //malloc(1)
 	char* paqueteSerializado = malloc(sizeof(paquete));
 	int offset = 0;
 	int size_to_send;
@@ -27,7 +27,8 @@ char* serializarPaquete(protocolo_cpu_memoria* paquete) {//malloc(1)
 	offset += size_to_send;
 
 	size_to_send = sizeof(paquete->tipoOperacion);
-	memcpy(paqueteSerializado + offset, &(paquete->tipoOperacion), size_to_send);
+	memcpy(paqueteSerializado + offset, &(paquete->tipoOperacion),
+			size_to_send);
 	offset += size_to_send;
 
 	size_to_send = sizeof(paquete->pid);
@@ -51,138 +52,152 @@ char* serializarPaquete(protocolo_cpu_memoria* paquete) {//malloc(1)
 
 }
 
-int recivir_deserializar(protocolo_planificador_cpu *package, int socketPlanificador){//TODO deserializar mensaje de planificador
+int recivir_deserializar(protocolo_planificador_cpu *package,
+		int socketPlanificador) { //TODO deserializar mensaje de planificador
 	int status;/*
-	int buffer_size;
-	char *buffer = malloc(buffer_size = sizeof(uint32_t));
+	 int buffer_size;
+	 char *buffer = malloc(buffer_size = sizeof(uint32_t));
 
-	uint32_t username_long;
+	 uint32_t username_long;
 
-	status = recv(socketPlanificador, buffer, sizeof(package->tipoProceso), 0);
+	 status = recv(socketPlanificador, buffer, sizeof(package->tipoProceso), 0);
 
-	memcpy(&(username_long), buffer, buffer_size);
+	 memcpy(&(username_long), buffer, buffer_size);
 
-	if (!status) return 0;
-	status = recv(socketPlanificador, package->tipoOperacion, username_long, 0);
-    if (!status) return 0;
+	 if (!status) return 0;
+	 status = recv(socketPlanificador, package->tipoOperacion, username_long, 0);
+	 if (!status) return 0;
 
-    uint32_t message_long;
+	 uint32_t message_long;
 
-    status = recv(socketPlanificador, buffer, sizeof(package->tamanioMensaje), 0);
+	 status = recv(socketPlanificador, buffer, sizeof(package->tamanioMensaje), 0);
 
-    memcpy(&(message_long), buffer, buffer_size);
+	 memcpy(&(message_long), buffer, buffer_size);
 
-    if (!status) return 0;
+	 if (!status) return 0;
 
-    status = recv(socketPlanificador, package->mensaje, message_long, 0);
+	 status = recv(socketPlanificador, package->mensaje, message_long, 0);
 
-    if (!status) return 0;
-    free(buffer);*/
-    return status;
+	 if (!status) return 0;
+	 free(buffer);*/
+	return status;
 }
 
 void enviar(tParametroHilo* message) {
-	char* empaquetado = serializarPaquete(message->mensajeAMemoria);
-	send(message->socketMemoria, empaquetado, string_length(empaquetado)+1, 0);
-	liberar_paquete(&empaquetado);//free(1)
+	char* empaquetado = serializarPaqueteMemoria(message->mensajeAMemoria);
+	send(message->socketMemoria, empaquetado, string_length(empaquetado) + 1,
+			0);
+	liberar_paquete(&empaquetado); //free(1)
 }
 
 void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar) {
 
 	char** linea = string_split(instruccion, " ");
 	if (string_starts_with(instruccion, "iniciar")) {
-		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'i', mensajeParaArmar->mensajeAPlanificador->pid, atoi(linea[1]),"\0");
+		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'i',
+				mensajeParaArmar->mensajeAPlanificador->pid, atoi(linea[1]),
+				"\0");
 	}
 	if (string_starts_with(instruccion, "leer")) {
-		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'l', mensajeParaArmar->mensajeAPlanificador->pid, atoi(linea[1]),"\0");
+		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'l',
+				mensajeParaArmar->mensajeAPlanificador->pid, atoi(linea[1]),
+				"\0");
 	}
 	//if(string_starts_with(message->lineaDeProceso,"escribir")) {  } //TODO cheackpoint 3 supongo
 	//if(string_starts_with(message->lineaDeProceso,"entrada-salida")) { }
 	if (string_starts_with(instruccion, "finalizar")) {
-		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'f', mensajeParaArmar->mensajeAPlanificador->pid, 0,"\0");
+		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'f',
+				mensajeParaArmar->mensajeAPlanificador->pid, 0, "\0");
 	}
 }
 
 //MODIFICAR ARMAR PAQUETE PARAMETROS
-void armarPaquete(protocolo_cpu_memoria* paquete,char tipoProceso, char codOperacion, int pid, int nroPagina, char* mensaje) {
+void armarPaquete(protocolo_cpu_memoria* paquete, char tipoProceso,
+		char codOperacion, int pid, int nroPagina, char* mensaje) {
 
 	paquete->tipoProceso = tipoProceso;
 	paquete->tipoOperacion = codOperacion;
 	paquete->pid = pid;
 	paquete->nroPagina = nroPagina;
-	paquete->tamanioMensaje = strlen(mensaje)+1;
+	paquete->tamanioMensaje = strlen(mensaje) + 1;
 	strcpy(paquete->mensaje, mensaje);
 
 	//TODO Hacerlo mas genérico con un booleano y cargue la estructura (sin mandar todos los parametros)
 }
 
-char* leerMprod(char* rutaDelMprod, int instructionPointer){//ruta+instruction pointer => leo la linea del ip y la devuelvo
-	char* lineaLeida;//TODO pedir memoria,
-	FILE* archivo = fopen(rutaDelMprod,"r");
-	fseek(archivo,instructionPointer,SEEK_CUR);
-	while(!feof(archivo)){
+char* leerInstruccion(int* instructionPointer, FILE* archivo) {//ruta+instruction pointer => leo la linea del ip y la devuelvo
+	char* lineaLeida;
 
-		//buscar alguna funcion o forma de leer una linea hasta \n (ciclo for?) y usar strcpy
-		//usar esto o podria haber una funcion abrir archivo, leer linea, etc
-	}
+	fseek(archivo, 0, SEEK_END);
+	int final = ftell(archivo);
+	fseek(archivo, 0, SEEK_SET);
+	lineaLeida = malloc(final);
 
-	fclose(archivo);
+		int cont = 1;
+		if (*instructionPointer == 1) {
+			fgets(lineaLeida, final, archivo);
+			(*instructionPointer) = (*instructionPointer) + 1;
+		}
+
+		while (!feof(archivo) && cont != (*instructionPointer)) {
+			fgets(lineaLeida, final, archivo);
+			cont++;
+			(*instructionPointer) = (*instructionPointer) + 1;
+		}
+
 	return lineaLeida;
+
 }
 
-void cargarParametrosHilo(int socketPlanificador,int socketMemoria,protocolo_planificador_cpu* mensajeDePlanif,tParametroHilo* parametros){
+void cargarParametrosHilo(int socketPlanificador, int socketMemoria,
+		protocolo_planificador_cpu* mensajeDePlanif, tParametroHilo* parametros) {
 
 	parametros->socketMemoria = socketMemoria;
 	parametros->socketPlanificador = socketPlanificador;
-	parametros->mensajeAPlanificador->tipoProceso = mensajeDePlanif->tipoProceso;
-	parametros->mensajeAPlanificador->tipoOperacion = mensajeDePlanif->tipoOperacion;
+	parametros->mensajeAPlanificador->tipoProceso =
+			mensajeDePlanif->tipoProceso;
+	parametros->mensajeAPlanificador->tipoOperacion =
+			mensajeDePlanif->tipoOperacion;
 	parametros->mensajeAPlanificador->estado = mensajeDePlanif->estado;
-	parametros->mensajeAPlanificador->counterProgram = mensajeDePlanif->counterProgram;
+	parametros->mensajeAPlanificador->counterProgram =
+			mensajeDePlanif->counterProgram;
 	parametros->mensajeAPlanificador->quantum = mensajeDePlanif->quantum;
-	parametros->mensajeAPlanificador->tamanioMensaje = mensajeDePlanif->tamanioMensaje;
-	strcpy(parametros->mensajeAPlanificador->mensaje,mensajeDePlanif->mensaje);
+	parametros->mensajeAPlanificador->tamanioMensaje =
+			mensajeDePlanif->tamanioMensaje;
+	strcpy(parametros->mensajeAPlanificador->mensaje, mensajeDePlanif->mensaje);
 }
 
+void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion) {
+	char* logueoContexto = malloc(sizeof(contextoDeEjecucion->estado) * strlen(contextoDeEjecucion->estado + 1));
+	char* estado = malloc(sizeof(testado));
+	if (contextoDeEjecucion->estado == LISTO) {
+		strcpy(estado, " LISTO");
+	}
+	if (contextoDeEjecucion->estado == IO) {
+		strcpy(estado, " IO");
+	}
+	if (contextoDeEjecucion->estado == EJECUTANDO) {
+		strcpy(estado, " EJECUTANDO");
+	}
+	if (contextoDeEjecucion->estado == FINALIZADO) {
+		strcpy(estado, " FINALIZADO");
+	}
 
-void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion){
-	char* logueoContexto=malloc(37);
-	char* estado=malloc(sizeof(testado));
-	if(contextoDeEjecucion->estado == LISTO){strcpy(estado," LISTO");}
-	if(contextoDeEjecucion->estado == IO){strcpy(estado," IO");}
-	if(contextoDeEjecucion->estado == EJECUTANDO){strcpy(estado," EJECUTANDO");}
-	if(contextoDeEjecucion->estado == FINALIZADO){strcpy(estado," FINALIZADO");}
+	strcpy(logueoContexto, "Contexto de ejecucion recibido: PID: ");
+	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->pid));
+	string_append(&logueoContexto, " Instruccion: ");
+	string_append(&logueoContexto,
+			string_itoa(contextoDeEjecucion->counterProgram));
+	string_append(&logueoContexto, " Quantum: ");
+	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->quantum));
+	string_append(&logueoContexto, " Estado: ");
+	string_append(&logueoContexto, estado);
+	string_append(&logueoContexto, " Ruta: ");
+	string_append(&logueoContexto, contextoDeEjecucion->mensaje);
 
-	strcpy(logueoContexto,"Contexto de ejecucion recibido: PID: ");
-	string_append(&logueoContexto,string_itoa(contextoDeEjecucion->pid));
-	string_append(&logueoContexto," Instruccion: ");
-	string_append(&logueoContexto,string_itoa(contextoDeEjecucion->counterProgram));
-	string_append(&logueoContexto," Quantum: ");
-	string_append(&logueoContexto,string_itoa(contextoDeEjecucion->quantum));
-	string_append(&logueoContexto," Estado: ");
-	string_append(&logueoContexto,estado);
-	string_append(&logueoContexto," Ruta: ");
-	string_append(&logueoContexto,contextoDeEjecucion->mensaje);
-
-	log_info(logCpu,logueoContexto);
+	log_info(logCpu, logueoContexto);
 	free(estado);
 	free(logueoContexto);
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
