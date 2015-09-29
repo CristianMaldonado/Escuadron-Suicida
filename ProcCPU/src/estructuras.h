@@ -50,10 +50,23 @@ typedef struct {
 } protocolo_cpu_memoria;
 
 typedef struct{
+	char tipoProceso;
+	char codOperacion;
+	char codAux;
+	int pid;
+	int numeroPagina;
+	int tamanioMensaje;
+	char *mensaje;
+
+} protocolo_memoria_cpu;
+
+typedef struct{
 	int socketMemoria;
 	int socketPlanificador;
 	protocolo_cpu_memoria* mensajeAMemoria;
 	protocolo_planificador_cpu* mensajeAPlanificador;
+	protocolo_memoria_cpu* mensajeDeMemoria;
+
 }tParametroHilo;
 
 #endif /* SRC_ESTRUCTURAS_H_ */

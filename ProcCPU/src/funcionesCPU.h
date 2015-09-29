@@ -14,12 +14,15 @@
 
 void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar);
 char* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete);
+void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida);
 void enviar(tParametroHilo* message);
 void armarPaquete(protocolo_cpu_memoria* paquete,char tipoProceso, char codOperacion, int pid, int nroPagina, char* mensaje);
 void liberar_paquete(char **paquete);
 char* leerInstruccion(int* instructionPointer, FILE* archivo);
-int recivir_deserializar(protocolo_planificador_cpu *package, int socketPlanificador);
+int deserializarMemoria(protocolo_memoria_cpu* package,int socketMemoria);
+int deserializarPlanificador(protocolo_planificador_cpu* package,int socketPlanificador);
 void cargarParametrosHilo(int socketPlanificador,int socketMemoria,protocolo_planificador_cpu* mensajeDePlanif,tParametroHilo* parametros);
 void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion);
+void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida);
 
 #endif /* SRC_FUNCIONESCPU_H_ */

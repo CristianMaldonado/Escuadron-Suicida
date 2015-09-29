@@ -44,6 +44,9 @@ void *procesarInstruccion(void *argumento){
 		strcpy(instruccionLeida, leerInstruccion(&(datosParaProcesar->mensajeAPlanificador->counterProgram), archivo));
 		interpretarInstruccion(instruccionLeida, datosParaProcesar);
         send(datosParaProcesar->socketMemoria, instruccionLeida, strlen(instruccionLeida)+1, 0);
+
+        deserializarMemoria(datosParaProcesar->mensajeDeMemoria, datosParaProcesar->socketMemoria);
+        loguearEstadoMemoria(datosParaProcesar->mensajeDeMemoria, instruccionLeida);
 		//controlar en while con eof o quantum
 		//funcion leer() que lea el archivo especificado en la ruta (datosParaProcesar.mensajeAPlanificador.mensaje)
 		//return instruccion
