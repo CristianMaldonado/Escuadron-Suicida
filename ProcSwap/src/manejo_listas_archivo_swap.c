@@ -12,6 +12,10 @@
 #include "paquetes.h"
 #include <string.h>
 
+
+
+
+
 void lista_vacia_compactada(t_list **lista_vacia, FILE **swap, int tamanio_pagina ,int total_de_paginas) {
 	list_destroy_and_destroy_elements(*lista_vacia, free);
 	int comienzo = (int)ftell(*swap) / tamanio_pagina;
@@ -27,6 +31,7 @@ void reinicar_archivo_swap(FILE **swap, t_list **lista_ocupada) {
 	fclose(*swap);
 	*swap = iniciar_archivo_swap();
 	list_destroy_and_destroy_elements(*lista_ocupada, free);
+	*lista_ocupada = malloc(sizeof(tlista_ocupado));
 }
 
 t_list *pasar_ocupada_a_lista_auxiliar(FILE **swap, t_list **lista_ocupada, int tamanio_pagina) {
@@ -97,4 +102,25 @@ int espacio_total_disponible(t_list* lista_vacia) {
 	}
 	free(aux);
 	return tamanio;
+}
+
+
+void compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,int tamanio_pagina, int total_de_paginas) {
+	t_list *lista_aux = pasar_ocupada_a_lista_auxiliar(swap, lista_ocupada, tamanio_pagina);
+	reinicar_archivo_swap(swap, lista_ocupada);
+	int cont_pagina = 0;
+	while (!list_is_empty(lista_aux)) {
+		tdatos_paginas *elem = malloc(sizeof(tdatos_paginas));
+		elem = list_remove(lista_aux, 0);
+		fwrite(elem->buffer, 1,elem->tamanio, *swap);
+		//actualizamos lista ocupada
+		tlista_ocupado *elem_ocupada = malloc(sizeof (tlista_ocupado));
+		elem_ocupada->pid = elem->pid;
+		elem_ocupada->comienzo = cont_pagina;
+		elem_ocupada->paginas_ocupadas = elem->tamanio/tamanio_pagina;
+		cont_pagina += elem_ocupada->paginas_ocupadas;
+		list_add(*lista_ocupada, elem_ocupada);
+	}
+	list_destroy_and_destroy_elements(lista_aux, free);
+	lista_vacia_compactada(lista_vacia, swap, tamanio_pagina ,total_de_paginas);
 }

@@ -16,13 +16,14 @@
 
 FILE* iniciar_archivo_swap(void) {
 	tconfig_swap *config_swap = leerConfiguracion();
-	FILE* swap = fopen(config_swap->nombreSwap, "r+"); //rb+ para archivo binario
+	FILE* swap = fopen(config_swap->nombreSwap, "rb+"); //rb+ para archivo binario
 	size_t tamanio_swap = config_swap->tamanioPagina * config_swap->cantidadPaginas;
-	// rellenamos en cero (char '/0' es 0)
+	//rellenamos en cero (char '/0' es 0)
 	int i ;
 	char cero[] = "0";
 	for (i = 0 ; i < tamanio_swap; i++)
 		fwrite(cero, sizeof(char), 1, swap);
+	fseek(swap, 0, SEEK_SET);
 	return swap;
 }
 
@@ -37,7 +38,6 @@ bool recibir_paquete_desde_memoria(int *socket_memoria, tprotocolo_memoria_swap 
 	paquete_desde_memoria->mensaje = (char*)malloc(paquete_desde_memoria->tamanio_mensaje + 1);
 	if(recv(*socket_memoria, paquete_desde_memoria->mensaje, paquete_desde_memoria->tamanio_mensaje, 0) <= 0) return false;
 	paquete_desde_memoria->mensaje[paquete_desde_memoria->tamanio_mensaje] = '\0';
-
 	free(buffer);
 	return true;
 }
