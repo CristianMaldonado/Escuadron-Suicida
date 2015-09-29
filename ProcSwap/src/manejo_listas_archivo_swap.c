@@ -12,6 +12,16 @@
 #include "paquetes.h"
 #include <string.h>
 
+void lista_vacia_compactada(t_list **lista_vacia, FILE **swap, int tamanio_pagina ,int total_de_paginas) {
+	list_destroy_and_destroy_elements(*lista_vacia, free);
+	int comienzo = (int)ftell(*swap) / tamanio_pagina;
+	tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
+	vacio->comienzo = comienzo;
+	vacio->paginas_vacias = total_de_paginas - vacio->comienzo;
+	*lista_vacia = malloc(sizeof(tlista_vacio));
+	list_add(*lista_vacia, vacio);
+}
+
 
 void reinicar_archivo_swap(FILE **swap, t_list **lista_ocupada) {
 	fclose(*swap);
@@ -28,7 +38,7 @@ t_list *pasar_ocupada_a_lista_auxiliar(FILE **swap, t_list **lista_ocupada, int 
 		data->pid = elem->pid;
 		data->tamanio = elem->paginas_ocupadas*tamanio_pagina;//en bytes
 		data->buffer = (char*)malloc(data->tamanio);// puede haber igual o menor del tamanio
-		//leemos los datos
+		// leemos los datos
 		fseek(*swap, elem->comienzo*tamanio_pagina, SEEK_SET);
 		fread(data->buffer, sizeof(char), tamanio_pagina*elem->paginas_ocupadas , *swap); // lee y guarda en buffer pero tiene ceros al final
 		list_add(lista_aux,data);

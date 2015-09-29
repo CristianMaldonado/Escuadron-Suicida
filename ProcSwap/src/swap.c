@@ -15,14 +15,11 @@
 
 
 
-//devuelve la posicion del espacio libre disponible
-int compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,int tamanio_pagina, int total_de_paginas){
+void compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,int tamanio_pagina, int total_de_paginas){
 
-	t_list *lista_aux = pasar_ocupada_a_lista_auxiliar(*swap, *lista_ocupada, tamanio_pagina);
-	//reiniciar swap.dat
-	reinicar_archivo_swap(*swap, *lista_ocupada);
+	t_list *lista_aux = pasar_ocupada_a_lista_auxiliar(swap, lista_ocupada, tamanio_pagina);
+	reinicar_archivo_swap(swap, lista_ocupada);
 
-	//compactamos la swap
 	int cont_pagina = 0;
 	int nodo_lista_aux = 0;
 	while (!list_is_empty(lista_aux)){
@@ -41,13 +38,7 @@ int compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,in
 		free(elem_ocupada);
 	}
 	list_destroy_and_destroy_elements(lista_aux, free);
-	//actualizar lista vacia
-	list_destroy_and_destroy_elements(*lista_vacia, free);
-	tlista_vacio *vacio = malloc(sizeof(lista_vacia));
-	vacio->comienzo = ftell(*swap)/tamanio_pagina;
-	vacio->paginas_vacias = total_de_paginas - vacio->comienzo;
-	list_add(*lista_vacia, vacio);
-	return vacio->comienzo;
+	lista_vacia_compactada(lista_vacia, swap, tamanio_pagina ,total_de_paginas);
 }
 
 int main(void) {
@@ -142,14 +133,28 @@ int main(void) {
 		// compacto
 	//compactar_swap(&swap, &lista_vacia, &lista_ocupado, 4, 9);
 
+		fseek(swap, 20, SEEK_SET);
+		lista_vacia_compactada(&lista_vacia, &swap, 4 ,9);
+
+		//list_destroy_and_destroy_elements(lista_vacia, free);
+
+		tlista_vacio *v = malloc(sizeof(tlista_vacio));
+		//list_add(lista_vacia, vacio1);
+
+		v = list_get(lista_vacia, 0);
+
+		printf("%d\n", v->comienzo);
+		printf("%d\n", v->paginas_vacias);
+		free(v);
 
 
+/*
 		char m[36];
 		fseek(swap, 0 ,SEEK_SET);
 		fread(m, sizeof(char), 36, swap);
 
 		printf("%s\n\n", m);
-
+*/
 
 
 
