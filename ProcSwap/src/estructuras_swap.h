@@ -11,7 +11,7 @@
 int get_comienzo_espacio_asignado(t_list * lista_ocupado, int pid);
 int dame_si_hay_espacio(t_list* lista_vacia, int paginas_pedidas);
 int espacio_total_disponible(t_list* lista_vacia);
-
+t_list *pasar_ocupada_a_lista_auxiliar(FILE *swap, t_list *lista_ocupada, int tamanio_pagina);
 
 
 
