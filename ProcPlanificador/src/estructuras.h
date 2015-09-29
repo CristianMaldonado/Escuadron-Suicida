@@ -44,4 +44,15 @@ typedef struct {
 	int siguiente;
 }tpcb;
 
+typedef struct {
+	char tipoProceso;
+	char tipoOperacion;
+	testado estado;
+	int pid;
+	int counterProgram;
+	int quantum;           //SI ES 0 EL ALGORITMO ES FIFO, SINO RR
+	int tamanioMensaje;
+	char* mensaje;//en este caso es la ruta del "mprod"
+} protocolo_planificador_cpu;
+
 #endif /* SRC_ESTRUCTURAS_H_ */

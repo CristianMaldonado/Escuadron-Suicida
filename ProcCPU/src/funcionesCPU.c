@@ -17,6 +17,21 @@ void liberar_paquete(char **paquete) {
 	free(*paquete);
 }
 
+
+void crearMockitoPlanif(protocolo_planificador_cpu* package){
+	int total = sizeof(char)*2 + sizeof(int)*5;
+	package= malloc(total);
+	package->tipoProceso = 'P';
+	package->tipoOperacion = 'l';
+	package->estado = EJECUTANDO;
+	package->pid = 1;
+	package->counterProgram = 2;
+	package->quantum = 0;
+	package->mensaje = malloc(strlen("../src/programa.mCod")+1);
+	strcpy(package->mensaje, "../src/programa.mCod");
+	package->tamanioMensaje = strlen(package->mensaje)+1;
+}
+
 char* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete) { //malloc(1)
 	char* paqueteSerializado = malloc(sizeof(paquete));
 	int offset = 0;
@@ -113,9 +128,7 @@ int deserializarMemoria(protocolo_memoria_cpu* package,int socketMemoria){
 		offset += sizeof(package->codOperacion);
 		memcpy(&(package->codAux), buffer + offset, sizeof(package->codAux));
 		offset += sizeof(package->codAux);
-
 		if (!status) return 0;
-
 
 		status = recv(socketMemoria, buffer,
 				sizeof(package->pid) + sizeof(package->numeroPagina)
@@ -128,7 +141,6 @@ int deserializarMemoria(protocolo_memoria_cpu* package,int socketMemoria){
 				sizeof(package->tamanioMensaje));
 		offset += sizeof(package->tamanioMensaje);
 		if (!status) return 0;
-
 		package->mensaje = malloc((package->tamanioMensaje) +1);
 			status = recv(socketMemoria, buffer, package->tamanioMensaje,0);
 			memcpy(&(package->mensaje), buffer + offset, package->tamanioMensaje);
@@ -145,6 +157,7 @@ void enviar(tParametroHilo* message) {
 			0);
 	liberar_paquete(&empaquetado); //free(1)
 }
+
 
 void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar) {
 
@@ -170,7 +183,6 @@ void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar)
 //MODIFICAR ARMAR PAQUETE PARAMETROS
 void armarPaquete(protocolo_cpu_memoria* paquete, char tipoProceso,
 		char codOperacion, int pid, int nroPagina, char* mensaje) {
-
 	paquete->tipoProceso = tipoProceso;
 	paquete->tipoOperacion = codOperacion;
 	paquete->pid = pid;
@@ -207,59 +219,66 @@ char* leerInstruccion(int* instructionPointer, FILE* archivo) {	//ruta+instructi
 
 void cargarParametrosHilo(int socketPlanificador, int socketMemoria,
 		protocolo_planificador_cpu* mensajeDePlanif, tParametroHilo* parametros) {
-
+    parametros->mensajeAPlanificador = malloc(sizeof(char)*2 + sizeof(int)*5 + (mensajeDePlanif->tamanioMensaje));
 	parametros->socketMemoria = socketMemoria;
 	parametros->socketPlanificador = socketPlanificador;
-	parametros->mensajeAPlanificador->tipoProceso =
-			mensajeDePlanif->tipoProceso;
-	parametros->mensajeAPlanificador->tipoOperacion =
-			mensajeDePlanif->tipoOperacion;
+	parametros->mensajeAPlanificador->tipoProceso = mensajeDePlanif->tipoProceso;
+	parametros->mensajeAPlanificador->tipoOperacion = mensajeDePlanif->tipoOperacion;
 	parametros->mensajeAPlanificador->estado = mensajeDePlanif->estado;
-	parametros->mensajeAPlanificador->counterProgram =
-			mensajeDePlanif->counterProgram;
+	parametros->mensajeAPlanificador->pid = mensajeDePlanif->pid;
+	parametros->mensajeAPlanificador->counterProgram = mensajeDePlanif->counterProgram;
 	parametros->mensajeAPlanificador->quantum = mensajeDePlanif->quantum;
-	parametros->mensajeAPlanificador->tamanioMensaje =
-			mensajeDePlanif->tamanioMensaje;
+	parametros->mensajeAPlanificador->mensaje = malloc(strlen(mensajeDePlanif->mensaje)+1);
+	//parametros->mensajeAPlanificador->mensaje = malloc(mensajeDePlanif->tamanioMensaje + 1);
+    //memset(parametros->mensajeAPlanificador->mensaje,'\0',mensajeDePlanif->tamanioMensaje);
+    //memcpy(parametros->mensajeAPlanificador->mensaje, mensajeDePlanif->mensaje,strlen (mensajeDePlanif->mensaje));
 	strcpy(parametros->mensajeAPlanificador->mensaje, mensajeDePlanif->mensaje);
+	parametros->mensajeAPlanificador->tamanioMensaje = strlen(parametros->mensajeAPlanificador->mensaje)+1;
+	//parametros->mensajeAPlanificador->mensaje[mensajeDePlanif->tamanioMensaje] = '\0';
+
 }
 
 void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion) {
-	char* logueoContexto = malloc(sizeof (char) * 50);
-	char* estado = malloc(sizeof(testado));
+	char* logueoContexto = (char*)malloc(50);
+	char* estado;
 	if (contextoDeEjecucion->estado == LISTO) {
+		estado = malloc(7);
 		strcpy(estado, " LISTO");
 	}
 	if (contextoDeEjecucion->estado == IO) {
+		estado = malloc(7);
 		strcpy(estado, " IO");
 	}
 	if (contextoDeEjecucion->estado == EJECUTANDO) {
+		estado = malloc(12);
 		strcpy(estado, " EJECUTANDO");
 	}
 	if (contextoDeEjecucion->estado == FINALIZADO) {
+		estado = malloc(12);
 		strcpy(estado, " FINALIZADO");
 	}
 
 	strcpy(logueoContexto, "Contexto de ejecucion recibido: PID: ");
 	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->pid));
-	string_append(&logueoContexto, " Instruccion: ");
+	string_append(&logueoContexto, "\nInstruccion: ");
 	string_append(&logueoContexto,
 			string_itoa(contextoDeEjecucion->counterProgram));
-	string_append(&logueoContexto, " Quantum: ");
+	string_append(&logueoContexto, " \nQuantum: ");
 	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->quantum));
-	string_append(&logueoContexto, " Estado: ");
+	string_append(&logueoContexto, " \nEstado: ");
 	string_append(&logueoContexto, estado);
-	string_append(&logueoContexto, " Ruta: ");
+	string_append(&logueoContexto, " \nRuta: ");
 	string_append(&logueoContexto, contextoDeEjecucion->mensaje);
 
 	log_info(logCpu, logueoContexto);
 	free(estado);
-	free(logueoContexto);
+    free(logueoContexto);
 
 }
 
 void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida){
 
-	char* logueoMemoria = malloc(sizeof (char) * 10);
+	char* logueoMemoria = malloc(sizeof(char) * 10);
 
 	strcpy(logueoMemoria, "mProc: ");
 		string_append(&logueoMemoria, string_itoa(respuestaMemoria->pid));

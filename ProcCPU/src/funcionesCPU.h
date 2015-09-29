@@ -24,5 +24,6 @@ int deserializarPlanificador(protocolo_planificador_cpu* package,int socketPlani
 void cargarParametrosHilo(int socketPlanificador,int socketMemoria,protocolo_planificador_cpu* mensajeDePlanif,tParametroHilo* parametros);
 void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion);
 void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida);
+void crearMockitoPlanif(protocolo_planificador_cpu* package);
 
 #endif /* SRC_FUNCIONESCPU_H_ */
