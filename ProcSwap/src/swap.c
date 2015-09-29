@@ -1,27 +1,27 @@
-#include <pthread.h>
-#include "../../lib/libSocket.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "../../lib/libSocket.h"
 #include <commons/config.h>
-#include <commons/log.h>
 #include <commons/collections/list.h>
+#include <commons/log.h>
 #include "estructuras.h"
+#include "manejo_listas_archivo_swap.h"
 #include "paquetes.h"
 #include <stdbool.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "config.h"
+#include <string.h>
+
 
 
 //devuelve la posicion del espacio libre disponible
 int compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,int tamanio_pagina, int total_de_paginas){
 
 	t_list *lista_aux = pasar_ocupada_a_lista_auxiliar(*swap, *lista_ocupada, tamanio_pagina);
+	//reiniciar swap.dat
+	reinicar_archivo_swap(*swap, *lista_ocupada);
 
-	//reiniciar swap
-	fclose(*swap);
-	*swap = iniciar_archivo_swap();
-	list_destroy_and_destroy_elements(*lista_ocupada, free);
 	//compactamos la swap
 	int cont_pagina = 0;
 	int nodo_lista_aux = 0;
@@ -65,14 +65,14 @@ int main(void) {
 	//FILE *swap = iniciar_archivo_swap();
 
 
-	FILE *swap = fopen("swap.txt", "r");
+	FILE *swap = fopen("swap.txt", "r+");
 
-	char l[36];
-	fread(l, sizeof(char), 36, swap);
+	/*char l[36];
 	fseek(swap,SEEK_SET,0);
-	printf("%s\n\n", l);
 
-	printf("\n\narchivo leido...\n\n");
+	fread(l, sizeof(char), 36, swap);
+*/
+
 
 	//iniciamos la lista de paginas vacias
 	//vacio->comienzo = 0;
@@ -82,13 +82,6 @@ int main(void) {
 
 	//creacion de la instancia de log
 	//t_log *logSwap = log_create("../src/log.txt", "swap.c", false, LOG_LEVEL_INFO);
-
-
-
-
-
-
-
 
 
 /*
@@ -112,14 +105,6 @@ int main(void) {
 */
 
 	//////////////////////////////////////////////////////////////////////pruebas///////////////////
-
-	/* inicializamos lista de ocupados
-		t_list * lista_ocupado = list_create();
-		t_list * lista_vacia = list_create();
-
-		tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
-*/
-
 
 	// armo lista test vacio
 	tlista_vacio *vacio1 = malloc(sizeof(tlista_vacio));
@@ -154,49 +139,16 @@ int main(void) {
 		list_add(lista_ocupado, nodo2);
 		list_add(lista_ocupado, nodo3);
 
-
-
-		//printf("%d\n", list_size(lista_ocupado));
-		//tlista_ocupado *oc = malloc(sizeof(tlista_ocupado));
-		//oc = list_get(lista_ocupado, 0);
-		//printf("%d\n", oc->comienzo);
-
-		//int resultado_de_get = get_comienzo_espacio_asignado(lista_ocupado, 4);
-		//printf("comienzo con el pid 2 : %d\n", resultado_de_get);
-
-		t_list * auxiliar = malloc(sizeof(tdatos_paginas));
-		auxiliar = pasar_ocupada_a_lista_auxiliar(swap, lista_ocupado, 4);
-
-		tdatos_paginas *data = malloc(sizeof(tdatos_paginas));
-		data = list_get(auxiliar, 1);
-
-		printf("aaaaaaaaaaaaaaaa:::: %s\n", data->buffer);
-
-		free(auxiliar);
-
-
-
-
-
 		// compacto
-	//	compactar_swap(&swap, &lista_vacia, &lista_ocupado, 4, 9);
+	//compactar_swap(&swap, &lista_vacia, &lista_ocupado, 4, 9);
 
 
 
+		char m[36];
+		fseek(swap, 0 ,SEEK_SET);
+		fread(m, sizeof(char), 36, swap);
 
-
-
-		/*char m[40];
-		fseek(swap, 0l, SEEK_SET);
-		fread(m, sizeof(char), 40, swap);
-			printf("\n%s\n", l);
-*/
-
-
-
-
-
-
+		printf("%s\n\n", m);
 
 
 
@@ -231,7 +183,7 @@ int main(void) {
 			printf("%d", comienzo);
 
 
-			/*if (comienzo >= 0){
+			if (comienzo >= 0){
 				//ocupo espacio
 				tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
 				ocupado->pid = prot.pid;
@@ -264,10 +216,10 @@ int main(void) {
 
 
 		}
-*/
 
 
-		/*
+
+
 		switch(prot.codigo_op){
 
 			//inicializar
@@ -365,12 +317,12 @@ int main(void) {
 				break;
 		}
 
-		*/
-
-//		free(prot.mensaje);
-//	}
 
 
+		free(prot.mensaje);
+	}
+
+*/
 
 
 
@@ -383,7 +335,7 @@ int main(void) {
 	//close(socketMemoria);
 	//log_info(logSwap, "Cerrada conexion con memoria");
 
-	//fclose(swap);
+	fclose(swap);
 	//free(config_swap);
 
 	return 0;

@@ -10,20 +10,27 @@
 #include <commons/collections/list.h>
 #include "estructuras.h"
 #include "paquetes.h"
+#include <string.h>
 
 
-t_list *pasar_ocupada_a_lista_auxiliar(FILE *swap, t_list *lista_ocupada, int tamanio_pagina) {
+void reinicar_archivo_swap(FILE **swap, t_list **lista_ocupada) {
+	fclose(*swap);
+	*swap = iniciar_archivo_swap();
+	list_destroy_and_destroy_elements(*lista_ocupada, free);
+}
+
+t_list *pasar_ocupada_a_lista_auxiliar(FILE **swap, t_list **lista_ocupada, int tamanio_pagina) {
 	t_list *lista_aux = list_create();
 	tlista_ocupado *elem = malloc(sizeof(tlista_ocupado));
-	while (!list_is_empty(lista_ocupada)) {
-		elem = list_remove(lista_ocupada, 0);
+	while (!list_is_empty(*lista_ocupada)) {
+		elem = list_remove(*lista_ocupada, 0);
 		tdatos_paginas *data = malloc(sizeof(tdatos_paginas));
 		data->pid = elem->pid;
 		data->tamanio = elem->paginas_ocupadas*tamanio_pagina;//en bytes
 		data->buffer = (char*)malloc(data->tamanio);// puede haber igual o menor del tamanio
 		//leemos los datos
-		fseek(swap, elem->comienzo*tamanio_pagina, SEEK_SET);
-		fread(data->buffer, sizeof(char), tamanio_pagina*elem->paginas_ocupadas , swap); // lee y guarda en buffer pero tiene ceros al final
+		fseek(*swap, elem->comienzo*tamanio_pagina, SEEK_SET);
+		fread(data->buffer, sizeof(char), tamanio_pagina*elem->paginas_ocupadas , *swap); // lee y guarda en buffer pero tiene ceros al final
 		list_add(lista_aux,data);
 	}
 	free(elem);
