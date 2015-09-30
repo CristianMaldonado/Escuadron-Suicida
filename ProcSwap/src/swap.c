@@ -17,33 +17,29 @@
 
 
 int main(void) {
-
+	system("clear");
  	tconfig_swap* config_swap = leerConfiguracion();
 
 	// inicializamos lista de ocupados
 	t_list * lista_ocupado = list_create();
 	t_list * lista_vacia = list_create();
 
-	FILE *swap = iniciar_archivo_swap();
+	//FILE *swap = iniciar_archivo_swap();
 
-	//iniciamos la lista de paginas vacias
-	tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
-	vacio->comienzo = 0;
-	vacio->paginas_vacias = config_swap->cantidadPaginas;
-	list_add(lista_vacia, vacio);
 
-	//creacion de la instancia de log
+	//tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
+	//vacio->comienzo = 0;
+	//vacio->paginas_vacias = config_swap->cantidadPaginas;
+	//list_add(lista_vacia, vacio);
+
+
 	//t_log *logSwap = log_create("../src/log.txt", "swap.c", false, LOG_LEVEL_INFO);
-
-
-/*
 
 	//Crea el socket para escuchar
 	int serverSocket;
 	server_init(&serverSocket, "4141");
 	printf("SWAP listo...\n");
 
-	// loguea Swap iniciado
 	//log_info(logSwap, "SWAP iniciado");
 
 	//Crea el socket para recibir a la memoria
@@ -51,12 +47,7 @@ int main(void) {
 	server_acept(serverSocket, &socketMemoria);
 	printf("Memoria aceptada...\n");
 
-	// loguea conexion con Memoria
 	//log_info(logSwap, "Conectado a la memoria");
-
-*/
-
-
 
 
 
@@ -65,6 +56,32 @@ int main(void) {
 
 
 	//comienzo de pasaje de datos
+
+
+	FILE* swap = fopen(config_swap->nombreSwap, "rb+");
+
+	tlista_vacio *lv = malloc(sizeof(tlista_vacio));
+
+	lv->comienzo = 3;
+	lv->paginas_vacias = 3;
+	list_add(lista_vacia, lv);
+	tlista_vacio *l2 = malloc(sizeof(tlista_vacio));
+
+	l2->comienzo = 8;
+	l2->paginas_vacias = 1;
+	list_add(lista_vacia, l2);
+
+
+
+	tprotocolo_memoria_swap prot;
+	recibir_paquete_desde_memoria(&socketMemoria, &prot);
+	printf("%s\n", prot.mensaje);
+	int comienzo = dame_si_hay_espacio(lista_vacia, prot.cantidad_pagina);
+	printf("%d\n", comienzo);
+
+
+
+
 
 
 	/*
@@ -81,12 +98,10 @@ int main(void) {
 			salir = 1;
 */
 
-	// recibo desde memoria una sola vez, para probar
-
-	tprotocolo_memoria_swap protocolo;
 
 
 
+/*
 		if(protocolo.codigo_op == 'i') {
 			int comienzo = dame_si_hay_espacio(lista_vacia, protocolo.cantidad_pagina);
 
@@ -118,6 +133,7 @@ int main(void) {
 			}
 		}
 
+*/
 /*
 		switch(prot.codigo_op){
 
