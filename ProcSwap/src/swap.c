@@ -68,6 +68,7 @@ int main(void) {
 
 
 	/*
+
 	tprotocolo_memoria_swap prot;
 	int salir = 0;
 	while(!salir){
@@ -78,10 +79,16 @@ int main(void) {
 		else
 			// si no recibe termina el swap
 			salir = 1;
+*/
+
+	// recibo desde memoria una sola vez, para probar
+
+	tprotocolo_memoria_swap protocolo;
 
 
-		if(prot.codigo_op == 'i') {
-			int comienzo = dame_si_hay_espacio(lista_vacia, prot.cantidad_pagina);
+
+		if(protocolo.codigo_op == 'i') {
+			int comienzo = dame_si_hay_espacio(lista_vacia, protocolo.cantidad_pagina);
 
 			printf("%d", comienzo);
 
@@ -89,40 +96,29 @@ int main(void) {
 			if (comienzo >= 0){
 				//ocupo espacio
 				tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
-				ocupado->pid = prot.pid;
+				ocupado->pid = protocolo.pid;
 				ocupado->comienzo = comienzo;
-				ocupado->paginas_ocupadas = prot.cantidad_pagina;
+				ocupado->paginas_ocupadas = protocolo.cantidad_pagina;
 				list_add(lista_ocupado, (void*)ocupado);
 			}
-
-
 			else {
-				if (espacio_total_disponible(lista_vacia) >= prot.cantidad_pagina){
+				if (espacio_total_disponible(lista_vacia) >= protocolo.cantidad_pagina){
 					//compactamos
 					int comienzo = compactar_swap(&swap, &lista_vacia, &lista_ocupado, config_swap->tamanioPagina, config_swap->cantidadPaginas);
-
 					//ocupo espacio
 					tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
-					ocupado->pid = prot.pid;
+					ocupado->pid = protocolo.pid;
 					ocupado->comienzo = comienzo;
-					ocupado->paginas_ocupadas = prot.cantidad_pagina;
+					ocupado->paginas_ocupadas = protocolo.cantidad_pagina;
 					list_add(lista_ocupado, (void*)ocupado);
-
 				}
 				else {
 					printf("avisamos ");
 				}
-
 			}
 		}
 
-
-
-		}
-
-
-
-
+/*
 		switch(prot.codigo_op){
 
 			//inicializar

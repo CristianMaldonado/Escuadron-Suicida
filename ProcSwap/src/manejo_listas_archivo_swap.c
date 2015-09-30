@@ -16,7 +16,7 @@
 
 
 
-void lista_vacia_compactada(t_list **lista_vacia, FILE **swap, int tamanio_pagina ,int total_de_paginas) {
+int lista_vacia_compactada(t_list **lista_vacia, FILE **swap, int tamanio_pagina ,int total_de_paginas) {
 	list_destroy_and_destroy_elements(*lista_vacia, free);
 	int comienzo = (int)ftell(*swap) / tamanio_pagina;
 	tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
@@ -24,6 +24,7 @@ void lista_vacia_compactada(t_list **lista_vacia, FILE **swap, int tamanio_pagin
 	vacio->paginas_vacias = total_de_paginas - vacio->comienzo;
 	*lista_vacia = malloc(sizeof(tlista_vacio));
 	list_add(*lista_vacia, vacio);
+	return vacio->comienzo;
 }
 
 
@@ -105,7 +106,7 @@ int espacio_total_disponible(t_list* lista_vacia) {
 }
 
 
-void compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,int tamanio_pagina, int total_de_paginas) {
+int compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,int tamanio_pagina, int total_de_paginas) {
 	t_list *lista_aux = pasar_ocupada_a_lista_auxiliar(swap, lista_ocupada, tamanio_pagina);
 	reinicar_archivo_swap(swap, lista_ocupada);
 	int cont_pagina = 0;
@@ -122,5 +123,5 @@ void compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,i
 		list_add(*lista_ocupada, elem_ocupada);
 	}
 	list_destroy_and_destroy_elements(lista_aux, free);
-	lista_vacia_compactada(lista_vacia, swap, tamanio_pagina ,total_de_paginas);
+	return lista_vacia_compactada(lista_vacia, swap, tamanio_pagina ,total_de_paginas);
 }
