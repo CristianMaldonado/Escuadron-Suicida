@@ -11,7 +11,7 @@
 #include "estructuras.h"
 
 
-tpcb armarPCB (char* path,int cant);
+tpcb* armarPCB (char* path,int cant);
 
 int clasificarComando(char* message);
 

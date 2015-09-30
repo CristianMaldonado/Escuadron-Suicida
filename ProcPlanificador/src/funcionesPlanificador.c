@@ -1,14 +1,14 @@
 #include "estructuras.h"
 #include <commons/string.h>
 
-tpcb armarPCB(char* path, int cant) {
-	tpcb pcb;
-	pcb.ruta = (char*) malloc(strlen(path) + 1);
-	strcpy(pcb.ruta, path);
-	pcb.pid = cant;
-	strcpy(pcb.nombre, "");
-	pcb.estado = LISTO;
-	pcb.siguiente = 1;
+tpcb* armarPCB(char* path, int cant) {
+	tpcb* pcb = malloc(sizeof(tpcb));
+	pcb->ruta = (char*) malloc(strlen(path) + 1);
+	strcpy(pcb->ruta, path);
+	pcb->pid = cant;
+	pcb->nombre = string_new();
+	pcb->estado = LISTO;
+	pcb->siguiente = 1;
 	return pcb;
 }
 
@@ -34,7 +34,7 @@ int clasificarComando(char* message) {
 
 void procesarComando(int nro_comando, char* message, int cantProc,
 		t_queue* colaProc, sem_t* sem) {
-	tpcb pcb;
+	tpcb* pcb;
 	switch (nro_comando) {
 	case 1:
 		printf("Entro por ps\n");
@@ -44,7 +44,7 @@ void procesarComando(int nro_comando, char* message, int cantProc,
 		break;
 	case 3:
 		pcb = armarPCB(&message[7], cantProc);
-		queue_push(colaProc, &pcb);
+		queue_push(colaProc, pcb);
 		cantProc++;
 		sem_post(sem);
 		break;

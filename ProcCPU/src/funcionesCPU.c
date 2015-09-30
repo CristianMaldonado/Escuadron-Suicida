@@ -26,8 +26,8 @@ void crearMockitoPlanif(protocolo_planificador_cpu* package){
 	package->pid = 1;
 	package->counterProgram = 2;
 	package->quantum = 0;
-	package->mensaje = malloc(strlen("../programa.txt")+1);
-	strcpy(package->mensaje,"../programa.txt");
+	package->mensaje = malloc(strlen("programa.txt")+1);
+	strcpy(package->mensaje,"programa.txt");
 	package->tamanioMensaje = strlen(package->mensaje)+1;
 
 }

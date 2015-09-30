@@ -48,7 +48,8 @@ void *procesarInstruccion(void *argumento){
 
         printf("bandera 2");
         int a = feof(archivo);
-		while(a){ //TODO: Agregar lo del quatum
+        printf("%d", a);
+		while(!a){ //TODO: Agregar lo del quatum
 
 		strcpy(instruccionLeida, leerInstruccion(&(datosParaProcesar->mensajeAPlanificador->counterProgram), lineaLeida, archivo));
 		interpretarInstruccion(instruccionLeida, datosParaProcesar);
