@@ -19,17 +19,17 @@ void liberar_paquete(char **paquete) {
 
 
 void crearMockitoPlanif(protocolo_planificador_cpu* package){
-	int total = sizeof(char)*2 + sizeof(int)*5;
-	package= malloc(total);
+
 	package->tipoProceso = 'P';
 	package->tipoOperacion = 'l';
 	package->estado = EJECUTANDO;
 	package->pid = 1;
 	package->counterProgram = 2;
 	package->quantum = 0;
-	package->mensaje = malloc(strlen("../src/programa.mCod")+1);
-	strcpy(package->mensaje, "../src/programa.mCod");
+	package->mensaje = malloc(strlen("../programa.txt")+1);
+	strcpy(package->mensaje,"../programa.txt");
 	package->tamanioMensaje = strlen(package->mensaje)+1;
+
 }
 
 char* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete) { //malloc(1)
@@ -193,22 +193,17 @@ void armarPaquete(protocolo_cpu_memoria* paquete, char tipoProceso,
 	//TODO Hacerlo mas genérico con un booleano y cargue la estructura (sin mandar todos los parametros)
 }
 
-char* leerInstruccion(int* instructionPointer, FILE* archivo) {	//ruta+instruction pointer => leo la linea del ip y la devuelvo
-	char* lineaLeida;
+char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo) {	//ruta+instruction pointer => leo la linea del ip y la devuelvo
 
-	fseek(archivo, 0, SEEK_END);
-	int final = ftell(archivo);
-	fseek(archivo, 0, SEEK_SET);
-	lineaLeida = malloc(final);
 
 	int cont = 1;
 	if (*instructionPointer == 1) {
-		fgets(lineaLeida, final, archivo);
+		fgets(lineaLeida, ftell(archivo), archivo);
 		(*instructionPointer) = (*instructionPointer) + 1;
 	}
 
 	while (!feof(archivo) && cont != (*instructionPointer)) {
-		fgets(lineaLeida, final, archivo);
+		fgets(lineaLeida, ftell(archivo), archivo);
 		cont++;
 		(*instructionPointer) = (*instructionPointer) + 1;
 	}
