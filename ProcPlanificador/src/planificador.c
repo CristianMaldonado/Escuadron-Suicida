@@ -26,13 +26,21 @@ void *enviar(void *arg){
 	while(1){
 		sem_wait(&hayProgramas);
 		puts("pasaste el semaforo");
-		//pcb=queue_peek(parametros->procesos);
+		pcb=queue_pop(parametros->procesos);
+		printf("saque pcb\n");
 		//char* message=malloc(strlen(pcb[0].ruta)+(2*sizeof(int))+sizeof(testado)+10+1);
-		char* message=malloc(30);
-		strcpy(message,"river campeon!!!\n");
+		char* message;
+		//strcpy(message,"river campeon!!!\n");
 		//definirMensaje(pcb,message);
-		send(parametros->socket,message,strlen(message)+1,0);
-		free(message);
+		protocolo_planificador_cpu* package = malloc(sizeof(protocolo_planificador_cpu));
+		int tamanio = 0;
+		printf("estoy por serializqar\n");
+		message = serializarPaqueteCPU(pcb,package, &tamanio);
+		printf("serialice\n");
+		send(parametros->socket,message,tamanio,0);
+		printf("Envie paquete");
+		//free(message);
+		free(pcb);
 	}
 }
 
@@ -46,7 +54,7 @@ int main(){
 
 	//creacion de la instancia de log
 	t_log *logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
-	logPlanificador->pid = 1;
+	//logPlanificador->pid = 1;
 
 	//leemos el archivo de configuracion
 	tconfig_planif *configPlanificador = leerConfiguracion();
@@ -57,7 +65,7 @@ int main(){
 	printf("Planificador listo...\n");
 
 	// loguea el inicio del planificador
-	log_info(logPlanificador, "planificador iniciado");
+	//log_info(logPlanificador, "planificador iniciado");
 
 	//Inicia el socket para atender al CPU
 	int socketCPU;

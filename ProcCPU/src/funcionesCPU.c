@@ -32,7 +32,7 @@ void crearMockitoPlanif(protocolo_planificador_cpu* package){
 
 }
 
-char* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete) { //malloc(1)
+void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete) { //malloc(1)
 	char* paqueteSerializado = malloc(sizeof(paquete));
 	int offset = 0;
 	int size_to_send;

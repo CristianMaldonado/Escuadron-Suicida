@@ -13,7 +13,7 @@
 #include "estructuras.h"
 
 void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar);
-char* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete);
+void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete);
 void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida);
 void enviar(tParametroHilo* message);
 void armarPaquete(protocolo_cpu_memoria* paquete,char tipoProceso, char codOperacion, int pid, int nroPagina, char* mensaje);

@@ -55,51 +55,8 @@ void procesarComando(int nro_comando, char* message, int cantProc,
 		printf("Comando ingresado incorrecto\n");
 		break;
 	}
+}
 
-	char* serializarPaqueteCPU(protocolo_planificador_cpu* paquete) { //malloc(1)
-		char* paqueteSerializado = malloc(sizeof(paquete));
-		int offset = 0;
-		int size_to_send;
-
-		size_to_send = sizeof(paquete->tipoProceso);
-		memcpy(paqueteSerializado + offset, &(paquete->tipoProceso),
-				size_to_send);
-		offset += size_to_send;
-
-		size_to_send = sizeof(paquete->tipoOperacion);
-		memcpy(paqueteSerializado + offset, &(paquete->tipoOperacion),
-				size_to_send);
-		offset += size_to_send;
-
-		size_to_send = sizeof(paquete->estado);
-		memcpy(paqueteSerializado + offset, &(paquete->estado), size_to_send);
-		offset += size_to_send;
-
-		size_to_send = sizeof(paquete->pid);
-		memcpy(paqueteSerializado + offset, &(paquete->pid), size_to_send);
-		offset += size_to_send;
-
-		size_to_send = sizeof(paquete->counterProgram);
-		memcpy(paqueteSerializado + offset, &(paquete->counterProgram),
-				size_to_send);
-		offset += size_to_send;
-
-		size_to_send = sizeof(paquete->quantum);
-		memcpy(paqueteSerializado + offset, &(paquete->quantum), size_to_send);
-		offset += size_to_send;
-
-		size_to_send = sizeof(paquete->tamanioMensaje);
-		memcpy(paqueteSerializado + offset, &(paquete->tamanioMensaje),
-				size_to_send);
-		offset += size_to_send;
-
-		size_to_send = paquete->tamanioMensaje;
-		memcpy(paqueteSerializado + offset, &(paquete->mensaje), size_to_send);
-		offset += size_to_send;
-
-		return paqueteSerializado;
-
-	}
 
 	int deserializarCPU(protocolo_planificador_cpu *package,
 			int socketCPU) {
@@ -149,4 +106,61 @@ void procesarComando(int nro_comando, char* message, int cantProc,
 	}
 
 
-}
+	void* serializarPaqueteCPU(tpcb* pcb, protocolo_planificador_cpu* paquete, int* tamanio){ //malloc(1)
+		//SERIALIZA SOLO CORRER
+        //crear funcion adaptar de pcb y protocolo
+		paquete->tipoProceso = 'p';
+		paquete->tipoOperacion = 'c';
+		paquete->pid = pcb->pid;
+		paquete->estado = pcb->estado;
+		paquete->counterProgram = pcb->siguiente;
+		paquete->quantum = 0;
+		paquete->tamanioMensaje = strlen(pcb->ruta) +1;
+		paquete->mensaje =malloc(strlen(pcb->ruta)+1);
+		strcpy(paquete->mensaje, pcb->ruta);
+
+		void* paqueteSerializado = malloc(sizeof(paquete));
+		int offset = 0;
+		int size_to_send;
+
+		size_to_send = sizeof(paquete->tipoProceso);
+		memcpy(paqueteSerializado + offset, &(paquete->tipoProceso),
+				size_to_send);
+		offset += size_to_send;
+
+		size_to_send = sizeof(paquete->tipoOperacion);
+		memcpy(paqueteSerializado + offset, &(paquete->tipoOperacion),
+				size_to_send);
+		offset += size_to_send;
+
+		size_to_send = sizeof(paquete->estado);
+		memcpy(paqueteSerializado + offset, &(paquete->estado), size_to_send);
+		offset += size_to_send;
+
+		size_to_send = sizeof(paquete->pid);
+		memcpy(paqueteSerializado + offset, &(paquete->pid), size_to_send);
+		offset += size_to_send;
+
+		size_to_send = sizeof(paquete->counterProgram);
+		memcpy(paqueteSerializado + offset, &(paquete->counterProgram),
+				size_to_send);
+		offset += size_to_send;
+
+		size_to_send = sizeof(paquete->quantum);
+		memcpy(paqueteSerializado + offset, &(paquete->quantum), size_to_send);
+		offset += size_to_send;
+
+		size_to_send = sizeof(paquete->tamanioMensaje);
+		memcpy(paqueteSerializado + offset, &(paquete->tamanioMensaje),
+				size_to_send);
+		offset += size_to_send;
+
+		size_to_send = paquete->tamanioMensaje;
+		memcpy(paqueteSerializado + offset, &(paquete->mensaje), size_to_send);
+		offset += size_to_send;
+
+		*tamanio = offset;
+		return paqueteSerializado;
+
+	}
+

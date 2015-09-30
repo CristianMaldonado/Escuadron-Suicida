@@ -130,16 +130,17 @@ int main() {
 	protocolo_planificador_cpu* package= malloc(sizeof(protocolo_planificador_cpu));
 	int status = 1;
 
-	char buffer[30];
+	//char buffer[30];
 	while (status != 0) {
 
 
-		//status = deserializarPlanificador(&package,socketPlanificador);
-		crearMockitoPlanif(package);
+		status = deserializarPlanificador(package,socketPlanificador);
+
+		//crearMockitoPlanif(package);
 		//logueoRecepcionDePlanif(package);
 		cargarParametrosHilo(socketPlanificador,socketMemoria,package,parametros);//puntero al paquqete deserializado?
 		sem_post(&ejecutaInstruccion);
-		status = recv(socketPlanificador, buffer,30,0);
+		//status = recv(socketPlanificador, buffer,30,0);
 
 	}
 	free(package);
