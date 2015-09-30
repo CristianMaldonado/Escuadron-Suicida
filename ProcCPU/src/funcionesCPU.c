@@ -66,9 +66,8 @@ void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete) { //malloc(1)
 	return paqueteSerializado;
 
 }
-
-int deserializarPlanificador(protocolo_planificador_cpu *package,
-		int socketPlanificador) { //TODO deserializar mensaje de planificador
+//TODO poner el socket global
+int deserializarPlanificador(protocolo_planificador_cpu *package, int socketPlanificador) { //TODO deserializar mensaje de planificador
 	int status;
 	char* buffer = malloc(sizeof(package->tipoProceso)+ sizeof(package->tipoOperacion)+ sizeof(testado)+ sizeof(package->pid)+
 			sizeof(package->counterProgram)+ sizeof(package->quantum)+ sizeof(package->tamanioMensaje));
@@ -164,13 +163,11 @@ void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar)
 	char** linea = string_split(instruccion, " ");
 	if (string_starts_with(instruccion, "iniciar")) {
 		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'i',
-				mensajeParaArmar->mensajeAPlanificador->pid, atoi(linea[1]),
-				"\0");
+				mensajeParaArmar->mensajeAPlanificador->pid, atoi(linea[1]), "\0");
 	}
 	if (string_starts_with(instruccion, "leer")) {
 		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'l',
-				mensajeParaArmar->mensajeAPlanificador->pid, atoi(linea[1]),
-				"\0");
+				mensajeParaArmar->mensajeAPlanificador->pid, atoi(linea[1]), "\0");
 	}
 	//if(string_starts_with(message->lineaDeProceso,"escribir")) {  } //TODO cheackpoint 3 supongo
 	//if(string_starts_with(message->lineaDeProceso,"entrada-salida")) { }
@@ -181,8 +178,7 @@ void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar)
 }
 
 //MODIFICAR ARMAR PAQUETE PARAMETROS
-void armarPaquete(protocolo_cpu_memoria* paquete, char tipoProceso,
-		char codOperacion, int pid, int nroPagina, char* mensaje) {
+void armarPaquete(protocolo_cpu_memoria* paquete, char tipoProceso,char codOperacion, int pid, int nroPagina, char* mensaje) {
 	paquete->tipoProceso = tipoProceso;
 	paquete->tipoOperacion = codOperacion;
 	paquete->pid = pid;
@@ -194,7 +190,6 @@ void armarPaquete(protocolo_cpu_memoria* paquete, char tipoProceso,
 }
 
 char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo) {	//ruta+instruction pointer => leo la linea del ip y la devuelvo
-
 
 	int cont = 1;
 	if (*instructionPointer == 1) {
@@ -256,8 +251,7 @@ void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion) {
 	strcpy(logueoContexto, "Contexto de ejecucion recibido: PID: ");
 	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->pid));
 	string_append(&logueoContexto, "\nInstruccion: ");
-	string_append(&logueoContexto,
-			string_itoa(contextoDeEjecucion->counterProgram));
+	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->counterProgram));
 	string_append(&logueoContexto, " \nQuantum: ");
 	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->quantum));
 	string_append(&logueoContexto, " \nEstado: ");
@@ -276,29 +270,29 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 	char* logueoMemoria = malloc(sizeof(char) * 10);
 
 	strcpy(logueoMemoria, "mProc: ");
-		string_append(&logueoMemoria, string_itoa(respuestaMemoria->pid));
-		string_append(&logueoMemoria, " - ");
+	string_append(&logueoMemoria, string_itoa(respuestaMemoria->pid));
+	string_append(&logueoMemoria, " - ");
 
-		if (respuestaMemoria->codOperacion == 'i') {
-			string_append(&logueoMemoria, "Iniciado \n");
-		}
-		if (respuestaMemoria->codOperacion == 'l') {
-			string_append(&logueoMemoria, "Pagina: ");
-			string_append(&logueoMemoria, string_itoa(respuestaMemoria->numeroPagina));
-			string_append(&logueoMemoria, " leida: ");
-			string_append(&logueoMemoria, respuestaMemoria->mensaje);
-		}
+	if (respuestaMemoria->codOperacion == 'i') {
+		string_append(&logueoMemoria, "Iniciado \n");
+	}
+	if (respuestaMemoria->codOperacion == 'l') {
+		string_append(&logueoMemoria, "Pagina: ");
+		string_append(&logueoMemoria, string_itoa(respuestaMemoria->numeroPagina));
+		string_append(&logueoMemoria, " leida: ");
+		string_append(&logueoMemoria, respuestaMemoria->mensaje);
+	}
 		//if(string_starts_with(message->lineaDeProceso,"escribir")) {  } //TODO cheackpoint 3 supongo
 		//if(string_starts_with(message->lineaDeProceso,"entrada-salida")) { }
-		if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'a')) {
-			string_append(&logueoMemoria, "Fallo \n");
-		}
+	if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'a')) {
+		string_append(&logueoMemoria, "Fallo \n");
+	}
 
-		if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'i')) {
-					string_append(&logueoMemoria, "Finalizado");
-				}
-		log_info(logCpu, logueoMemoria);
-		free(logueoMemoria);
+	if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'i')) {
+		string_append(&logueoMemoria, "Finalizado");
+			}
+	log_info(logCpu, logueoMemoria);
+	free(logueoMemoria);
 
 }
 

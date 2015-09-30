@@ -9,7 +9,7 @@
 #include <commons/error.h>
 #include <string.h>
 
-
+//TODO estructuras que usa el hilo definirlas aca
 void *procesarInstruccion(void *argumento){
 	tParametroHilo* datosParaProcesar;
 	datosParaProcesar = (tParametroHilo*)argumento;

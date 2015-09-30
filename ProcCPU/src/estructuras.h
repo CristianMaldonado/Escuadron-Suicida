@@ -36,7 +36,7 @@ typedef struct {
 	int quantum;           //SI ES 0 EL ALGORITMO ES FIFO, SINO RR
 	int tamanioMensaje;
 	char* mensaje;//en este caso es la ruta del "mprod"
-} protocolo_planificador_cpu;
+}__attribute__((packed)) protocolo_planificador_cpu;
 
 
 typedef struct {
@@ -47,7 +47,7 @@ typedef struct {
 	int nroPagina;
 	int tamanioMensaje;
 	char* mensaje;
-} protocolo_cpu_memoria;
+}__attribute__((packed)) protocolo_cpu_memoria;
 
 typedef struct{
 	char tipoProceso;
@@ -58,7 +58,7 @@ typedef struct{
 	int tamanioMensaje;
 	char *mensaje;
 
-} protocolo_memoria_cpu;
+}__attribute__((packed)) protocolo_memoria_cpu;
 
 typedef struct{
 	int socketMemoria;

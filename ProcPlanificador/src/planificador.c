@@ -4,7 +4,7 @@
 #include <commons/string.h>
 
 #define PACKAGESIZE 30
-sem_t hayProgramas;
+
 
 void definirMensaje(tpcb* pcb,char* message){
 	//char *message=malloc(strlen(pcb[0].ruta)+(2*sizeof(int))+sizeof(testado)+10+1);
@@ -22,6 +22,8 @@ void *enviar(void *arg){
 	tpcb* pcb; // che por mas que lo mire supongo que te falto escribir algo este pcb esta al pedo nunca se carga y asigna nada a message
 	tParametroEnviar* parametros;
 	parametros = (tParametroEnviar*) arg;
+
+	int tamanio = 0;
 	puts("estas en el hilo bien por vos");
 	while(1){
 		sem_wait(&hayProgramas);
@@ -29,17 +31,22 @@ void *enviar(void *arg){
 		pcb=queue_pop(parametros->procesos);
 		printf("saque pcb\n");
 		//char* message=malloc(strlen(pcb[0].ruta)+(2*sizeof(int))+sizeof(testado)+10+1);
-		char* message;
 		//strcpy(message,"river campeon!!!\n");
 		//definirMensaje(pcb,message);
 		protocolo_planificador_cpu* package = malloc(sizeof(protocolo_planificador_cpu));
-		int tamanio = 0;
+		adaptadorPCBaProtocolo(pcb,package);
 		printf("estoy por serializqar\n");
-		message = serializarPaqueteCPU(pcb,package, &tamanio);
+		void* message=malloc(sizeof(protocolo_planificador_cpu) + strlen(pcb->ruta));
+		message = serializarPaqueteCPU(package, &tamanio);
 		printf("serialice\n");
-		send(parametros->socket,message,tamanio,0);
+		//message[strlen((message))] = '\0';
+		printf("%s",message);
+		int a = send(parametros->socket,message,tamanio,0);
+		if(a == -1) puts("fallo envio");
+		else printf("%d",a);
 		printf("Envie paquete");
-		//free(message);
+		free(package);
+		free(message);
 		free(pcb);
 	}
 }
@@ -56,8 +63,13 @@ int main(){
 	t_log *logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
 	//logPlanificador->pid = 1;
 
+	tconfig_planif* configPlanificador = malloc(sizeof(tconfig_planif));
+	configPlanificador->puertoEscucha = "4143";
+	configPlanificador->quantum = 5;
+	configPlanificador->algoritmo = "FIFO";
+
 	//leemos el archivo de configuracion
-	tconfig_planif *configPlanificador = leerConfiguracion();
+	//tconfig_planif *configPlanificador = leerConfiguracion();
 
 	//Inicia el socket para escuchar
 	int serverSocket;
@@ -88,10 +100,11 @@ int main(){
 
 	while(enviar2){
 		fgets(message, PACKAGESIZE, stdin);
-
+		int algo = strlen(message)+1;
+		printf("tamanio %d\n",algo);
 		nro_comando = clasificarComando(&message[0]);
 
-		procesarComando(nro_comando,&message[0],cantProc,colaProcesos,&hayProgramas);
+		procesarComando(nro_comando,&message[0],cantProc,colaProcesos);
 
 		nro_comando=0;
 

@@ -14,12 +14,12 @@
 tpcb* armarPCB (char* path,int cant);
 
 int clasificarComando(char* message);
-
-void procesarComando(int nro_comando, char* message, int cantProc,t_queue* colaProc,sem_t* sem);
+void adaptadorPCBaProtocolo(tpcb* pcb,protocolo_planificador_cpu* paquete);
+void procesarComando(int nro_comando, char* message, int cantProc,t_queue* colaProc);
 
 int deserializarCPU(protocolo_planificador_cpu *package,int socketCPU);
 
-void* serializarPaqueteCPU(tpcb* pcb, protocolo_planificador_cpu* paquete, int* tamanio);
+void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio);
 
 /*char* definirMensaje(tpcb* pcb);*/
 

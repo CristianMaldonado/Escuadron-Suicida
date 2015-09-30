@@ -20,6 +20,10 @@
 #include <semaphore.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <sys/socket.h>
+
+
+sem_t hayProgramas;
 
 typedef struct{
 	int socket;
@@ -53,6 +57,6 @@ typedef struct {
 	int quantum;           //SI ES 0 EL ALGORITMO ES FIFO, SINO RR
 	int tamanioMensaje;
 	char* mensaje;//en este caso es la ruta del "mprod"
-} protocolo_planificador_cpu;
+}__attribute__((packed)) protocolo_planificador_cpu;
 
 #endif /* SRC_ESTRUCTURAS_H_ */
