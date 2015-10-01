@@ -46,14 +46,14 @@ void *procesarInstruccion(void *argumento){
 
 		if (archivo == NULL)
 			error_show("Error al abrir mCod");
-
+        int tamanio= 0;
         printf("bandera 2");
 		while(!feof(archivo)){ //TODO: Agregar lo del quatum
 
 		strcpy(instruccionLeida, leerInstruccion(&(datosParaProcesar->mensajeAPlanificador->counterProgram), lineaLeida, archivo));
 		interpretarInstruccion(instruccionLeida, datosParaProcesar);
         send(datosParaProcesar->socketMemoria, "envio paquete", 30,0);
-		//send(datosParaProcesar->socketMemoria, datosParaProcesar->mensajeAMemoria, sizeof(datosParaProcesar->mensajeAMemoria), 0);
+		//send(datosParaProcesar->socketMemoria, datosParaProcesar->mensajeAMemoria, &tamanio, 0);
         printf("bandera 3");
           // deserializarMemoria(datosParaProcesar->mensajeDeMemoria, datosParaProcesar->socketMemoria);
            //loguearEstadoMemoria(datosParaProcesar->mensajeDeMemoria, instruccionLeida);

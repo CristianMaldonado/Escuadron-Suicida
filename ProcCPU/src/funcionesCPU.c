@@ -32,8 +32,11 @@ void crearMockitoPlanif(protocolo_planificador_cpu* package){
 
 }
 
-void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete) { //malloc(1)
-	char* paqueteSerializado = malloc(sizeof(paquete));
+void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete, int* tamanio) { //malloc(1)
+
+	size_t messageLength = strlen(paquete->mensaje);
+
+	void* paqueteSerializado = malloc(sizeof(protocolo_cpu_memoria) + messageLength);
 	int offset = 0;
 	int size_to_send;
 
@@ -55,21 +58,30 @@ void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete) { //malloc(1)
 	offset += size_to_send;
 
 	size_to_send = sizeof(paquete->tamanioMensaje);
+	memcpy(paqueteSerializado + offset, &messageLength, size_to_send);
+	offset += size_to_send;
+
+	size_to_send = messageLength;
+	memcpy(paqueteSerializado + offset, paquete->mensaje, size_to_send);
+	offset += size_to_send;
+
+	/*size_to_send = sizeof(paquete->tamanioMensaje);
 	memcpy(paqueteSerializado + offset, &(paquete->tamanioMensaje),
 			size_to_send);
 	offset += size_to_send;
 
 	size_to_send = paquete->tamanioMensaje;
 	memcpy(paqueteSerializado + offset, &(paquete->mensaje), size_to_send);
-	offset += size_to_send;
+	offset += size_to_send;*/
 
+	*tamanio = offset;
 	return paqueteSerializado;
 
 }
 //TODO poner el socket global
 int deserializarPlanificador(protocolo_planificador_cpu *package, int socketPlanificador) { //TODO deserializar mensaje de planificador
 	int status;
-	void* buffer = malloc(sizeof(protocolo_planificador_cpu)-4);
+	void* buffer = malloc(sizeof(protocolo_planificador_cpu)-4);     //4 = sizeof char*
 	int offset = 0;
 
 	status = recv(socketPlanificador, buffer,sizeof(protocolo_planificador_cpu)-4, 0);
@@ -111,36 +123,46 @@ int deserializarPlanificador(protocolo_planificador_cpu *package, int socketPlan
 
 int deserializarMemoria(protocolo_memoria_cpu* package,int socketMemoria){
 	int status;
-		char* buffer = malloc(sizeof(package->codOperacion) + sizeof(package->tipoProceso) + sizeof(package->codAux)+
-				              sizeof(package->pid)+ sizeof(package->numeroPagina)+ sizeof(package->tamanioMensaje));  //TODO: RESERVAR MEMORIA
+		void* buffer = malloc(sizeof(protocolo_memoria_cpu)-4);  //TODO: RESERVAR MEMORIA
 		int offset = 0;
 
 		status = recv(socketMemoria, buffer,
-				sizeof(package->codOperacion) + sizeof(package->tipoProceso) + sizeof(package->codAux), 0);
+				sizeof(protocolo_memoria_cpu) -4, 0);
+		if(!status) return 0;
+
 		memcpy(&(package->tipoProceso), buffer, sizeof(package->tipoProceso));
 		offset += sizeof(package->tipoProceso);
+
 		memcpy(&(package->codOperacion), buffer + offset, sizeof(package->codOperacion));
 		offset += sizeof(package->codOperacion);
+
 		memcpy(&(package->codAux), buffer + offset, sizeof(package->codAux));
 		offset += sizeof(package->codAux);
-		if (!status) return 0;
 
-		status = recv(socketMemoria, buffer,
-				sizeof(package->pid) + sizeof(package->numeroPagina)
-						+ sizeof(package->tamanioMensaje),0);
 		memcpy(&(package->pid), buffer + offset, sizeof(package->pid));
 		offset += sizeof(package->pid);
+
 		memcpy(&(package->numeroPagina), buffer + offset, sizeof(package->numeroPagina));
 		offset += sizeof(package->numeroPagina);
+
+		memcpy(&(package->tamanioMensaje), buffer + offset,sizeof(package->tamanioMensaje));
+		offset += sizeof(package->tamanioMensaje);
+
+		package->mensaje = (char*)malloc((package->tamanioMensaje) +1);
+
+		status = recv(socketMemoria, package->mensaje, package->tamanioMensaje,0);
+
+		package->mensaje[package->tamanioMensaje]= '\0';
+		/*
 		memcpy(&(package->tamanioMensaje), buffer + offset,
 				sizeof(package->tamanioMensaje));
 		offset += sizeof(package->tamanioMensaje);
+
 		if (!status) return 0;
 		package->mensaje = malloc((package->tamanioMensaje) +1);
 			status = recv(socketMemoria, buffer, package->tamanioMensaje,0);
 			memcpy(&(package->mensaje), buffer + offset, package->tamanioMensaje);
-			package->mensaje[package->tamanioMensaje+1]= '\0';
-			if(!status) return 0;
+			package->mensaje[package->tamanioMensaje+1]= '\0';*/
 
 		free(buffer);
 
