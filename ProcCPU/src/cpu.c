@@ -8,19 +8,21 @@
 #include "funcionesCPU.h"
 #include <commons/error.h>
 #include <string.h>
+#include <stdio.h>
 
 //TODO estructuras que usa el hilo definirlas aca
 void *procesarInstruccion(void *argumento){
 	tParametroHilo* datosParaProcesar;
 	datosParaProcesar = (tParametroHilo*)argumento;
+	datosParaProcesar->mensajeAMemoria = malloc(sizeof(protocolo_cpu_memoria));
 	int tid = process_get_thread_id();
 
 	printf("bandera 0");
 	//LOGUEO DE CONEXION CON MEMORIA ---------> TODO PREGUNTAR POR LOG_TRACE
-	char* log=(char*)malloc(5);//malloc(2)----> NO PRESTES ATENCION A ESTOS MALLOC CON NUMERO ES PARA GUIARME SI A UN MALLOC LE TIRO UN FREE
+	char* log=(char*)malloc(5);//malloc(2)
 	strcpy(log,"CPU ");
 	string_append(&log,string_itoa(tid));
-	if(datosParaProcesar->socketMemoria == -1){
+	if(socketMemoria == -1){
 		string_append(&log," falló al conectar con Memoria");
 		//log_info(logCpu, log);
 	}
@@ -32,29 +34,26 @@ void *procesarInstruccion(void *argumento){
 	printf("bandera 1");
 	while(1){
 		sem_wait(&ejecutaInstruccion); //TODO
-		char* instruccionLeida = string_new();
-		//strcpy(instruccionLeida,string_new());
+
 		FILE* archivo = fopen(datosParaProcesar->mensajeAPlanificador->mensaje, "r+");
 
-		if(archivo== NULL) printf("puta madre");
+		if(archivo== NULL) error_show("Error al abrir mCod");
 		char* lineaLeida = string_new();
-		//fseek(archivo, 0, SEEK_END);
-		//int tamanio = ftell(archivo);
-		//fseek(archivo, 0, SEEK_SET);
-		lineaLeida = malloc(strlen(datosParaProcesar->mensajeAPlanificador->mensaje)+ 1);
+		fseek(archivo, 0, SEEK_END);
+		int tamanio = ftell(archivo);
+		fseek(archivo, 0, SEEK_SET);
+		lineaLeida = malloc(datosParaProcesar->mensajeAPlanificador->tamanioMensaje);
 
-
-		if (archivo == NULL)
-			error_show("Error al abrir mCod");
-
-        printf("bandera 2");
 		while(!feof(archivo)){ //TODO: Agregar lo del quatum
+		//char* instruccionLeida = string_new();
 
-		strcpy(instruccionLeida, leerInstruccion(&(datosParaProcesar->mensajeAPlanificador->counterProgram), lineaLeida, archivo));
-		interpretarInstruccion(instruccionLeida, datosParaProcesar);
-        send(datosParaProcesar->socketMemoria, "envio paquete", 30,0);
+		//strcpy(instruccionLeida, leerInstruccion(&(datosParaProcesar->mensajeAPlanificador->counterProgram), lineaLeida, archivo,tamanio));
+			interpretarInstruccion(leerInstruccion(&(datosParaProcesar->mensajeAPlanificador->counterProgram), lineaLeida, archivo,tamanio), datosParaProcesar);
+
+			int status =send(socketMemoria, datosParaProcesar->mensajeAPlanificador->mensaje, datosParaProcesar->mensajeAPlanificador->tamanioMensaje,0);
+
+			if(status == -1) printf("fallo al enviar\n");
 		//send(datosParaProcesar->socketMemoria, datosParaProcesar->mensajeAMemoria, sizeof(datosParaProcesar->mensajeAMemoria), 0);
-        printf("bandera 3");
           // deserializarMemoria(datosParaProcesar->mensajeDeMemoria, datosParaProcesar->socketMemoria);
            //loguearEstadoMemoria(datosParaProcesar->mensajeDeMemoria, instruccionLeida);
 		//controlar en while con eof o quantum
@@ -64,13 +63,10 @@ void *procesarInstruccion(void *argumento){
 		//char* mensajeParaMemoria=malloc();//////
 		//enviar(&mensajeParaMemoria);
 		//free(message);
-
-
-		free(instruccionLeida);
+       // free(instruccionLeida);
 		}
-        break;
+		free(lineaLeida);
 		fclose(archivo);
-		free(datosParaProcesar);
 	}
 }
 
@@ -92,7 +88,7 @@ int main() {
 	//tipoConfiguracionCPU *config = leerConfiguracion();
 
 	//Inicia el Socket para conectarse con el Planificador/
-	int socketPlanificador;
+
 
 	printf("Conectando al Planificador (%s : %s)... ", config->ipPlanificador,
 			config->puertoPlanificador);
@@ -106,7 +102,7 @@ int main() {
 	//else log_info(logCpu, "Conectado al Planificador");
 
 	//Inicia el Socket para conectarse con la Memoria
-	int socketMemoria;
+
 	printf("Conectando a la Memoria (%s : %s)... ", config->ipMemoria,
 			config->puertoMemoria);
 	client_init(&socketMemoria, config->ipMemoria, config->puertoMemoria); printf("OK\n");
@@ -129,19 +125,18 @@ int main() {
 	protocolo_planificador_cpu* package= malloc(sizeof(protocolo_planificador_cpu));
 	int status = 1;
 
-	//char buffer[30];
 	while (status != 0) {
 
 
-		status = deserializarPlanificador(package,socketPlanificador);
+		status = deserializarPlanificador(package);
 		//crearMockitoPlanif(package);
 		//logueoRecepcionDePlanif(package);
-		cargarParametrosHilo(socketPlanificador,socketMemoria,package,parametros);//puntero al paquqete deserializado?
+		cargarParametrosHilo(package,parametros);
 		sem_post(&ejecutaInstruccion);
-		//status = recv(socketPlanificador, buffer,30,0);
 
 	}
 	free(package);
+	free(parametros);
 
 	printf("Finalizo el planificador...\n");
 

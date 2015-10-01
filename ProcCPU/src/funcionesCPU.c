@@ -67,7 +67,7 @@ void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete) { //malloc(1)
 
 }
 //TODO poner el socket global
-int deserializarPlanificador(protocolo_planificador_cpu *package, int socketPlanificador) { //TODO deserializar mensaje de planificador
+int deserializarPlanificador(protocolo_planificador_cpu *package) { //TODO deserializar mensaje de planificador
 	int status;
 	void* buffer = malloc(sizeof(protocolo_planificador_cpu)-4);
 	int offset = 0;
@@ -109,38 +109,45 @@ int deserializarPlanificador(protocolo_planificador_cpu *package, int socketPlan
 
 }
 
-int deserializarMemoria(protocolo_memoria_cpu* package,int socketMemoria){
+int deserializarMemoria(protocolo_memoria_cpu* package){
 	int status;
 		char* buffer = malloc(sizeof(package->codOperacion) + sizeof(package->tipoProceso) + sizeof(package->codAux)+
 				              sizeof(package->pid)+ sizeof(package->numeroPagina)+ sizeof(package->tamanioMensaje));  //TODO: RESERVAR MEMORIA
 		int offset = 0;
 
-		status = recv(socketMemoria, buffer,
-				sizeof(package->codOperacion) + sizeof(package->tipoProceso) + sizeof(package->codAux), 0);
+		status = recv(socketMemoria, buffer,sizeof(package->codOperacion) + sizeof(package->tipoProceso) + sizeof(package->codAux), 0);
 		memcpy(&(package->tipoProceso), buffer, sizeof(package->tipoProceso));
 		offset += sizeof(package->tipoProceso);
+
 		memcpy(&(package->codOperacion), buffer + offset, sizeof(package->codOperacion));
 		offset += sizeof(package->codOperacion);
+
 		memcpy(&(package->codAux), buffer + offset, sizeof(package->codAux));
 		offset += sizeof(package->codAux);
+
 		if (!status) return 0;
 
-		status = recv(socketMemoria, buffer,
-				sizeof(package->pid) + sizeof(package->numeroPagina)
-						+ sizeof(package->tamanioMensaje),0);
+		status = recv(socketMemoria, buffer,sizeof(package->pid) + sizeof(package->numeroPagina)+ sizeof(package->tamanioMensaje),0);
+
 		memcpy(&(package->pid), buffer + offset, sizeof(package->pid));
 		offset += sizeof(package->pid);
+
 		memcpy(&(package->numeroPagina), buffer + offset, sizeof(package->numeroPagina));
 		offset += sizeof(package->numeroPagina);
-		memcpy(&(package->tamanioMensaje), buffer + offset,
-				sizeof(package->tamanioMensaje));
+
+		memcpy(&(package->tamanioMensaje), buffer + offset, sizeof(package->tamanioMensaje));
+
 		offset += sizeof(package->tamanioMensaje);
 		if (!status) return 0;
+
 		package->mensaje = malloc((package->tamanioMensaje) +1);
-			status = recv(socketMemoria, buffer, package->tamanioMensaje,0);
-			memcpy(&(package->mensaje), buffer + offset, package->tamanioMensaje);
-			package->mensaje[package->tamanioMensaje+1]= '\0';
-			if(!status) return 0;
+
+		status = recv(socketMemoria, buffer, package->tamanioMensaje,0);
+
+		memcpy(&(package->mensaje), buffer + offset, package->tamanioMensaje);
+
+		package->mensaje[package->tamanioMensaje+1]= '\0';
+		if(!status) return 0;
 
 		free(buffer);
 
@@ -148,29 +155,9 @@ int deserializarMemoria(protocolo_memoria_cpu* package,int socketMemoria){
 }
 void enviar(tParametroHilo* message) {
 	char* empaquetado = serializarPaqueteMemoria(message->mensajeAMemoria);
-	send(message->socketMemoria, empaquetado, string_length(empaquetado) + 1,
+	send(socketMemoria, empaquetado, string_length(empaquetado) + 1,
 			0);
 	liberar_paquete(&empaquetado); //free(1)
-}
-
-
-void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar) {
-
-	char** linea = string_split(instruccion, " ");
-	if (string_starts_with(instruccion, "iniciar")) {
-		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'i',
-				mensajeParaArmar->mensajeAPlanificador->pid, atoi(linea[1]), "\0");
-	}
-	if (string_starts_with(instruccion, "leer")) {
-		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'l',
-				mensajeParaArmar->mensajeAPlanificador->pid, atoi(linea[1]), "\0");
-	}
-	//if(string_starts_with(message->lineaDeProceso,"escribir")) {  } //TODO cheackpoint 3 supongo
-	//if(string_starts_with(message->lineaDeProceso,"entrada-salida")) { }
-	if (string_starts_with(instruccion, "finalizar")) {
-		armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'f',
-				mensajeParaArmar->mensajeAPlanificador->pid, 0, "\0");
-	}
 }
 
 //MODIFICAR ARMAR PAQUETE PARAMETROS
@@ -180,34 +167,62 @@ void armarPaquete(protocolo_cpu_memoria* paquete, char tipoProceso,char codOpera
 	paquete->pid = pid;
 	paquete->nroPagina = nroPagina;
 	paquete->tamanioMensaje = strlen(mensaje) + 1;
+	paquete->mensaje = malloc(paquete->tamanioMensaje);
 	strcpy(paquete->mensaje, mensaje);
 
 	//TODO Hacerlo mas genérico con un booleano y cargue la estructura (sin mandar todos los parametros)
 }
 
-char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo) {	//ruta+instruction pointer => leo la linea del ip y la devuelvo
+void interpretarInstruccion(char* instruccion, tParametroHilo* mensajeParaArmar) {
+
+		char** linea = string_split(instruccion, ";");
+		char** lineaFiltrada = string_split(linea[0]," ");
+
+		if (string_starts_with(instruccion, "iniciar")) {
+			int numero = atoi(lineaFiltrada[1]);
+			armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'i',mensajeParaArmar->mensajeAPlanificador->pid,numero , "\0");
+		}
+		if (string_starts_with(instruccion, "leer")) {
+			int numero = atoi(lineaFiltrada[1]);
+			armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'l',
+					mensajeParaArmar->mensajeAPlanificador->pid, numero, "\0");
+		}
+		//if(string_starts_with(message->lineaDeProceso,"escribir")) {  } //TODO cheackpoint 3 supongo
+		//if(string_starts_with(message->lineaDeProceso,"entrada-salida")) { }
+
+		if (string_starts_with(instruccion, "finalizar;")) {
+				armarPaquete(mensajeParaArmar->mensajeAMemoria, 'c', 'f',
+						mensajeParaArmar->mensajeAPlanificador->pid, 0, "\0");
+		}
+		free(linea);
+		free(lineaFiltrada);
+}
+
+
+char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo, int tam) {	//ruta+instruction pointer => leo la linea del ip y la devuelvo
 
 	int cont = 1;
 	if (*instructionPointer == 1) {
-		fgets(lineaLeida, ftell(archivo), archivo);
+		fgets(lineaLeida, tam, archivo);
 		(*instructionPointer) = (*instructionPointer) + 1;
+		cont++;
 	}
 
 	while (!feof(archivo) && cont != (*instructionPointer)) {
-		fgets(lineaLeida, ftell(archivo), archivo);
+		fgets(lineaLeida, tam, archivo);
 		cont++;
 		(*instructionPointer) = (*instructionPointer) + 1;
 	}
+	if (!string_starts_with(lineaLeida, "finalizar;")) lineaLeida[strlen(lineaLeida)-1] = '\0';
 
 	return lineaLeida;
 
 }
 
-void cargarParametrosHilo(int socketPlanificador, int socketMemoria,
-		protocolo_planificador_cpu* mensajeDePlanif, tParametroHilo* parametros) {
-    parametros->mensajeAPlanificador = malloc(sizeof(char)*2 + sizeof(int)*5 + (mensajeDePlanif->tamanioMensaje));
-	parametros->socketMemoria = socketMemoria;
-	parametros->socketPlanificador = socketPlanificador;
+
+void cargarParametrosHilo(protocolo_planificador_cpu* mensajeDePlanif, tParametroHilo* parametros) {
+
+    parametros->mensajeAPlanificador = malloc(sizeof(protocolo_planificador_cpu));
 	parametros->mensajeAPlanificador->tipoProceso = mensajeDePlanif->tipoProceso;
 	parametros->mensajeAPlanificador->tipoOperacion = mensajeDePlanif->tipoOperacion;
 	parametros->mensajeAPlanificador->estado = mensajeDePlanif->estado;
@@ -215,9 +230,6 @@ void cargarParametrosHilo(int socketPlanificador, int socketMemoria,
 	parametros->mensajeAPlanificador->counterProgram = mensajeDePlanif->counterProgram;
 	parametros->mensajeAPlanificador->quantum = mensajeDePlanif->quantum;
 	parametros->mensajeAPlanificador->mensaje = malloc(strlen(mensajeDePlanif->mensaje)+1);
-	//parametros->mensajeAPlanificador->mensaje = malloc(mensajeDePlanif->tamanioMensaje + 1);
-    //memset(parametros->mensajeAPlanificador->mensaje,'\0',mensajeDePlanif->tamanioMensaje);
-    //memcpy(parametros->mensajeAPlanificador->mensaje, mensajeDePlanif->mensaje,strlen (mensajeDePlanif->mensaje));
 	strcpy(parametros->mensajeAPlanificador->mensaje, mensajeDePlanif->mensaje);
 	parametros->mensajeAPlanificador->tamanioMensaje = strlen(parametros->mensajeAPlanificador->mensaje)+1;
 	parametros->mensajeAPlanificador->mensaje[mensajeDePlanif->tamanioMensaje-1] = '\0';
@@ -278,8 +290,7 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 		string_append(&logueoMemoria, " leida: ");
 		string_append(&logueoMemoria, respuestaMemoria->mensaje);
 	}
-		//if(string_starts_with(message->lineaDeProceso,"escribir")) {  } //TODO cheackpoint 3 supongo
-		//if(string_starts_with(message->lineaDeProceso,"entrada-salida")) { }
+
 	if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'a')) {
 		string_append(&logueoMemoria, "Fallo \n");
 	}

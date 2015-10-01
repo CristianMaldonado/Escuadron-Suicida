@@ -18,10 +18,10 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 void enviar(tParametroHilo* message);
 void armarPaquete(protocolo_cpu_memoria* paquete,char tipoProceso, char codOperacion, int pid, int nroPagina, char* mensaje);
 void liberar_paquete(char **paquete);
-char* leerInstruccion(int* instructionPointer, char* lineaLeida, FILE* archivo);
-int deserializarMemoria(protocolo_memoria_cpu* package,int socketMemoria);
-int deserializarPlanificador(protocolo_planificador_cpu* package,int socketPlanificador);
-void cargarParametrosHilo(int socketPlanificador,int socketMemoria,protocolo_planificador_cpu* mensajeDePlanif,tParametroHilo* parametros);
+char* leerInstruccion(int* instructionPointer, char* lineaLeida, FILE* archivo, int tam);
+int deserializarMemoria(protocolo_memoria_cpu* package);
+int deserializarPlanificador(protocolo_planificador_cpu* package);
+void cargarParametrosHilo(protocolo_planificador_cpu* mensajeDePlanif,tParametroHilo* parametros);
 void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion);
 void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida);
 void crearMockitoPlanif(protocolo_planificador_cpu* package);

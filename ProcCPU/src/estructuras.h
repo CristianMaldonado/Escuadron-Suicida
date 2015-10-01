@@ -12,6 +12,8 @@
 #include <commons/log.h>
 sem_t ejecutaInstruccion;
 t_log *logCpu;
+int socketPlanificador;
+int socketMemoria;
 
 typedef enum {
 	LISTO, IO, EJECUTANDO, FINALIZADO
@@ -61,8 +63,6 @@ typedef struct{
 }__attribute__((packed)) protocolo_memoria_cpu;
 
 typedef struct{
-	int socketMemoria;
-	int socketPlanificador;
 	protocolo_cpu_memoria* mensajeAMemoria;
 	protocolo_planificador_cpu* mensajeAPlanificador;
 	protocolo_memoria_cpu* mensajeDeMemoria;
