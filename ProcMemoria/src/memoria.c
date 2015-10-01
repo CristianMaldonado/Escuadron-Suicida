@@ -67,7 +67,7 @@ int main(void) {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 
-	finalizar_conexiones(&socketClienteCPU, &socketClienteSWAP, &socketServidorCPU);
+	finalizar_conexiones(&socketClienteCPU, &socketClienteSWAP, &socketServidorCPU, config);
 
 	return 0;
 }
