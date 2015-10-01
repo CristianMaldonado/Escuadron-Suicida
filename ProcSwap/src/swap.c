@@ -157,9 +157,6 @@ int main(void) {
 
 
 
-
-
-
 	/*
 
 	tprotocolo_memoria_swap prot;
