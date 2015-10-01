@@ -30,15 +30,13 @@ void *enviar(void *arg){
 		puts("pasaste el semaforo");
 		pcb=queue_pop(parametros->procesos);
 		printf("saque pcb\n");
-		//char* message=malloc(strlen(pcb[0].ruta)+(2*sizeof(int))+sizeof(testado)+10+1);
-		//strcpy(message,"river campeon!!!\n");
-		//definirMensaje(pcb,message);
+
 		protocolo_planificador_cpu* package = malloc(sizeof(protocolo_planificador_cpu));
 		adaptadorPCBaProtocolo(pcb,package);
 		printf("estoy por serializqar\n");
+
 		void* message=malloc(sizeof(protocolo_planificador_cpu) + strlen(pcb->ruta));
 		message = serializarPaqueteCPU(package, &tamanio);
-		printf("serialice\n");
 		//message[strlen((message))] = '\0';
 		printf("%s",message);
 		int a = send(parametros->socket,message,tamanio,0);

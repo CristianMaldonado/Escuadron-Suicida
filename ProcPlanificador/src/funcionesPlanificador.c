@@ -113,6 +113,7 @@ void adaptadorPCBaProtocolo(tpcb* pcb,protocolo_planificador_cpu* paquete){//OK
 void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio){ //malloc(1)
 	//SERIALIZA SOLO CORRER
 	size_t messageLength = strlen(paquete->mensaje);
+
 	void* paqueteSerializado = malloc(sizeof(protocolo_planificador_cpu) + messageLength);
 	int offset = 0;
 	int size_to_send;
@@ -146,8 +147,10 @@ void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio){ /
 	offset += size_to_send;
 
 	size_to_send = messageLength;
-	memcpy(paqueteSerializado + offset, &(paquete->mensaje), size_to_send);
+	memcpy(paqueteSerializado + offset, paquete->mensaje, size_to_send);
 	offset += size_to_send;
+
+
 
 	*tamanio = offset;
 	return paqueteSerializado;

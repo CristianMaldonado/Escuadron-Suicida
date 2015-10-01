@@ -69,43 +69,39 @@ void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete) { //malloc(1)
 //TODO poner el socket global
 int deserializarPlanificador(protocolo_planificador_cpu *package, int socketPlanificador) { //TODO deserializar mensaje de planificador
 	int status;
-	char* buffer = malloc(sizeof(package->tipoProceso)+ sizeof(package->tipoOperacion)+ sizeof(testado)+ sizeof(package->pid)+
-			sizeof(package->counterProgram)+ sizeof(package->quantum)+ sizeof(package->tamanioMensaje));
+	void* buffer = malloc(sizeof(protocolo_planificador_cpu)-4);
 	int offset = 0;
 
-	status = recv(socketPlanificador, buffer,
-			sizeof(package->tipoOperacion) + sizeof(package->tipoProceso), 0);
+	status = recv(socketPlanificador, buffer,sizeof(protocolo_planificador_cpu)-4, 0);
+
+	if(!status) return 0;
+
 	memcpy(&(package->tipoProceso), buffer, sizeof(package->tipoProceso));
 	offset += sizeof(package->tipoProceso);
-	memcpy(&(package->tipoOperacion), buffer + offset, sizeof(package->tipoOperacion));
+
+	memcpy(&(package->tipoOperacion), buffer+ offset, sizeof(package->tipoOperacion));
 	offset += sizeof(package->tipoOperacion);
 
-	if (!status) return 0;
-
-	status = recv(socketPlanificador, buffer,
-			sizeof(package->estado) + sizeof(package->pid)
-					+ sizeof(package->counterProgram + sizeof(package->quantum)
-							+ sizeof(package->tamanioMensaje)),0);
 	memcpy(&(package->estado), buffer + offset, sizeof(package->estado));
 	offset += sizeof(package->estado);
+
 	memcpy(&(package->pid), buffer + offset, sizeof(package->pid));
 	offset += sizeof(package->pid);
-	memcpy(&(package->counterProgram), buffer + offset,
-			sizeof(package->counterProgram));
+
+	memcpy(&(package->counterProgram), buffer + offset,sizeof(package->counterProgram));
 	offset += sizeof(package->counterProgram);
+
 	memcpy(&(package->quantum), buffer + offset, sizeof(package->quantum));
 	offset += sizeof(package->quantum);
-	memcpy(&(package->tamanioMensaje), buffer + offset,
-			sizeof(package->tamanioMensaje));
+
+	memcpy(&(package->tamanioMensaje), buffer + offset,sizeof(package->tamanioMensaje));
 	offset += sizeof(package->tamanioMensaje);
 
-	if (!status) return 0;
+	package->mensaje = (char*)malloc((package->tamanioMensaje) +1);
 
-    package->mensaje = malloc((package->tamanioMensaje) +1);
-	status = recv(socketPlanificador, buffer, package->tamanioMensaje,0);
-	memcpy(&(package->mensaje), buffer + offset, package->tamanioMensaje);
-	package->mensaje[package->tamanioMensaje+1]= '\0';
-	if(!status) return 0;
+	status = recv(socketPlanificador, package->mensaje, package->tamanioMensaje,0);
+
+	package->mensaje[package->tamanioMensaje]= '\0';
 
 	free(buffer);
 
@@ -224,7 +220,7 @@ void cargarParametrosHilo(int socketPlanificador, int socketMemoria,
     //memcpy(parametros->mensajeAPlanificador->mensaje, mensajeDePlanif->mensaje,strlen (mensajeDePlanif->mensaje));
 	strcpy(parametros->mensajeAPlanificador->mensaje, mensajeDePlanif->mensaje);
 	parametros->mensajeAPlanificador->tamanioMensaje = strlen(parametros->mensajeAPlanificador->mensaje)+1;
-	//parametros->mensajeAPlanificador->mensaje[mensajeDePlanif->tamanioMensaje] = '\0';
+	parametros->mensajeAPlanificador->mensaje[mensajeDePlanif->tamanioMensaje-1] = '\0';
 
 }
 

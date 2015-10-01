@@ -28,13 +28,14 @@ void *procesarInstruccion(void *argumento){
 		string_append(&log," conectado a la Memoria");
 		//log_info(logCpu, log);
 	}
-	free(log);//malloc(2)----> NO PRESTES ATENCION A ESTOS MALLOC CON NUMERO ES PARA GUIARME SI A UN MALLOC LE TIRO UN FREE
+	free(log);//malloc(2)
 	printf("bandera 1");
 	while(1){
 		sem_wait(&ejecutaInstruccion); //TODO
 		char* instruccionLeida = string_new();
 		//strcpy(instruccionLeida,string_new());
-		FILE* archivo = fopen(datosParaProcesar->mensajeAPlanificador->mensaje, "r");
+		FILE* archivo = fopen(datosParaProcesar->mensajeAPlanificador->mensaje, "r+");
+
 		if(archivo== NULL) printf("puta madre");
 		char* lineaLeida = string_new();
 		//fseek(archivo, 0, SEEK_END);
@@ -47,9 +48,7 @@ void *procesarInstruccion(void *argumento){
 			error_show("Error al abrir mCod");
 
         printf("bandera 2");
-        int a = feof(archivo);
-        printf("%d", a);
-		while(!a){ //TODO: Agregar lo del quatum
+		while(!feof(archivo)){ //TODO: Agregar lo del quatum
 
 		strcpy(instruccionLeida, leerInstruccion(&(datosParaProcesar->mensajeAPlanificador->counterProgram), lineaLeida, archivo));
 		interpretarInstruccion(instruccionLeida, datosParaProcesar);
@@ -135,7 +134,6 @@ int main() {
 
 
 		status = deserializarPlanificador(package,socketPlanificador);
-
 		//crearMockitoPlanif(package);
 		//logueoRecepcionDePlanif(package);
 		cargarParametrosHilo(socketPlanificador,socketMemoria,package,parametros);//puntero al paquqete deserializado?
