@@ -5,9 +5,17 @@
  *      Author: utnso
  */
 
-#include <stdlib.h>
+#include "../../lib/libSocket.h"
+#include <commons/config.h>
+#include <commons/log.h>
+#include <stdio.h>
 #include "estructuras.h"
+#include <string.h>
+#include "paquetes.h"
+#include <sys/types.h>
+#include <sys/socket.h>
 #include "config.h"
+#include <stdbool.h>
 
 #include <commons/config.h>
 //Arma estructura del archivo en memoria
@@ -30,19 +38,19 @@ tconfig_memoria* leerConfiguracion() {
 void inicializar_sockets(int *socketClienteCPU, int *socketClienteSWAP, int *socketServidorCPU, tconfig_memoria *config) {
 
 	printf("Conectando al SWAP (%s : %s)... ", config->ipSwap, config->puertoEscucha);
-	client_init(&socketClienteSWAP, config->ipSwap, config->puertoEscucha);
+	client_init(socketClienteSWAP, config->ipSwap, config->puertoEscucha);
 	printf("OK\n");
 
 	//Definimos datos Server
-	server_init(&socketServidorCPU, "4142");
+	server_init(socketServidorCPU, "4142");
 	printf("Memoria lista...\n");
 
-	server_acept(socketServidorCPU, &socketClienteCPU);
+	server_acept(*socketServidorCPU, socketClienteCPU);
 	printf("CPU aceptado...\n");
 }
 
 void finalizar_conexiones(int *socketClienteCPU, int *socketClienteSWAP, int *socketServidorCPU, tconfig_memoria *config) {
-	close(socketClienteSWAP);
-	close(socketClienteCPU);
-	close(socketServidorCPU);
+	close(*socketClienteSWAP);
+	close(*socketClienteCPU);
+	close(*socketServidorCPU);
 }

@@ -1,4 +1,3 @@
-#include <pthread.h>
 #include "../../lib/libSocket.h"
 #include <commons/config.h>
 #include <commons/log.h>

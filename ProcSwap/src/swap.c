@@ -37,18 +37,18 @@ int main(void) {
 
 
 	//Crea el socket para escuchar
-	int serverSocket;
-	server_init(&serverSocket, "4142");
+	int server_socket;
+	server_init(&server_socket, "4142");
 	printf("SWAP listo...\n");
 
 	//Crea el socket para recibir a la memoria
-	int socketMemoria;
-	server_acept(serverSocket, &socketMemoria);
+	int socket_memoria;
+	server_acept(server_socket, &socket_memoria);
 	printf("Memoria aceptada...\n");
 
 	//Se recibe el chorro
 	tprotocolo_memoria_swap protocolo_desde_memoria;
-	recibir_paquete_desde_memoria(&socketMemoria, &protocolo_desde_memoria);
+	recibir_paquete_desde_memoria(&socket_memoria, &protocolo_desde_memoria);
 
 	/*
 	tprotocolo_memoria_swap prot;
@@ -96,7 +96,6 @@ int main(void) {
 
 						log_inicializar(logSwap,protocolo_desde_memoria.pid,ocupado->comienzo,config_swap->tamanioPagina,protocolo_desde_memoria.cantidad_pagina);
 
-
 						// actualizar la lista de vacios, con los espacios vacios que resultaron de compactar menos los solicitados
 						tlista_vacio *aux = list_get(lista_vacia, 0);
 						tlista_vacio *update = malloc(sizeof(tlista_vacio));
@@ -118,7 +117,7 @@ int main(void) {
 				tprotocolo_swap_memoria swap_memoria;
 				armar_estructura_protocolo_a_memoria(&swap_memoria, fallo ? 'a' : 'i', protocolo_desde_memoria.pid, "null");
 				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socketMemoria, buffer, 9 + strlen("null"), 0);
+				send(socket_memoria, buffer, 9 + strlen("null"), 0);
 			}
 			break;
 
@@ -169,7 +168,7 @@ int main(void) {
 				tprotocolo_swap_memoria swap_memoria;
 				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, pag_data);
 				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socketMemoria, buffer, 8 + strlen(protocolo_desde_memoria.mensaje), 0);
+				send(socket_memoria, buffer, 8 + strlen(protocolo_desde_memoria.mensaje), 0);
 			}
 
 			break;
@@ -178,14 +177,11 @@ int main(void) {
 			case 'e':
 				break;
 		}
-
 		free(protocolo_desde_memoria.mensaje);
 
 
-	close(serverSocket);
-	close(socketMemoria);
-	fclose(swap);
-	free(config_swap);
+	finalizar(&server_socket, &socket_memoria, swap, confing_swap);
+
 
 	return 0;
 }

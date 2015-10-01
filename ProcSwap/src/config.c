@@ -5,15 +5,23 @@
  *      Author: utnso
  */
 
+#include <stdio.h>
 #include <stdlib.h>
-#include "estructuras.h"
-#include "config.h"
-#include "string.h"
-#include <commons/log.h>
+#include "../../lib/libSocket.h"
 #include <commons/config.h>
-#include <commons/string.h>
+#include <commons/collections/list.h>
+#include <commons/log.h>
+#include "estructuras.h"
+#include "manejo_listas_archivo_swap.h"
+#include "paquetes.h"
+#include <stdbool.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <string.h>
 
-//Arma estructura del archivo en swap
+
+
+
 tconfig_swap* leerConfiguracion() {
 	tconfig_swap* datosSwap = malloc(sizeof(tconfig_swap));
 	t_config* config;
@@ -77,4 +85,11 @@ void log_escritura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagi
 
 	log_info(log,str);
 
+}
+
+void finalizar(int *server_socket, int *socket_memoria, FILE *swap, tconfig_swap *config_swap) {
+	close(*server_socket);
+	close(*socket_memoria);
+	fclose(swap);
+	free(config_swap);
 }
