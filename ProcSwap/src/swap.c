@@ -77,11 +77,15 @@ int main(void) {
 					ocupado->comienzo = comienzo;
 					ocupado->paginas_ocupadas = protocolo_desde_memoria.cantidad_pagina;
 					list_add(lista_ocupado, ocupado);
+
+					log_inicializar(logSwap,protocolo_desde_memoria.pid,ocupado->comienzo,config_swap->tamanioPagina,protocolo_desde_memoria.cantidad_pagina);
 				}
 				else {
 					if (espacio_total_disponible(lista_vacia) >= protocolo_desde_memoria.cantidad_pagina){
 						//compactamos, y retorno el comienzo del espacio vacio
+						log_info(logSwap,"compactacion iniciada /n");
 						int comienzo = compactar_swap(&swap, &lista_vacia, &lista_ocupado, config_swap->tamanioPagina, config_swap->cantidadPaginas);
+						log_info(logSwap,"compactacion finalizada /n");
 
 						//ocupo espacio
 						tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
@@ -89,8 +93,11 @@ int main(void) {
 						ocupado->comienzo = comienzo;
 						ocupado->paginas_ocupadas = protocolo_desde_memoria.cantidad_pagina;
 						list_add(lista_ocupado, ocupado);
-						// actualizar la lista de vacios, con los espacios vacios que resultaron de compactar menos los solicitados
 
+						log_inicializar(logSwap,protocolo_desde_memoria.pid,ocupado->comienzo,config_swap->tamanioPagina,protocolo_desde_memoria.cantidad_pagina);
+
+
+						// actualizar la lista de vacios, con los espacios vacios que resultaron de compactar menos los solicitados
 						tlista_vacio *aux = list_get(lista_vacia, 0);
 						tlista_vacio *update = malloc(sizeof(tlista_vacio));
 						*update = *aux;
@@ -103,8 +110,10 @@ int main(void) {
 						list_add(lista_vacia, update);
 
 					}
-					else
+					else{
 						fallo = 1;
+						log_proc_rechazado(logSwap,protocolo_desde_memoria->pid);
+					}
 				}
 				tprotocolo_swap_memoria swap_memoria;
 				armar_estructura_protocolo_a_memoria(&swap_memoria, fallo ? 'a' : 'i', protocolo_desde_memoria.pid, "null");
@@ -133,6 +142,7 @@ int main(void) {
 						//saco espacio de lista ocupado
 						list_remove(lista_ocupado, i);
 
+						log_finalizar(logSwap,config_swap->tamanioPagina,espacio_ocupado->paginas_ocupadas);
 					}
 				}
 			}
@@ -144,9 +154,11 @@ int main(void) {
 			case 'l': {
 				int pag_inicio = get_comienzo_espacio_asignado(lista_ocupado, protocolo_desde_memoria.pid);
 				printf("pag_inicio : %d\n", pag_inicio);
+
 				//indica la pagina a leer
 				int pag_leer = protocolo_desde_memoria.cantidad_pagina;
 				printf("pag_leer : %d\n", pag_leer);
+
 				//me posiciono sobre la pagina a leer
 				int desplazamiento_en_bytes = (pag_inicio + pag_leer)*config_swap->tamanioPagina;
 				printf("desplazamiento_en_bytes : %d\n", desplazamiento_en_bytes);
@@ -155,6 +167,7 @@ int main(void) {
 				char * pag_data = malloc(config_swap->tamanioPagina + 1);
 				fread(pag_data, config_swap->tamanioPagina, 1, swap);
 
+				log_escritura(logSwap, protocolo_desde_memoria->pid,pag_inicio,config_swap->tamanioPagina,pag_leer,pag_data);
 
 				tprotocolo_swap_memoria swap_memoria;
 				armar_estructura_protocolo_a_memoria(&swap_memoria, 'i', protocolo_desde_memoria.pid, protocolo_desde_memoria.mensaje);
@@ -170,7 +183,6 @@ int main(void) {
 		}
 
 		free(protocolo_desde_memoria.mensaje);
-
 
 
 	close(serverSocket);

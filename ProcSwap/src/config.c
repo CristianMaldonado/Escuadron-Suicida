@@ -11,6 +11,7 @@
 #include "string.h"
 #include <commons/log.h>
 #include <commons/config.h>
+#include <commons/string.h>
 
 //Arma estructura del archivo en swap
 tconfig_swap* leerConfiguracion() {
@@ -27,6 +28,53 @@ tconfig_swap* leerConfiguracion() {
 
 void log_inicializar(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int paginas_asignadas) {
 
+	char * str = string_new();
+	string_append(&str, "inicializar-> pid: ");
+	string_append(&str, string_itoa(pid));
+	string_append(&str, ", bytes_inicial: ");
+	string_append(&str, string_itoa(nro_pagina_inicial*tamanio_pagina));
+	string_append(&str, ", tamanio_en_bytes: ");
+	string_append(&str, string_itoa(paginas_asignadas*tamanio_pagina));
+	string_append(&str, "/n");
 
+	log_info(log,str);
+}
+
+void log_finalizar(t_log *log, int pid, int tamanio_pagina, int paginas_asignadas) {
+
+	char * str = string_new();
+	string_append(&str, "finalizado-> pid: ");
+	string_append(&str, string_itoa(pid));
+	string_append(&str, ", tamanio_en_bytes_liberados: ");
+	string_append(&str, string_itoa(paginas_asignadas*tamanio_pagina));
+	string_append(&str, "/n");
+
+	log_info(log,str);
+}
+
+void log_proc_rechazado(t_log *log, int pid){
+
+	char * str = string_new();
+	string_append(&str, "proceso rechazado-> pid: ");
+	string_append(&str, string_itoa(pid));
+	string_append(&str, "/n");
+
+	log_info(log,str);
+}
+
+void log_escritura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int pagina_a_leer, char* contenido){
+
+	char * str = string_new();
+	string_append(&str, "lectura-> pid: ");
+	string_append(&str, string_itoa(pid));
+	string_append(&str, ", bytes_inicial: ");
+	string_append(&str, string_itoa((nro_pagina_inicial + pagina_a_leer)*tamanio_pagina));
+	string_append(&str, ", tamanio_en_bytes_a_leer: ");
+	string_append(&str, string_itoa(tamanio_pagina));
+	string_append(&str, ", contenido: ");
+	string_append(&str, contenido);
+	string_append(&str, "/n");
+
+	log_info(log,str);
 
 }
