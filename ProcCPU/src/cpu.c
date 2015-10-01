@@ -31,7 +31,6 @@ void *procesarInstruccion(void *argumento){
 		//log_info(logCpu, log);
 	}
 	free(log);//malloc(2)
-	printf("bandera 1");
 	while(1){
 		sem_wait(&ejecutaInstruccion); //TODO
 
