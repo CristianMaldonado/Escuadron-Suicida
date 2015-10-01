@@ -12,32 +12,21 @@
 #include <stdbool.h>
 
 int main(void) {
-
 	system("clear");
 
-	t_log *logMemoria = log_create("../src/log.txt", "memoria.c", false, LOG_LEVEL_INFO);
+	//t_log *logMemoria = log_create("../src/log.txt", "memoria.c", false, LOG_LEVEL_INFO);
 
 	tconfig_memoria * config = leerConfiguracion();
 
 	//Definimos datos Cliente listener
-	int socketClienteSWAP;
-	printf("Conectando al SWAP (%s : %s)... ", config->ipSwap, config->puertoEscucha);
-	client_init(&socketClienteSWAP, config->ipSwap, config->puertoEscucha);
-	printf("OK\n");
+	int socketClienteSWAP, socketServidorCPU, socketClienteCPU;
+	inicializar_sockets(&socketClienteCPU, &socketClienteSWAP, &socketServidorCPU, config);
 
-	//Definimos datos Server
-	int socketServidorCPU;
-	server_init(&socketServidorCPU, "4142");
-	printf("Memoria lista...\n");
-
-	int socketClienteCPU;
-	server_acept(socketServidorCPU, &socketClienteCPU);
-	printf("CPU aceptado...\n");
-	///////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////
 
 
 	tprotocolo_desde_cpu_y_hacia_swap paquete_desde_cpu;
-	recibir_paquete_desde_cpu(socketClienteCPU, &paquete_desde_cpu);
+	recibir_paquete_desde_cpu(&socketClienteCPU, &paquete_desde_cpu);
 
 	switch (paquete_desde_cpu.cod_op) {
 
@@ -47,7 +36,7 @@ int main(void) {
 			free(buffer);
 
 			tprotocolo_memoria_cpu paquete_memoria_cpu;
-			armar_estructura_protocolo_a_cpu(&paquete_memoria_cpu, paquete_desde_cpu.cod_op,'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje);
+			armar_estructura_protocolo_a_cpu(&paquete_memoria_cpu, paquete_desde_cpu.cod_op, 'f', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje);
 			buffer = serializar_a_cpu(&paquete_memoria_cpu);
 			send(socketClienteCPU, buffer, strlen(paquete_desde_cpu.mensaje) + 15, 0);
 
@@ -65,7 +54,7 @@ int main(void) {
 			recibir_paquete_desde_swap(socketClienteSWAP, &swap_memoria);
 			tprotocolo_memoria_cpu memoria_cpu;
 
-			armar_estructura_protocolo_a_cpu(&memoria_cpu, paquete_desde_cpu.cod_op, swap_memoria.error, swap_memoria.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje);
+			armar_estructura_protocolo_a_cpu(&memoria_cpu, paquete_desde_cpu.cod_op, 'i', swap_memoria.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje);
 			buffer = serializar_a_cpu(&memoria_cpu);
 			send(socketClienteCPU, buffer, strlen(paquete_desde_cpu.mensaje) + 15, 0);
 

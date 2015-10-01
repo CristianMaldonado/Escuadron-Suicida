@@ -25,8 +25,7 @@ void armar_estructura_desde_cpu_y_hacia_swap(tprotocolo_desde_cpu_y_hacia_swap *
 	protocolo->tamanio_mensaje = strlen(protocolo->mensaje) +1;
 }
 
-// para usarlo primero uso malloc de la catidad del chorro y usar free despues de enviar
-// el paquete
+// para usarlo primero uso malloc de la catidad del chorro y usar free despues de enviar el paquete
 void* serializar_a_swap(tprotocolo_desde_cpu_y_hacia_swap *protocolo) {
 	size_t messageLength = strlen(protocolo->mensaje);
 	void * chorro = malloc(13 + messageLength);
@@ -55,11 +54,10 @@ bool recibir_paquete_desde_cpu(int *socket_cpu, tprotocolo_desde_cpu_y_hacia_swa
 
 // usar free() para el mensaje, en la estructura despues de usarlo
 bool recibir_paquete_desde_swap(int socket_swap, tprotocolo_swap_memoria *paquete_desde_swap) {
-	void* buffer = malloc(9 * sizeof(int));
-	if(recv(socket_swap, buffer, 9, 0) <= 0) return false;
+	void* buffer = malloc(8 * sizeof(int));
+	if(recv(socket_swap, buffer, 8, 0) <= 0) return false;
 	memcpy(&(paquete_desde_swap->pid), buffer, 4);
-	memcpy(&(paquete_desde_swap->error), buffer + 4 ,1);
-	memcpy(&(paquete_desde_swap->tamanio), buffer + 5 ,4);
+	memcpy(&(paquete_desde_swap->tamanio), buffer + 4, 4);
 	// ahora el mensaje posta
 	paquete_desde_swap->mensaje = (char*)malloc(paquete_desde_swap->tamanio + 1);
 	if(recv(socket_swap, paquete_desde_swap->mensaje, paquete_desde_swap->tamanio, 0) <= 0) return false;
