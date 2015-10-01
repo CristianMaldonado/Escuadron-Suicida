@@ -27,7 +27,6 @@ typedef struct {
 
 typedef struct {
 	int pid;
-	char error;
 	int tamanio;
 	char *mensaje;
 }  __attribute__((packed)) tprotocolo_swap_memoria;

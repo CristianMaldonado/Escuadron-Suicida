@@ -11,15 +11,11 @@
 #include "config.h"
 #include <stdbool.h>
 
-
-#define PACKAGESIZE 30
-
-
 int main(void) {
 
 	system("clear");
 
-	//t_log *logMemoria = log_create("../src/log.txt", "memoria.c", false, LOG_LEVEL_INFO);
+	t_log *logMemoria = log_create("../src/log.txt", "memoria.c", false, LOG_LEVEL_INFO);
 
 	tconfig_memoria * config = leerConfiguracion();
 
@@ -29,14 +25,10 @@ int main(void) {
 	client_init(&socketClienteSWAP, config->ipSwap, config->puertoEscucha);
 	printf("OK\n");
 
-	//log_info(logMemoria, "Conectado al SWAP");
-
 	//Definimos datos Server
 	int socketServidorCPU;
 	server_init(&socketServidorCPU, "4142");
 	printf("Memoria lista...\n");
-
-	//log_info(logMemoria, "Memoria iniciada");
 
 	int socketClienteCPU;
 	server_acept(socketServidorCPU, &socketClienteCPU);
@@ -82,16 +74,12 @@ int main(void) {
 		break;
 	}
 
-	printf("Finalizo el planificador...\n");
-
-
+	printf("Finalizo ...\n");
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	close(socketClienteSWAP);
-	//log_info(logMemoria, "cerrada la conexion con Swap");
 	close(socketClienteCPU);
 	close(socketServidorCPU);
-	//log_info(logMemoria, "Memoria finalizada");
 
 	return 0;
 }

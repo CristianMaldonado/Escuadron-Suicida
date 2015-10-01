@@ -112,7 +112,7 @@ int main(void) {
 					}
 					else{
 						fallo = 1;
-						log_proc_rechazado(logSwap,protocolo_desde_memoria->pid);
+						log_proc_rechazado(logSwap, protocolo_desde_memoria.pid);
 					}
 				}
 				tprotocolo_swap_memoria swap_memoria;
@@ -153,26 +153,23 @@ int main(void) {
 			//leer pagina
 			case 'l': {
 				int pag_inicio = get_comienzo_espacio_asignado(lista_ocupado, protocolo_desde_memoria.pid);
-				printf("pag_inicio : %d\n", pag_inicio);
 
 				//indica la pagina a leer
 				int pag_leer = protocolo_desde_memoria.cantidad_pagina;
-				printf("pag_leer : %d\n", pag_leer);
 
 				//me posiciono sobre la pagina a leer
 				int desplazamiento_en_bytes = (pag_inicio + pag_leer)*config_swap->tamanioPagina;
-				printf("desplazamiento_en_bytes : %d\n", desplazamiento_en_bytes);
 				fseek(swap, desplazamiento_en_bytes, SEEK_SET);
 
 				char * pag_data = malloc(config_swap->tamanioPagina + 1);
 				fread(pag_data, config_swap->tamanioPagina, 1, swap);
 
-				log_escritura(logSwap, protocolo_desde_memoria->pid,pag_inicio,config_swap->tamanioPagina,pag_leer,pag_data);
+				log_escritura(logSwap, protocolo_desde_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, pag_data);
 
 				tprotocolo_swap_memoria swap_memoria;
-				armar_estructura_protocolo_a_memoria(&swap_memoria, 'i', protocolo_desde_memoria.pid, protocolo_desde_memoria.mensaje);
+				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, pag_data);
 				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socketMemoria, buffer, 9 + strlen(protocolo_desde_memoria.mensaje), 0);
+				send(socketMemoria, buffer, 8 + strlen(protocolo_desde_memoria.mensaje), 0);
 			}
 
 			break;
