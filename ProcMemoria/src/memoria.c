@@ -66,9 +66,8 @@ int main(void) {
 	printf("Finalizo ...\n");
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
-	close(socketClienteSWAP);
-	close(socketClienteCPU);
-	close(socketServidorCPU);
+
+	finalizar_conexiones(&socketClienteCPU, &socketClienteSWAP, &socketServidorCPU);
 
 	return 0;
 }

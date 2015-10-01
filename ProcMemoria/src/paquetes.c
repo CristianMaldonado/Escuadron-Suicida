@@ -15,7 +15,6 @@
 #include <stdbool.h>
 
 
-
 void armar_estructura_desde_cpu_y_hacia_swap(tprotocolo_desde_cpu_y_hacia_swap *protocolo, char cod_op, int pid, int paginas, char* mensaje) {
 	protocolo->cod_op = cod_op;
 	protocolo->pid = pid;
@@ -25,7 +24,6 @@ void armar_estructura_desde_cpu_y_hacia_swap(tprotocolo_desde_cpu_y_hacia_swap *
 	protocolo->tamanio_mensaje = strlen(protocolo->mensaje) +1;
 }
 
-// para usarlo primero uso malloc de la catidad del chorro y usar free despues de enviar el paquete
 void* serializar_a_swap(tprotocolo_desde_cpu_y_hacia_swap *protocolo) {
 	size_t messageLength = strlen(protocolo->mensaje);
 	void * chorro = malloc(13 + messageLength);
@@ -52,7 +50,6 @@ bool recibir_paquete_desde_cpu(int *socket_cpu, tprotocolo_desde_cpu_y_hacia_swa
 	return true;
 }
 
-// usar free() para el mensaje, en la estructura despues de usarlo
 bool recibir_paquete_desde_swap(int socket_swap, tprotocolo_swap_memoria *paquete_desde_swap) {
 	void* buffer = malloc(8 * sizeof(int));
 	if(recv(socket_swap, buffer, 8, 0) <= 0) return false;
@@ -66,7 +63,6 @@ bool recibir_paquete_desde_swap(int socket_swap, tprotocolo_swap_memoria *paquet
 	return true;
 }
 
-// usar free() despues de usar el mensaje en la estructura
 void armar_estructura_protocolo_a_cpu(tprotocolo_memoria_cpu *protocolo, char cod_op, char cod_aux, int pid, int numero_pagina, char* mensaje) {
 	protocolo->cod_proceso = 'm';
 	protocolo->cod_op = cod_op;
@@ -78,7 +74,6 @@ void armar_estructura_protocolo_a_cpu(tprotocolo_memoria_cpu *protocolo, char co
 	protocolo->tamanio_mensaje = strlen(protocolo->mensaje) +1;
 }
 
-// usar free despues de enviar el paquete chorro
 void* serializar_a_cpu(tprotocolo_memoria_cpu *protocolo) {
 	size_t messageLength = strlen(protocolo->mensaje);
 	void * chorro = malloc(15 + messageLength);

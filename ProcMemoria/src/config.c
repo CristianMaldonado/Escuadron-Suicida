@@ -34,12 +34,15 @@ void inicializar_sockets(int *socketClienteCPU, int *socketClienteSWAP, int *soc
 	printf("OK\n");
 
 	//Definimos datos Server
-
 	server_init(&socketServidorCPU, "4142");
 	printf("Memoria lista...\n");
 
-
 	server_acept(socketServidorCPU, &socketClienteCPU);
 	printf("CPU aceptado...\n");
+}
 
+void finalizar_conexiones(int *socketClienteCPU, int *socketClienteSWAP, int *socketServidorCPU, tconfig_memoria *config) {
+	close(socketClienteSWAP);
+	close(socketClienteCPU);
+	close(socketServidorCPU);
 }
