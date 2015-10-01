@@ -18,7 +18,7 @@
 
 int main(void) {
 	system("clear");
- 	tconfig_swap* config_swap = leerConfiguracion();
+ 	//tconfig_swap* config_swap = leerConfiguracion();
 
 	// inicializamos lista de ocupados
 	t_list * lista_ocupado = list_create();
@@ -58,7 +58,7 @@ int main(void) {
 	//comienzo de pasaje de datos
 
 
-	FILE* swap = fopen(config_swap->nombreSwap, "rb+");
+	//FILE* swap = fopen(config_swap->nombreSwap, "rb+");
 
 	tlista_vacio *lv = malloc(sizeof(tlista_vacio));
 
@@ -71,13 +71,88 @@ int main(void) {
 	l2->paginas_vacias = 1;
 	list_add(lista_vacia, l2);
 
+	tlista_vacio *a = malloc(sizeof(tlista_vacio));
+	a = list_get(lista_vacia, 0);
+	printf("%d", a->comienzo);
+	printf("%d", a->paginas_vacias);
+
+	tlista_ocupado *nodo1 = malloc(sizeof(tlista_ocupado));
+			nodo1->pid = 1;
+			nodo1->comienzo = 0;
+			nodo1->paginas_ocupadas = 2;
+			tlista_ocupado *nodo2 = malloc(sizeof(tlista_ocupado));
+			nodo2->pid = 2;
+			nodo2->comienzo = 2;
+			nodo2->paginas_ocupadas = 1;
+			tlista_ocupado *nodo3 = malloc(sizeof(tlista_ocupado));
+			nodo3->pid = 3;
+			nodo3->comienzo = 6;
+			nodo3->paginas_ocupadas = 2;
+
+			list_add(lista_ocupado, nodo1);
+			list_add(lista_ocupado, nodo2);
+			list_add(lista_ocupado, nodo3);
 
 
-	tprotocolo_memoria_swap prot;
-	recibir_paquete_desde_memoria(&socketMemoria, &prot);
-	printf("%s\n", prot.mensaje);
-	int comienzo = dame_si_hay_espacio(lista_vacia, prot.cantidad_pagina);
-	printf("%d\n", comienzo);
+//////////////
+	tprotocolo_memoria_swap protocolo_desde_memoria;
+	recibir_paquete_desde_memoria(&socketMemoria, &protocolo_desde_memoria);
+	printf("%s\n", protocolo_desde_memoria.mensaje);
+
+
+	if(protocolo_desde_memoria.codigo_op == 'i') {
+		int comienzo, hay_espacio;
+		dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo);
+
+		tlista_vacio *v = list_get(lista_vacia,0);
+				printf("comienzo:  %d\n", v->comienzo );
+				printf("cantidad paginas: %d\n", v->paginas_vacias);
+
+		if (hay_espacio) {
+			//asignar el espacio solicitado
+			tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
+			ocupado->pid = protocolo_desde_memoria.pid;
+			ocupado->comienzo = comienzo;
+			ocupado->paginas_ocupadas = protocolo_desde_memoria.cantidad_pagina;
+			list_add(lista_ocupado, ocupado);
+		}
+		else {
+			if (espacio_total_disponible(lista_vacia) >= protocolo_desde_memoria.cantidad_pagina){
+				//compactamos, y retorno el comienzo del espacio vacio
+				FILE* swap = fopen("swap.dat", "rb+");
+				//int comienzo = compactar_swap(&swap, &lista_vacia, &lista_ocupado, config_swap->tamanioPagina, config_swap->cantidadPaginas);
+				int comienzo = compactar_swap(&swap, &lista_vacia, &lista_ocupado, 4, 9);
+				//ocupo espacio
+				tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
+				ocupado->pid = protocolo_desde_memoria.pid;
+				ocupado->comienzo = comienzo;
+				ocupado->paginas_ocupadas = protocolo_desde_memoria.cantidad_pagina;
+				list_add(lista_ocupado, ocupado);
+				// actualizar la lista de vacios, con los espacios vacios que resultaron de compactar menos los solicitados
+
+				tlista_vacio *update = list_get(lista_vacia, 0);
+				update->comienzo += protocolo_desde_memoria.cantidad_pagina;
+				update->paginas_vacias -= protocolo_desde_memoria.cantidad_pagina;
+				list_destroy_and_destroy_elements(lista_vacia,free);
+				lista_vacia = malloc(sizeof(tlista_vacio));
+				list_add(lista_vacia, update);
+			}
+			else {
+				printf("avisamos ");
+			}
+		}
+	}
+
+
+	// muestro como quedan las listas
+
+	tlista_vacio *v = malloc(sizeof(tlista_vacio));
+	v = list_get(lista_vacia,0);
+		printf("comienzo:  %d\n", v->comienzo );
+		printf("cantidad paginas: %d\n", v->paginas_vacias);
+
+
+
 
 
 
@@ -250,7 +325,7 @@ int main(void) {
 	//close(socketMemoria);
 	//log_info(logSwap, "Cerrada conexion con memoria");
 
-	fclose(swap);
+	//fclose(swap);
 	//free(config_swap);
 
 	return 0;

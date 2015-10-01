@@ -15,7 +15,7 @@
 #include <stdbool.h>
 
 FILE* iniciar_archivo_swap(void) {
-	tconfig_swap *config_swap = leerConfiguracion();
+	/*tconfig_swap *config_swap = leerConfiguracion();
 	FILE* swap = fopen(config_swap->nombreSwap, "rb+"); //rb+ para archivo binario
 	size_t tamanio_swap = config_swap->tamanioPagina * config_swap->cantidadPaginas;
 	//rellenamos en cero (char '/0' es 0)
@@ -24,7 +24,17 @@ FILE* iniciar_archivo_swap(void) {
 	for (i = 0 ; i < tamanio_swap; i++)
 		fwrite(cero, sizeof(char), 1, swap);
 	fseek(swap, 0, SEEK_SET);
-	return swap;
+	return swap;*/
+
+	FILE* swap = fopen("swap.dat", "rb+"); //rb+ para archivo binario
+		size_t tamanio_swap = 4 * 9;
+		int i ;
+		char cero[] = "0";
+		for (i = 0 ; i < tamanio_swap; i++)
+			fwrite(cero, sizeof(char), 1, swap);
+		fseek(swap, 0, SEEK_SET);
+		return swap;
+
 }
 
 bool recibir_paquete_desde_memoria(int *socket_memoria, tprotocolo_memoria_swap *paquete_desde_memoria) {
