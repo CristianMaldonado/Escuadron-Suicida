@@ -65,6 +65,7 @@ int dame_si_hay_espacio(t_list** lista_vacia, int paginas_pedidas, int* comienzo
 	int flag;
 	for (i = 0; i < list_size(*lista_vacia); i++) {
 		aux = list_get(*lista_vacia, i);
+		*comienzo = aux->comienzo;
 		if (aux->paginas_vacias >= paginas_pedidas) {
 			flag = 0;
 			//actualizar el hueco vacio
@@ -72,6 +73,7 @@ int dame_si_hay_espacio(t_list** lista_vacia, int paginas_pedidas, int* comienzo
 			//si sigue existiendo un hueco osea != 0
 			if (aux->paginas_vacias - paginas_pedidas != 0) {
 				aux->comienzo += paginas_pedidas;
+				*comienzo = aux->comienzo;
 				aux->paginas_vacias -= paginas_pedidas;
 				list_add(*lista_vacia, aux);
 				return 1;
@@ -82,7 +84,8 @@ int dame_si_hay_espacio(t_list** lista_vacia, int paginas_pedidas, int* comienzo
 			flag = 1;
 	}
 	if(flag)
-		return -1;
+		*comienzo = aux->comienzo;
+		return 0;
 	return  aux->comienzo;
 }
 
@@ -96,6 +99,17 @@ int espacio_total_disponible(t_list* lista_vacia) {
 	}
 	free(aux);
 	return tamanio;
+}
+
+int lista_vacia_compactada(t_list **lista_vacia, FILE **swap, int tamanio_pagina ,int total_de_paginas) {
+	list_destroy_and_destroy_elements(*lista_vacia, free);
+	int comienzo = (int)ftell(*swap) / tamanio_pagina;
+	tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
+	vacio->comienzo = comienzo;
+	vacio->paginas_vacias = total_de_paginas - vacio->comienzo;
+	*lista_vacia = malloc(sizeof(tlista_vacio));
+	list_add(*lista_vacia, vacio);
+	return vacio->comienzo;
 }
 
 
@@ -116,21 +130,9 @@ int compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,in
 		list_add(*lista_ocupada, elem_ocupada);
 	}
 	list_destroy_and_destroy_elements(lista_aux, free);
-	int comienzo;
-	lista_vacia_compactada(lista_vacia, swap, tamanio_pagina ,total_de_paginas, &comienzo);
-	return comienzo;
+
+	return lista_vacia_compactada(lista_vacia, swap, tamanio_pagina ,total_de_paginas);
 }
 
 
 
-
-int lista_vacia_compactada(t_list **lista_vacia, FILE **swap, int tamanio_pagina ,int total_de_paginas) {
-	list_destroy_and_destroy_elements(*lista_vacia, free);
-	int comienzo = (int)ftell(*swap) / tamanio_pagina;
-	tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
-	vacio->comienzo = comienzo;
-	vacio->paginas_vacias = total_de_paginas - vacio->comienzo;
-	*lista_vacia = malloc(sizeof(tlista_vacio));
-	list_add(*lista_vacia, vacio);
-	return vacio->comienzo;
-}

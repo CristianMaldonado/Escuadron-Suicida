@@ -37,7 +37,7 @@ int main(void) {
 
 	//Crea el socket para escuchar
 	int serverSocket;
-	server_init(&serverSocket, "4141");
+	server_init(&serverSocket, "4142");
 	printf("SWAP listo...\n");
 
 	//log_info(logSwap, "SWAP iniciado");
@@ -102,11 +102,7 @@ int main(void) {
 
 	if(protocolo_desde_memoria.codigo_op == 'i') {
 		int comienzo, hay_espacio;
-		dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo);
-
-		tlista_vacio *v = list_get(lista_vacia,0);
-				printf("comienzo:  %d\n", v->comienzo );
-				printf("cantidad paginas: %d\n", v->paginas_vacias);
+		hay_espacio = dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo);
 
 		if (hay_espacio) {
 			//asignar el espacio solicitado
@@ -122,6 +118,7 @@ int main(void) {
 				FILE* swap = fopen("swap.dat", "rb+");
 				//int comienzo = compactar_swap(&swap, &lista_vacia, &lista_ocupado, config_swap->tamanioPagina, config_swap->cantidadPaginas);
 				int comienzo = compactar_swap(&swap, &lista_vacia, &lista_ocupado, 4, 9);
+
 				//ocupo espacio
 				tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
 				ocupado->pid = protocolo_desde_memoria.pid;
@@ -131,10 +128,13 @@ int main(void) {
 				// actualizar la lista de vacios, con los espacios vacios que resultaron de compactar menos los solicitados
 
 				tlista_vacio *update = list_get(lista_vacia, 0);
+
 				update->comienzo += protocolo_desde_memoria.cantidad_pagina;
+
 				update->paginas_vacias -= protocolo_desde_memoria.cantidad_pagina;
+
 				list_destroy_and_destroy_elements(lista_vacia,free);
-				lista_vacia = malloc(sizeof(tlista_vacio));
+				lista_vacia = list_create();
 				list_add(lista_vacia, update);
 			}
 			else {
@@ -145,11 +145,16 @@ int main(void) {
 
 
 	// muestro como quedan las listas
-
+/*
 	tlista_vacio *v = malloc(sizeof(tlista_vacio));
 	v = list_get(lista_vacia,0);
 		printf("comienzo:  %d\n", v->comienzo );
 		printf("cantidad paginas: %d\n", v->paginas_vacias);
+*/
+
+	tlista_ocupado * v = malloc(sizeof(tlista_ocupado));
+	v = list_get(lista_ocupado, 3);
+	printf("comienzo: %d\n pag ocu: %d\n pid: %d\n", v->comienzo,v->paginas_ocupadas, v->pid );
 
 
 
