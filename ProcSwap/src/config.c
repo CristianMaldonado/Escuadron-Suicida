@@ -8,7 +8,8 @@
 #include <stdlib.h>
 #include "estructuras.h"
 #include "config.h"
-
+#include "string.h"
+#include <commons/log.h>
 #include <commons/config.h>
 
 //Arma estructura del archivo en swap
@@ -22,4 +23,10 @@ tconfig_swap* leerConfiguracion() {
 	datosSwap->tamanioPagina = config_get_int_value(config, "TAMANIO_PAGINA");
 	datosSwap->retardo = config_get_int_value(config, "RETARDO_COMPACTATION");
 	return datosSwap;
+}
+
+void log_inicializar(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int paginas_asignadas) {
+
+
+
 }

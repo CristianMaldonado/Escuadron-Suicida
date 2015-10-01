@@ -18,6 +18,9 @@
 
 int main(void) {
 	system("clear");
+
+	t_log *logSwap = log_create("../src/log.txt", "swap.c", false, LOG_LEVEL_INFO);
+
  	tconfig_swap* config_swap = leerConfiguracion();
 
 	// inicializamos lista de ocupados
@@ -27,84 +30,27 @@ int main(void) {
 	FILE *swap = iniciar_archivo_swap();
 
 
-	//tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
-	//vacio->comienzo = 0;
-	//vacio->paginas_vacias = config_swap->cantidadPaginas;
-	//list_add(lista_vacia, vacio);
+	tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
+	vacio->comienzo = 0;
+	vacio->paginas_vacias = config_swap->cantidadPaginas;
+	list_add(lista_vacia, vacio);
 
-
-	//t_log *logSwap = log_create("../src/log.txt", "swap.c", false, LOG_LEVEL_INFO);
 
 	//Crea el socket para escuchar
 	int serverSocket;
 	server_init(&serverSocket, "4142");
 	printf("SWAP listo...\n");
 
-	//log_info(logSwap, "SWAP iniciado");
-
 	//Crea el socket para recibir a la memoria
 	int socketMemoria;
 	server_acept(serverSocket, &socketMemoria);
 	printf("Memoria aceptada...\n");
 
-	//log_info(logSwap, "Conectado a la memoria");
-
-
-
-/// /////////////////////////////////////////////////////////////////////
-
-
-
-	//comienzo de pasaje de datos
-
-
-	tlista_vacio *lv = malloc(sizeof(tlista_vacio));
-
-	lv->comienzo = 3;
-	lv->paginas_vacias = 3;
-	list_add(lista_vacia, lv);
-	tlista_vacio *l2 = malloc(sizeof(tlista_vacio));
-
-	l2->comienzo = 8;
-	l2->paginas_vacias = 1;
-	list_add(lista_vacia, l2);
-
-	tlista_ocupado *nodo1 = malloc(sizeof(tlista_ocupado));
-			nodo1->pid = 1;
-			nodo1->comienzo = 0;
-			nodo1->paginas_ocupadas = 2;
-			tlista_ocupado *nodo2 = malloc(sizeof(tlista_ocupado));
-			nodo2->pid = 2;
-			nodo2->comienzo = 2;
-			nodo2->paginas_ocupadas = 1;
-			tlista_ocupado *nodo3 = malloc(sizeof(tlista_ocupado));
-			nodo3->pid = 3;
-			nodo3->comienzo = 6;
-			nodo3->paginas_ocupadas = 2;
-
-			list_add(lista_ocupado, nodo1);
-			list_add(lista_ocupado, nodo2);
-			list_add(lista_ocupado, nodo3);
-
-
-//////////////
+	//Se recibe el chorro
 	tprotocolo_memoria_swap protocolo_desde_memoria;
 	recibir_paquete_desde_memoria(&socketMemoria, &protocolo_desde_memoria);
 
-
-	// muestro como quedan las listas
-/*
-	tlista_vacio *v = malloc(sizeof(tlista_vacio));
-	v = list_get(lista_vacia,0);
-		printf("comienzo:  %d\n", v->comienzo );
-		printf("cantidad paginas: %d\n", v->paginas_vacias);
-*/
-
-
-
-
 	/*
-
 	tprotocolo_memoria_swap prot;
 	int salir = 0;
 	while(!salir){
@@ -117,15 +63,13 @@ int main(void) {
 			salir = 1;
 */
 
-
-
 		switch(protocolo_desde_memoria.codigo_op){
 
 			//inicializar probado
 			case 'i': {
 				int comienzo, hay_espacio;
 				hay_espacio = dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo);
-
+				int fallo = 0;
 				if (hay_espacio) {
 					//asignar el espacio solicitado
 					tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
@@ -159,10 +103,13 @@ int main(void) {
 						list_add(lista_vacia, update);
 
 					}
-					else {
-						printf("avisamos ");
-					}
+					else
+						fallo = 1;
 				}
+				tprotocolo_swap_memoria swap_memoria;
+				armar_estructura_protocolo_a_memoria(&swap_memoria, fallo ? 'a' : 'i', protocolo_desde_memoria.pid, "null");
+				void * buffer = serializar_a_memoria(&swap_memoria);
+				send(socketMemoria, buffer, 9 + strlen("null"), 0);
 			}
 			break;
 
@@ -194,9 +141,7 @@ int main(void) {
 
 
 			//leer pagina
-			case 'l':
-
-			{
+			case 'l': {
 				int pag_inicio = get_comienzo_espacio_asignado(lista_ocupado, protocolo_desde_memoria.pid);
 				printf("pag_inicio : %d\n", pag_inicio);
 				//indica la pagina a leer
@@ -209,8 +154,12 @@ int main(void) {
 
 				char * pag_data = malloc(config_swap->tamanioPagina + 1);
 				fread(pag_data, config_swap->tamanioPagina, 1, swap);
-				//devolverle lo leido a la memoria --> cpu
 
+
+				tprotocolo_swap_memoria swap_memoria;
+				armar_estructura_protocolo_a_memoria(&swap_memoria, 'i', protocolo_desde_memoria.pid, protocolo_desde_memoria.mensaje);
+				void * buffer = serializar_a_memoria(&swap_memoria);
+				send(socketMemoria, buffer, 9 + strlen(protocolo_desde_memoria.mensaje), 0);
 			}
 
 			break;
@@ -220,24 +169,14 @@ int main(void) {
 				break;
 		}
 
-
-
 		free(protocolo_desde_memoria.mensaje);
 
 
 
-
-
-
-
-	//close(serverSocket);
-	//log_info(logSwap, "SWAP finalizado");
-
-	//close(socketMemoria);
-	//log_info(logSwap, "Cerrada conexion con memoria");
-
+	close(serverSocket);
+	close(socketMemoria);
 	fclose(swap);
-	//free(config_swap);
+	free(config_swap);
 
 	return 0;
 }
