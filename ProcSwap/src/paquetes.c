@@ -27,12 +27,12 @@ FILE* iniciar_archivo_swap(void) {
 	return swap;*/
 
 	FILE* swap = fopen("swap.dat", "rb+"); //rb+ para archivo binario
-		size_t tamanio_swap = 4 * 9;
-		int i ;
-		char cero[] = "0";
+		/*size_t tamanio_swap = 4 * 9;
+		int i ;*/
+		/*char cero[] = "0";
 		for (i = 0 ; i < tamanio_swap; i++)
 			fwrite(cero, sizeof(char), 1, swap);
-		fseek(swap, 0, SEEK_SET);
+		fseek(swap, 0, SEEK_SET);*/
 		return swap;
 
 }

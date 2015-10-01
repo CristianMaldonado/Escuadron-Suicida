@@ -59,7 +59,7 @@ int main(void) {
 
 	char *mensaje = "holaChe";
 	tprotocolo_desde_cpu_y_hacia_swap mock_protcolo;
-	armar_estructura_desde_cpu_y_hacia_swap(&mock_protcolo,'i',88,4, mensaje);
+	armar_estructura_desde_cpu_y_hacia_swap(&mock_protcolo,'l',2,0, mensaje);
 
 	void* buffer = malloc(13 + strlen(mensaje));
 	buffer = serializar_a_swap(&mock_protcolo);
