@@ -1,8 +1,6 @@
 #include <pthread.h>
-#include <semaphore.h>
 #include "../../lib/libSocket.h"
 #include <commons/config.h>
-#include <commons/log.h>
 #include <commons/process.h>
 #include "estructuras.h"
 #include "funcionesCPU.h"
@@ -17,7 +15,6 @@ void *procesarInstruccion(void *argumento){
 	datosParaProcesar->mensajeAMemoria = malloc(sizeof(protocolo_cpu_memoria));
 	int tid = process_get_thread_id();
 
-	printf("bandera 0");
 	//LOGUEO DE CONEXION CON MEMORIA ---------> TODO PREGUNTAR POR LOG_TRACE
 	char* log=(char*)malloc(5);//malloc(2)
 	strcpy(log,"CPU ");
