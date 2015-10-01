@@ -127,15 +127,17 @@ int main(void) {
 				list_add(lista_ocupado, ocupado);
 				// actualizar la lista de vacios, con los espacios vacios que resultaron de compactar menos los solicitados
 
-				tlista_vacio *update = list_get(lista_vacia, 0);
+				tlista_vacio *aux = list_get(lista_vacia, 0);
+				tlista_vacio *update = malloc(sizeof(tlista_vacio));
+				*update = *aux;
 
 				update->comienzo += protocolo_desde_memoria.cantidad_pagina;
-
 				update->paginas_vacias -= protocolo_desde_memoria.cantidad_pagina;
-
 				list_destroy_and_destroy_elements(lista_vacia,free);
+
 				lista_vacia = list_create();
 				list_add(lista_vacia, update);
+
 			}
 			else {
 				printf("avisamos ");
@@ -151,12 +153,6 @@ int main(void) {
 		printf("comienzo:  %d\n", v->comienzo );
 		printf("cantidad paginas: %d\n", v->paginas_vacias);
 */
-
-	tlista_ocupado * v = malloc(sizeof(tlista_ocupado));
-	v = list_get(lista_ocupado, 3);
-	printf("comienzo: %d\n pag ocu: %d\n pid: %d\n", v->comienzo,v->paginas_ocupadas, v->pid );
-
-
 
 
 
