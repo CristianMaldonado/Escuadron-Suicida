@@ -1,5 +1,6 @@
 #include "estructuras.h"
 #include <commons/string.h>
+#include <semaphore.h>
 
 tpcb* armarPCB(char* path, int cant) {//OK
 	tpcb* pcb = malloc(sizeof(tpcb));

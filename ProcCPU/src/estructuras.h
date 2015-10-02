@@ -62,11 +62,5 @@ typedef struct{
 
 }__attribute__((packed)) protocolo_memoria_cpu;
 
-typedef struct{
-	protocolo_cpu_memoria* mensajeAMemoria;
-	protocolo_planificador_cpu* mensajeAPlanificador;
-	protocolo_memoria_cpu* mensajeDeMemoria;
-
-}tParametroHilo;
 
 #endif /* SRC_ESTRUCTURAS_H_ */

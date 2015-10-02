@@ -2,6 +2,7 @@
 #include "estructuras.h"
 #include "../../lib/libSocket.h"
 #include <commons/string.h>
+#include <semaphore.h>
 
 #define PACKAGESIZE 30
 
@@ -41,7 +42,10 @@ void *enviar(void *arg){
 		printf("%s",message);
 		int a = send(parametros->socket,message,tamanio,0);
 		if(a == -1) puts("fallo envio");
-		else printf("%d",a);
+		else printf("%d\n",a);
+		char algooo[PACKAGESIZE];
+		recv(parametros->socket,algooo,PACKAGESIZE,0);
+		printf("%s",algooo);
 		printf("Envie paquete");
 		free(package);
 		free(message);
@@ -97,9 +101,12 @@ int main(){
 	int nro_comando=0;
 
 	while(enviar2){
-		fgets(message, PACKAGESIZE, stdin);
+
 		int algo = strlen(message)+1;
 		printf("tamanio %d\n",algo);
+
+		fgets(message, PACKAGESIZE, stdin);
+
 		nro_comando = clasificarComando(&message[0]);
 
 		procesarComando(nro_comando,&message[0],cantProc,colaProcesos);
