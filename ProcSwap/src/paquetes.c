@@ -67,7 +67,7 @@ void armar_estructura_protocolo_a_memoria(tprotocolo_swap_memoria *protocolo, in
 	protocolo->pid = pid;
 	protocolo->mensaje = malloc(strlen(mensaje) + 1);
 	strcpy(protocolo->mensaje, mensaje);
-	protocolo->tamanio = strlen(protocolo->mensaje) +1;
+	protocolo->tamanio = strlen(protocolo->mensaje); // +1;
 }
 
 

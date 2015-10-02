@@ -5,6 +5,7 @@
  *      Author: utnso
  */
 
+#include <stdlib.h>
 #include "libSocket.h"
 #include <commons/config.h>
 #include <commons/log.h>

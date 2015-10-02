@@ -55,6 +55,17 @@ int main(void) {
 	tprotocolo_memoria_swap protocolo_desde_memoria;
 	recibir_paquete_desde_memoria(&socket_memoria, &protocolo_desde_memoria);
 
+
+	printf("\n imprimir paquete desde memoria: \n");
+	printf("\ncantidad_pag: %d\n", protocolo_desde_memoria.cantidad_pagina);
+	printf("\npid: %d\n", protocolo_desde_memoria.pid);
+	printf("\ncod_op: %c\n", protocolo_desde_memoria.codigo_op);
+	printf("\ntamanio: %d\n", protocolo_desde_memoria.tamanio_mensaje);
+	printf("\nmensaje: %s\n", protocolo_desde_memoria.mensaje);
+
+
+
+
 	/*
 	tprotocolo_memoria_swap prot;
 	int salir = 0;
@@ -117,9 +128,9 @@ int main(void) {
 						log_proc_rechazado(logSwap, protocolo_desde_memoria.pid);
 				}
 				tprotocolo_swap_memoria swap_memoria;
-				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, "null");
+				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, "vacio");
 				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socket_memoria, buffer, 8 + strlen("null"), 0);
+				send(socket_memoria, buffer, 8 + strlen("vacio"), 0);
 			}
 			break;
 

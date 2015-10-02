@@ -20,7 +20,7 @@ void armar_estructura_desde_cpu_y_hacia_swap(tprotocolo_desde_cpu_y_hacia_swap *
 	protocolo->paginas = paginas;
 	protocolo->mensaje = malloc(strlen(mensaje) + 1);
 	strcpy(protocolo->mensaje, mensaje);
-	protocolo->tamanio_mensaje = strlen(protocolo->mensaje) +1;
+	protocolo->tamanio_mensaje = strlen(protocolo->mensaje); // + 1
 }
 
 void* serializar_a_swap(tprotocolo_desde_cpu_y_hacia_swap *protocolo) {
@@ -70,7 +70,7 @@ void armar_estructura_protocolo_a_cpu(tprotocolo_memoria_cpu *protocolo, char co
 	protocolo->numero_pagina = numero_pagina;
 	protocolo->mensaje = malloc(strlen(mensaje) + 1);
 	strcpy(protocolo->mensaje, mensaje);
-	protocolo->tamanio_mensaje = strlen(protocolo->mensaje) +1;
+	protocolo->tamanio_mensaje = strlen(protocolo->mensaje); // +1;
 }
 
 void* serializar_a_cpu(tprotocolo_memoria_cpu *protocolo) {
