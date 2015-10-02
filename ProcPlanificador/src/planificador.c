@@ -3,6 +3,11 @@
 #include "libSocket.h"
 #include <commons/string.h>
 #include <semaphore.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <commons/log.h>
+#include "config.h"
 
 #define PACKAGESIZE 30
 
@@ -39,7 +44,6 @@ void *enviar(void *arg){
 		void* message=malloc(sizeof(protocolo_planificador_cpu) + strlen(pcb->ruta));
 		message = serializarPaqueteCPU(package, &tamanio);
 		//message[strlen((message))] = '\0';
-		printf("%s",message);
 		int a = send(parametros->socket,message,tamanio,0);
 		if(a == -1) puts("fallo envio");
 		else printf("%d\n",a);
