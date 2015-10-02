@@ -19,6 +19,7 @@
 int main(void) {
 	system("clear");
 
+
 	t_log *logSwap = log_create("../src/log.txt", "swap.c", false, LOG_LEVEL_INFO);
 
  	tconfig_swap* config_swap = leerConfiguracion();
@@ -46,7 +47,11 @@ int main(void) {
 	server_acept(server_socket, &socket_memoria);
 	printf("Memoria aceptada...\n");
 
-	//Se recibe el chorro
+
+
+
+
+	//Se recibe desde memoria
 	tprotocolo_memoria_swap protocolo_desde_memoria;
 	recibir_paquete_desde_memoria(&socket_memoria, &protocolo_desde_memoria);
 
@@ -180,8 +185,10 @@ int main(void) {
 		free(protocolo_desde_memoria.mensaje);
 
 
-	finalizar(&server_socket, &socket_memoria, swap, confing_swap);
 
-
+	close(server_socket);
+	close(socket_memoria);
+	fclose(swap);
+	free(config_swap);
 	return 0;
 }

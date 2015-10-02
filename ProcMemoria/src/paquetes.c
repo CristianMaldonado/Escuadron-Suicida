@@ -5,7 +5,6 @@
  *      Author: utnso
  */
 
-#include <stdio.h>
 #include "estructuras.h"
 #include "config.h"
 #include <stdlib.h>

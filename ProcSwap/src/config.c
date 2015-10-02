@@ -34,6 +34,8 @@ tconfig_swap* leerConfiguracion() {
 	return datosSwap;
 }
 
+
+
 void log_inicializar(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int paginas_asignadas) {
 
 	char * str = string_new();
@@ -87,9 +89,3 @@ void log_escritura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagi
 
 }
 
-void finalizar(int *server_socket, int *socket_memoria, FILE *swap, tconfig_swap *config_swap) {
-	close(*server_socket);
-	close(*socket_memoria);
-	fclose(swap);
-	free(config_swap);
-}
