@@ -18,6 +18,31 @@ typedef struct {
 	int entradasTLB;
 	char habilitadaTLB;
 	int retardoMemoria;
-} tconfig_memoria;
+}   tconfig_memoria;
+
+// estructura para leer el protocolo desde el cpu a la memoria
+typedef struct {
+	char cod_op;
+	int pid;
+	int paginas;
+	int tamanio_mensaje;
+	char* mensaje;
+}  __attribute__((packed))  tprotocolo_desde_cpu_y_hacia_swap;
+
+typedef struct {
+	int pid;
+	int tamanio;
+	char *mensaje;
+}   __attribute__((packed)) tprotocolo_swap_memoria;
+
+typedef struct {
+	char cod_proceso; // siempre una 'm'
+	char cod_op;
+	char cod_aux;
+	int pid;
+	int numero_pagina;
+	int tamanio_mensaje;
+	char *mensaje;
+} __attribute__((packed))  tprotocolo_memoria_cpu;
 
 #endif /* SRC_ESTRUCTURAS_H_ */
