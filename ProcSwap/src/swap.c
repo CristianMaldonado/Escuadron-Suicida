@@ -119,7 +119,7 @@ int main(void) {
 				tprotocolo_swap_memoria swap_memoria;
 				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, "null");
 				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socket_memoria, buffer, 9 + strlen("null"), 0);
+				send(socket_memoria, buffer, 8 + strlen("null"), 0);
 			}
 			break;
 

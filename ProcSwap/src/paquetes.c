@@ -58,7 +58,7 @@ void* serializar_a_memoria(tprotocolo_swap_memoria *protocolo) {
 	void * chorro = malloc(8 + messageLength);
 	memcpy(chorro, &(protocolo->pid), 4);
 	memcpy(chorro + 4, &(protocolo->tamanio), 4);
-	memcpy(chorro + 5, protocolo->mensaje, messageLength);
+	memcpy(chorro + 8, protocolo->mensaje, messageLength);
 	return chorro;
 }
 
