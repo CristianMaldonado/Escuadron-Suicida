@@ -20,7 +20,7 @@ FILE* iniciar_archivo_swap(void) {
 	size_t tamanio_swap = config_swap->tamanioPagina * config_swap->cantidadPaginas;
 	//rellenamos en cero (char '/0' es 0)
 	int i ;
-	char cero[] = "0";
+	char cero[] = "1";
 	for (i = 0 ; i < tamanio_swap; i++)
 		fwrite(cero, sizeof(char), 1, swap);
 	fseek(swap, 0, SEEK_SET);

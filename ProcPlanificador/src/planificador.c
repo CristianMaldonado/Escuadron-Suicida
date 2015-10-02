@@ -43,9 +43,9 @@ void *enviar(void *arg){
 		int a = send(parametros->socket,message,tamanio,0);
 		if(a == -1) puts("fallo envio");
 		else printf("%d\n",a);
-		char algooo[PACKAGESIZE];
+		/*char algooo[PACKAGESIZE]; test al pedo
 		recv(parametros->socket,algooo,PACKAGESIZE,0);
-		printf("%s",algooo);
+		printf("%s",algooo);*/
 		printf("Envie paquete");
 		free(package);
 		free(message);
@@ -65,13 +65,13 @@ int main(){
 	t_log *logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
 	//logPlanificador->pid = 1;
 
-	tconfig_planif* configPlanificador = malloc(sizeof(tconfig_planif));
+	/*tconfig_planif* configPlanificador = malloc(sizeof(tconfig_planif));
 	configPlanificador->puertoEscucha = "4143";
 	configPlanificador->quantum = 5;
-	configPlanificador->algoritmo = "FIFO";
+	configPlanificador->algoritmo = "FIFO";*/
 
 	//leemos el archivo de configuracion
-	//tconfig_planif *configPlanificador = leerConfiguracion();
+	tconfig_planif *configPlanificador = leerConfiguracion();
 
 	//Inicia el socket para escuchar
 	int serverSocket;
@@ -101,10 +101,6 @@ int main(){
 	int nro_comando=0;
 
 	while(enviar2){
-
-		int algo = strlen(message)+1;
-		printf("tamanio %d\n",algo);
-
 		fgets(message, PACKAGESIZE, stdin);
 
 		nro_comando = clasificarComando(&message[0]);
@@ -116,8 +112,6 @@ int main(){
 		if (!strcmp(message,"exit\n")) enviar2 = 0;
 
 	}
-
-
 
 	close(serverSocket);
 	close(socketCPU);

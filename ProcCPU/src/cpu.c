@@ -49,11 +49,17 @@ void *procesarInstruccion(void *argumento){
 		while(!feof(archivo)){ //TODO: Agregar lo del quatum
 			char* instruccionLeida = leerInstruccion(&(datosParaProcesar->counterProgram), lineaLeida, archivo,tamanio);
 
+			printf("linea %s\n",instruccionLeida);
 			interpretarInstruccion(instruccionLeida, datosParaProcesar,mensajeAMemoria); //arma el paquete para memoria y lo carga en mensajeAMemoria
 
 			enviarAMemoria(mensajeAMemoria);
-
-			//deserializarMemoria(mensajeDeMemoria);
+			printf("pid %d\n",mensajeAMemoria->pid);
+			printf("tamanio %d\n",mensajeAMemoria->tamanioMensaje);
+			printf("operacion %c\n",mensajeAMemoria->tipoOperacion);
+			deserializarMemoria(mensajeDeMemoria);
+			printf("pid %d\n",mensajeDeMemoria->pid);
+			printf("tamanio %d\n",mensajeDeMemoria->tamanioMensaje);
+			printf("operacion %c\n",mensajeDeMemoria->codOperacion);
 			 /* switch (mensajeDeMemoria->codOperacion){
 
 			            case 'i': {
@@ -79,9 +85,9 @@ void *procesarInstruccion(void *argumento){
 
 
 				}*/
-			  enviarAPlanificador(datosParaProcesar);
+			  //enviarAPlanificador(datosParaProcesar);
 
-           //loguearEstadoMemoria(datosParaProcesar->mensajeDeMemoria, instruccionLeida);
+           loguearEstadoMemoria(mensajeDeMemoria, instruccionLeida);
 
 		}
 		free(lineaLeida);
@@ -98,8 +104,8 @@ int main() {
 	// creacion de la instancia de log
 	logCpu = log_create("../src/log.txt", "cpu.c", false,LOG_LEVEL_INFO);
 
-	//tipoConfiguracionCPU* config = malloc(sizeof(tipoConfiguracionCPU));
-	/*config->ipPlanificador = "127.0.0.1";
+	/*tipoConfiguracionCPU* config = malloc(sizeof(tipoConfiguracionCPU));
+	config->ipPlanificador = "127.0.0.1";
 	config->puertoPlanificador = "4143";
 	config->ipMemoria = "127.0.0.1";
 	config->puertoMemoria = "4142";
@@ -143,7 +149,7 @@ int main() {
 
 	while (status != 0) {
 		status = deserializarPlanificador(parametros);
-		//logueoRecepcionDePlanif(parametros);
+		logueoRecepcionDePlanif(parametros);
 		terminoPlanificador = false;
 		sem_post(&ejecutaInstruccion);
 

@@ -94,7 +94,7 @@ int main(void) {
 
 			armar_estructura_protocolo_a_cpu(&memoria_cpu, paquete_desde_cpu.cod_op, 'i', swap_memoria.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje);
 			buffer = serializar_a_cpu(&memoria_cpu);
-			send(socketClienteCPU, buffer, strlen(paquete_desde_cpu.mensaje) + 15, 0);
+			send(socketClienteCPU, buffer, strlen(memoria_cpu.mensaje) + 15, 0);
 			free(paquete_desde_cpu.mensaje);
 			free(buffer);
 		}

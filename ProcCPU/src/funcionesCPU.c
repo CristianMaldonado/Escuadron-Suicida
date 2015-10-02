@@ -273,7 +273,7 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo, int tam) {	//ruta+instruction pointer => leo la linea del ip y la devuelvo
 
 	int cont = 1;
-	if (*instructionPointer == 1) {//valgrind aca
+/*	if (*instructionPointer == 1) {//valgrind aca
 		fgets(lineaLeida, tam, archivo);
 		(*instructionPointer) = (*instructionPointer) + 1;
 		cont++;
@@ -283,7 +283,10 @@ char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo, i
 		fgets(lineaLeida, tam, archivo);
 		cont++;
 		(*instructionPointer) = (*instructionPointer) + 1;//valgrind aca
-	}
+	}*/
+	fgets(lineaLeida, tam, archivo);
+	(*instructionPointer) = (*instructionPointer) + 1;
+
 	if (!string_starts_with(lineaLeida, "finalizar;")) lineaLeida[strlen(lineaLeida)-1] = '\0';
 
 	return lineaLeida;
@@ -310,7 +313,7 @@ void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion) {
 		strcpy(estado, " FINALIZADO");
 	}
 
-	strcpy(logueoContexto, "Contexto de ejecucion recibido: PID: ");
+	strcpy(logueoContexto, "Contexto de ejecucion recibido: \nPID: ");
 	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->pid));
 	string_append(&logueoContexto, "\nInstruccion: ");
 	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->counterProgram));

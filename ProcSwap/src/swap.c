@@ -118,9 +118,9 @@ int main(void) {
 						log_proc_rechazado(logSwap, protocolo_desde_memoria.pid);
 				}
 				tprotocolo_swap_memoria swap_memoria;
-				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, "hola");
+				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, "-");
 				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socket_memoria, buffer, 8 + strlen("hola"), 0);
+				send(socket_memoria, buffer, 8 + strlen("-"), 0);
 			}
 			break;
 
@@ -163,7 +163,7 @@ int main(void) {
 				int desplazamiento_en_bytes = (pag_inicio + pag_leer)*config_swap->tamanioPagina;
 				fseek(swap, desplazamiento_en_bytes, SEEK_SET);
 
-				char * pag_data = malloc(config_swap->tamanioPagina + 1);
+				char * pag_data = malloc(config_swap->tamanioPagina);
 				fread(pag_data, config_swap->tamanioPagina, 1, swap);
 
 				log_escritura(logSwap, protocolo_desde_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, pag_data);
@@ -171,7 +171,7 @@ int main(void) {
 				tprotocolo_swap_memoria swap_memoria;
 				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, pag_data);
 				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socket_memoria, buffer, 8 + strlen(protocolo_desde_memoria.mensaje), 0);
+				send(socket_memoria, buffer, 8 + strlen(swap_memoria.mensaje), 0);
 			}
 
 			break;
