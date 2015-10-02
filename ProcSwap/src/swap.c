@@ -1,17 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../lib/libSocket.h"
+#include "libSocket.h"
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <commons/log.h>
 #include "estructuras.h"
 #include "manejo_listas_archivo_swap.h"
-#include "paquetes.h"
 #include <stdbool.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include "config.h"
 #include <string.h>
+#include "paquetes.h"
 
 
 
@@ -74,7 +72,6 @@ int main(void) {
 			case 'i': {
 				int comienzo, hay_espacio;
 				hay_espacio = dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo);
-				int fallo = 0;
 				if (hay_espacio) {
 					//asignar el espacio solicitado
 					tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
@@ -114,13 +111,11 @@ int main(void) {
 						list_add(lista_vacia, update);
 
 					}
-					else{
-						fallo = 1;
+					else
 						log_proc_rechazado(logSwap, protocolo_desde_memoria.pid);
-					}
 				}
 				tprotocolo_swap_memoria swap_memoria;
-				armar_estructura_protocolo_a_memoria(&swap_memoria, fallo ? 'a' : 'i', protocolo_desde_memoria.pid, "null");
+				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, "null");
 				void * buffer = serializar_a_memoria(&swap_memoria);
 				send(socket_memoria, buffer, 9 + strlen("null"), 0);
 			}
@@ -186,8 +181,9 @@ int main(void) {
 
 
 
-	close(server_socket);
+
 	close(socket_memoria);
+	close(server_socket);
 	fclose(swap);
 	free(config_swap);
 	return 0;

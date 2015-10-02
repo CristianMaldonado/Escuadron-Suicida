@@ -1,7 +1,8 @@
-#include "../../lib/libSocket.h"
+#include "libSocket.h"
 #include <commons/config.h>
 #include <commons/log.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "estructuras.h"
 #include <string.h>
 #include "paquetes.h"
@@ -19,7 +20,21 @@ int main(void) {
 
 	//Definimos datos Cliente listener
 	int socketClienteSWAP, socketServidorCPU, socketClienteCPU;
-	inicializar_sockets(&socketClienteCPU, &socketClienteSWAP, &socketServidorCPU, config);
+
+	printf("Conectando al SWAP (%s : %s)... ", config->ipSwap, config->puertoEscucha);
+	client_init(&socketClienteSWAP, config->ipSwap, config->puertoEscucha);
+	printf("OK\n");
+
+	//Definimos datos Server
+	server_init(&socketServidorCPU, "4142");
+	printf("Memoria lista...\n");
+
+	server_acept(socketServidorCPU, &socketClienteCPU);
+	printf("CPU aceptado...\n");
+
+
+
+
 
 	///////////////////////////////////////////////////////////////////////////////////////
 

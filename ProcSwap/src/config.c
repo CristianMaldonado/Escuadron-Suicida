@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../lib/libSocket.h"
+#include "libSocket.h"
 #include <commons/config.h>
 #include <commons/log.h>
 #include "estructuras.h"

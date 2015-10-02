@@ -5,7 +5,7 @@
  *      Author: utnso
  */
 
-#include "../../lib/libSocket.h"
+#include "libSocket.h"
 #include <commons/config.h>
 #include <commons/log.h>
 #include "estructuras.h"
@@ -29,7 +29,7 @@ tconfig_memoria* leerConfiguracion() {
 	datosMemoria->retardoMemoria = config_get_int_value(config,"RETARDO_MEMORIA");
 	return datosMemoria;
 }
-
+/*
 void inicializar_sockets(int *socketClienteCPU, int *socketClienteSWAP, int *socketServidorCPU, tconfig_memoria *config) {
 
 	printf("Conectando al SWAP (%s : %s)... ", config->ipSwap, config->puertoEscucha);
@@ -43,3 +43,4 @@ void inicializar_sockets(int *socketClienteCPU, int *socketClienteSWAP, int *soc
 	server_acept(*socketServidorCPU, socketClienteCPU);
 	printf("CPU aceptado...\n");
 }
+*/
