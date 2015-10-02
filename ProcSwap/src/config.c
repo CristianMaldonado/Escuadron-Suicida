@@ -12,6 +12,7 @@
 #include <commons/log.h>
 #include "estructuras.h"
 #include "paquetes.h"
+#include <commons/string.h>
 
 
 

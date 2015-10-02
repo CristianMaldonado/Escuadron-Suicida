@@ -7,6 +7,7 @@
 
 #ifndef SRC_CONFIG_H_
 #define SRC_CONFIG_H_
+#include <commons/log.h>
 
 tconfig_swap* leerConfiguracion();
 void log_escritura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int pagina_a_leer, char* contenido);

@@ -20,7 +20,7 @@ int main(void) {
 	system("clear");
 
 
-	t_log *logSwap = log_create("../src/log.txt", "swap.c", false, LOG_LEVEL_INFO);
+	t_log *logSwap = log_create("log.txt", "swap.c", false, LOG_LEVEL_INFO);
 
  	tconfig_swap* config_swap = leerConfiguracion();
 
@@ -146,7 +146,7 @@ int main(void) {
 						//saco espacio de lista ocupado
 						list_remove(lista_ocupado, i);
 
-						log_finalizar(logSwap,config_swap->tamanioPagina,espacio_ocupado->paginas_ocupadas);
+						log_finalizar(logSwap,espacio_ocupado->pid,config_swap->tamanioPagina, espacio_ocupado->paginas_ocupadas);
 					}
 				}
 			}

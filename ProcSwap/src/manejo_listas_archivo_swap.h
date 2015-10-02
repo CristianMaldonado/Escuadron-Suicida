@@ -8,6 +8,9 @@
 #ifndef SRC_MANEJO_LISTAS_ARCHIVO_SWAP_H_
 #define SRC_MANEJO_LISTAS_ARCHIVO_SWAP_H_
 
+#include <commons/collections/list.h>
+
+
 int get_comienzo_espacio_asignado(t_list * lista_ocupado, int pid);
 int dame_si_hay_espacio(t_list** lista_vacia, int paginas_pedidas, int *comienzo);
 int espacio_total_disponible(t_list* lista_vacia);
