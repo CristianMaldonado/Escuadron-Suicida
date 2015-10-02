@@ -81,10 +81,6 @@ void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete, int* tamanio) {
 	int offset = 0;
 	int size_to_send;
 
-	size_to_send = sizeof(paquete->tipoProceso);
-	memcpy(paqueteSerializado + offset, &(paquete->tipoProceso), size_to_send);
-	offset += size_to_send;
-
 	size_to_send = sizeof(paquete->tipoOperacion);
 	memcpy(paqueteSerializado + offset, &(paquete->tipoOperacion),
 			size_to_send);
@@ -258,17 +254,17 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 
 		if (string_starts_with(instruccion, "iniciar")) {
 			int numero = atoi(lineaFiltrada[1]);
-			armarPaquete(mensajeParaArmar, 'c', 'i',mensajeDePlanificador->pid,numero , "\0");
+			armarPaquete(mensajeParaArmar, 'c', 'i',mensajeDePlanificador->pid,numero , "-");
 		}
 		if (string_starts_with(instruccion, "leer")) {
 			int numero = atoi(lineaFiltrada[1]);
-			armarPaquete(mensajeParaArmar, 'c', 'l',mensajeDePlanificador->pid, numero, "\0");
+			armarPaquete(mensajeParaArmar, 'c', 'l',mensajeDePlanificador->pid, numero, "-");
 		}
 		//if(string_starts_with(message->lineaDeProceso,"escribir")) {  } //TODO cheackpoint 3 supongo
 		//if(string_starts_with(message->lineaDeProceso,"entrada-salida")) { }
 
 		if (string_starts_with(instruccion, "finalizar;")) {
-				armarPaquete(mensajeParaArmar, 'c', 'f', mensajeDePlanificador->pid, 0, "\0");
+				armarPaquete(mensajeParaArmar, 'c', 'f', mensajeDePlanificador->pid, 0, "-");
 		}
 		free(linea);
 		free(lineaFiltrada);

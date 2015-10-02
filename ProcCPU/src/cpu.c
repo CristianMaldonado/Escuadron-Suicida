@@ -30,7 +30,7 @@ void *procesarInstruccion(void *argumento){
 	//else{
 	//	string_append(&log," conectado a la Memoria");
 	//}
-	log_info(logCpu, log);
+	//log_info(logCpu, log);
 	free(log);//malloc(2)
 	while(1){
 		sem_wait(&ejecutaInstruccion); //TODO
@@ -143,7 +143,7 @@ int main() {
 
 	while (status != 0) {
 		status = deserializarPlanificador(parametros);
-		logueoRecepcionDePlanif(parametros);
+		//logueoRecepcionDePlanif(parametros);
 		terminoPlanificador = false;
 		sem_post(&ejecutaInstruccion);
 
