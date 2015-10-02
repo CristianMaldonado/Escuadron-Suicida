@@ -1,6 +1,8 @@
+#include <sys/types.h>
+#include <sys/socket.h>
+#include "libSocket.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "libSocket.h"
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <commons/log.h>
@@ -10,7 +12,7 @@
 #include "config.h"
 #include <string.h>
 #include "paquetes.h"
-
+#include <unistd.h>
 
 
 

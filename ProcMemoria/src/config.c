@@ -29,18 +29,4 @@ tconfig_memoria* leerConfiguracion() {
 	datosMemoria->retardoMemoria = config_get_int_value(config,"RETARDO_MEMORIA");
 	return datosMemoria;
 }
-/*
-void inicializar_sockets(int *socketClienteCPU, int *socketClienteSWAP, int *socketServidorCPU, tconfig_memoria *config) {
 
-	printf("Conectando al SWAP (%s : %s)... ", config->ipSwap, config->puertoEscucha);
-	client_init(socketClienteSWAP, config->ipSwap, config->puertoEscucha);
-	printf("OK\n");
-
-	//Definimos datos Server
-	server_init(socketServidorCPU, "4142");
-	printf("Memoria lista...\n");
-
-	server_acept(*socketServidorCPU, socketClienteCPU);
-	printf("CPU aceptado...\n");
-}
-*/

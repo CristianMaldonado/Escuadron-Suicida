@@ -1,3 +1,5 @@
+#include <sys/types.h>
+#include <sys/socket.h>
 #include "libSocket.h"
 #include <commons/config.h>
 #include <commons/log.h>
@@ -6,10 +8,13 @@
 #include "estructuras.h"
 #include <string.h>
 #include "paquetes.h"
-#include <sys/types.h>
-#include <sys/socket.h>
 #include "config.h"
 #include <stdbool.h>
+#include <unistd.h>
+
+
+
+
 
 int main(void) {
 	system("clear");
