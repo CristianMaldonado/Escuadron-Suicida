@@ -9,15 +9,9 @@
 #include <stdlib.h>
 #include "../../lib/libSocket.h"
 #include <commons/config.h>
-#include <commons/collections/list.h>
 #include <commons/log.h>
 #include "estructuras.h"
-#include "manejo_listas_archivo_swap.h"
 #include "paquetes.h"
-#include <stdbool.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <string.h>
 
 
 
