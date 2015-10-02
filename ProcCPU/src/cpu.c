@@ -1,6 +1,8 @@
 #include <pthread.h>
+#include <semaphore.h>
 #include "../../lib/libSocket.h"
 #include <commons/config.h>
+#include <commons/log.h>
 #include <commons/process.h>
 #include "estructuras.h"
 #include "funcionesCPU.h"
@@ -15,6 +17,7 @@ void *procesarInstruccion(void *argumento){
 	datosParaProcesar->mensajeAMemoria = malloc(sizeof(protocolo_cpu_memoria));
 	int tid = process_get_thread_id();
 
+	printf("bandera 0");
 	//LOGUEO DE CONEXION CON MEMORIA ---------> TODO PREGUNTAR POR LOG_TRACE
 	char* log=(char*)malloc(5);//malloc(2)
 	strcpy(log,"CPU ");
@@ -28,27 +31,65 @@ void *procesarInstruccion(void *argumento){
 		//log_info(logCpu, log);
 	}
 	free(log);//malloc(2)
+
 	while(1){
 		sem_wait(&ejecutaInstruccion); //TODO
 
-		FILE* archivo = fopen(datosParaProcesar->mensajeAPlanificador->mensaje, "r+");
+		FILE* archivo = fopen(datosParaProcesar->mensajeAPlanificador->mensaje, "r");
 
 		if(archivo== NULL) error_show("Error al abrir mCod");
-		char* lineaLeida = string_new();
 		fseek(archivo, 0, SEEK_END);
 		int tamanio = ftell(archivo);
 		fseek(archivo, 0, SEEK_SET);
-		lineaLeida = malloc(datosParaProcesar->mensajeAPlanificador->tamanioMensaje);
+		char* lineaLeida = malloc(tamanio);
 
 		while(!feof(archivo)){ //TODO: Agregar lo del quatum
-		//char* instruccionLeida = string_new();
+		char* instruccionLeida = leerInstruccion(&(datosParaProcesar->mensajeAPlanificador->counterProgram), lineaLeida, archivo,tamanio) ;
 
 		//strcpy(instruccionLeida, leerInstruccion(&(datosParaProcesar->mensajeAPlanificador->counterProgram), lineaLeida, archivo,tamanio));
-			interpretarInstruccion(leerInstruccion(&(datosParaProcesar->mensajeAPlanificador->counterProgram), lineaLeida, archivo,tamanio), datosParaProcesar);
 
-			int status =send(socketMemoria, datosParaProcesar->mensajeAPlanificador->mensaje, datosParaProcesar->mensajeAPlanificador->tamanioMensaje,0);
+			interpretarInstruccion(instruccionLeida, datosParaProcesar);
 
-			if(status == -1) printf("fallo al enviar\n");
+			enviarAMemoria(datosParaProcesar->mensajeAMemoria);
+
+            deserializarMemoria(datosParaProcesar->mensajeDeMemoria);
+
+            switch (datosParaProcesar->mensajeDeMemoria->codOperacion){
+
+            case 'i': {
+
+
+             	 armarPaquetePlanificador(datosParaProcesar->mensajeAPlanificador, (datosParaProcesar->mensajeDeMemoria->codAux == 'a')?'f' : 'c', 'i',
+                   	                		 datosParaProcesar->mensajeAMemoria->pid, datosParaProcesar->mensajeAPlanificador->estado,
+                   							 datosParaProcesar->mensajeAPlanificador->counterProgram,datosParaProcesar->mensajeAPlanificador->quantum,
+											 datosParaProcesar->mensajeAPlanificador->tamanioMensaje,
+											 datosParaProcesar->mensajeAPlanificador->mensaje);
+                   }
+
+             break;
+
+            case 'l':  {
+
+            	 armarPaquetePlanificador(datosParaProcesar->mensajeAPlanificador, (datosParaProcesar->mensajeDeMemoria->codAux == 'a')?'f' : 'c', 'l',
+                  	                		 datosParaProcesar->mensajeAMemoria->pid, datosParaProcesar->mensajeAPlanificador->estado,
+                  							 datosParaProcesar->mensajeAPlanificador->counterProgram,datosParaProcesar->mensajeAPlanificador->quantum,
+											 datosParaProcesar->mensajeAPlanificador->tamanioMensaje,
+											 datosParaProcesar->mensajeAPlanificador->mensaje);
+
+            } break;
+
+		case 'f':
+		{
+        	 armarPaquetePlanificador(datosParaProcesar->mensajeAPlanificador, (datosParaProcesar->mensajeDeMemoria->codAux == 'a')?'f' : 'f', 'i',
+              	                		 datosParaProcesar->mensajeAMemoria->pid, datosParaProcesar->mensajeAPlanificador->estado,
+              							 datosParaProcesar->mensajeAPlanificador->counterProgram,datosParaProcesar->mensajeAPlanificador->quantum,
+										 datosParaProcesar->mensajeAPlanificador->tamanioMensaje,
+										 datosParaProcesar->mensajeAPlanificador->mensaje);
+
+		} break;
+
+
+		}
 		//send(datosParaProcesar->socketMemoria, datosParaProcesar->mensajeAMemoria, sizeof(datosParaProcesar->mensajeAMemoria), 0);
           // deserializarMemoria(datosParaProcesar->mensajeDeMemoria, datosParaProcesar->socketMemoria);
            //loguearEstadoMemoria(datosParaProcesar->mensajeDeMemoria, instruccionLeida);
@@ -64,6 +105,7 @@ void *procesarInstruccion(void *argumento){
 		free(lineaLeida);
 		fclose(archivo);
 	}
+	free(datosParaProcesar);
 }
 
 
@@ -133,7 +175,7 @@ int main() {
 	}
 	free(package);
 	free(parametros);
-
+    free(config);
 	printf("Finalizo el planificador...\n");
 
 	close(socketMemoria);

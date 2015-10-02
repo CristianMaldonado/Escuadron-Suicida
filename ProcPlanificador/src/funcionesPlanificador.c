@@ -121,35 +121,35 @@ void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio){ /
 	size_to_send = sizeof(paquete->tipoProceso);
 	memcpy(paqueteSerializado + offset, &(paquete->tipoProceso),size_to_send);
 	offset += size_to_send;
-
+    printf("%c\n", paquete->tipoProceso);
 	size_to_send = sizeof(paquete->tipoOperacion);
 	memcpy(paqueteSerializado + offset, &(paquete->tipoOperacion),size_to_send);
 	offset += size_to_send;
-
+	printf("%c\n", paquete->tipoOperacion);
 	size_to_send = sizeof(paquete->estado);
 	memcpy(paqueteSerializado + offset, &(paquete->estado), size_to_send);
 	offset += size_to_send;
-
+	printf("%d\n", paquete->estado);
 	size_to_send = sizeof(paquete->pid);
 	memcpy(paqueteSerializado + offset, &(paquete->pid), size_to_send);
 	offset += size_to_send;
-
+	printf("%d\n", paquete->pid);
 	size_to_send = sizeof(paquete->counterProgram);
 	memcpy(paqueteSerializado + offset, &(paquete->counterProgram),size_to_send);
 	offset += size_to_send;
-
+	printf("%d\n", paquete->counterProgram);
 	size_to_send = sizeof(paquete->quantum);
 	memcpy(paqueteSerializado + offset, &(paquete->quantum), size_to_send);
 	offset += size_to_send;
-
+	printf("%d\n", paquete->quantum);
 	size_to_send = sizeof(paquete->tamanioMensaje);
 	memcpy(paqueteSerializado + offset, &messageLength, size_to_send);
 	offset += size_to_send;
-
+	printf("%d\n", paquete->tamanioMensaje);
 	size_to_send = messageLength;
 	memcpy(paqueteSerializado + offset, paquete->mensaje, size_to_send);
 	offset += size_to_send;
-
+	printf("%s\n", paquete->mensaje);
 
 
 	*tamanio = offset;

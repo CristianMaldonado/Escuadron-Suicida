@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "estructuras.h"
 
-#define PACKAGESIZE 30
+#define PACKAGESIZE 100
 
 
 

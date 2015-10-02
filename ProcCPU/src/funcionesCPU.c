@@ -13,10 +13,6 @@
 #include <string.h>
 #include <sys/socket.h>
 
-void liberar_paquete(char **paquete) {
-	free(*paquete);
-}
-
 
 void crearMockitoPlanif(protocolo_planificador_cpu* package){
 
@@ -79,7 +75,8 @@ void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete, int* tamanio) {
 
 }
 
-int deserializarPlanificador(protocolo_planificador_cpu *package) {
+//TODO poner el socket global
+int deserializarPlanificador(protocolo_planificador_cpu *package) { //TODO deserializar mensaje de planificador
 	int status;
 	void* buffer = malloc(sizeof(protocolo_planificador_cpu)-4);
 	int offset = 0;
@@ -90,37 +87,36 @@ int deserializarPlanificador(protocolo_planificador_cpu *package) {
 
 	memcpy(&(package->tipoProceso), buffer, sizeof(package->tipoProceso));
 	offset += sizeof(package->tipoProceso);
-
+	printf("%c\n", package->tipoProceso);
 	memcpy(&(package->tipoOperacion), buffer+ offset, sizeof(package->tipoOperacion));
 	offset += sizeof(package->tipoOperacion);
-
+	printf("%c\n", package->tipoOperacion);
 	memcpy(&(package->estado), buffer + offset, sizeof(package->estado));
 	offset += sizeof(package->estado);
-
+	printf("%d\n", package->estado);
 	memcpy(&(package->pid), buffer + offset, sizeof(package->pid));
 	offset += sizeof(package->pid);
-
+	printf("%d\n", package->pid);
 	memcpy(&(package->counterProgram), buffer + offset,sizeof(package->counterProgram));
 	offset += sizeof(package->counterProgram);
-
+	printf("%d\n", package->counterProgram);
 	memcpy(&(package->quantum), buffer + offset, sizeof(package->quantum));
 	offset += sizeof(package->quantum);
-
+	printf("%d\n", package->quantum);
 	memcpy(&(package->tamanioMensaje), buffer + offset,sizeof(package->tamanioMensaje));
 	offset += sizeof(package->tamanioMensaje);
-
-	package->mensaje = (char*)malloc((package->tamanioMensaje) +1);
+	printf("%d\n", package->tamanioMensaje);
+	package->mensaje = (char*)malloc((package->tamanioMensaje) );
 
 	status = recv(socketPlanificador, package->mensaje, package->tamanioMensaje,0);
 
-	package->mensaje[package->tamanioMensaje]= '\0';
-
+	package->mensaje[package->tamanioMensaje -1]= '\0';
+    printf("%s\n", package->mensaje);
 	free(buffer);
 
 	return status;
 
 }
-
 
 int deserializarMemoria(protocolo_memoria_cpu* package){
 	int status;
@@ -169,13 +165,12 @@ int deserializarMemoria(protocolo_memoria_cpu* package){
 
 		return status;
 }
-
-void enviar(tParametroHilo* message) {
+void enviarAMemoria(tParametroHilo* message) {
 	int tamanio;
-	void* empaquetado = serializarPaqueteMemoria(message->mensajeAMemoria,&tamanio);
-	send(socketMemoria, empaquetado, string_length(empaquetado) + 1,
+	char* empaquetado = serializarPaqueteMemoria(message->mensajeAMemoria, &tamanio);
+	send(socketMemoria, empaquetado, tamanio,
 			0);
-	liberar_paquete(&empaquetado); //free(1)
+	free(empaquetado); //free(1)
 }
 
 //MODIFICAR ARMAR PAQUETE PARAMETROS
@@ -184,6 +179,21 @@ void armarPaquete(protocolo_cpu_memoria* paquete, char tipoProceso,char codOpera
 	paquete->tipoOperacion = codOperacion;
 	paquete->pid = pid;
 	paquete->nroPagina = nroPagina;
+	paquete->tamanioMensaje = strlen(mensaje) + 1;
+	paquete->mensaje = malloc(paquete->tamanioMensaje);
+	strcpy(paquete->mensaje, mensaje);
+
+	//TODO Hacerlo mas genérico con un booleano y cargue la estructura (sin mandar todos los parametros)
+}
+
+
+void armarPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoProceso,char codOperacion, int pid, testado estado, int counterProgram ,int quantum, int tamanioMensaje,char* mensaje) {
+	paquete->tipoProceso = tipoProceso;
+	paquete->tipoOperacion = codOperacion;
+	paquete->pid = pid;
+	paquete->estado = estado;
+	paquete->counterProgram = counterProgram;
+	paquete->quantum = quantum;
 	paquete->tamanioMensaje = strlen(mensaje) + 1;
 	paquete->mensaje = malloc(paquete->tamanioMensaje);
 	strcpy(paquete->mensaje, mensaje);
@@ -320,4 +330,6 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 	free(logueoMemoria);
 
 }
+
+
 
