@@ -98,15 +98,15 @@ int main() {
 	// creacion de la instancia de log
 	logCpu = log_create("../src/log.txt", "cpu.c", false,LOG_LEVEL_INFO);
 
-	tipoConfiguracionCPU* config = malloc(sizeof(tipoConfiguracionCPU));
-	config->ipPlanificador = "127.0.0.1";
+	//tipoConfiguracionCPU* config = malloc(sizeof(tipoConfiguracionCPU));
+	/*config->ipPlanificador = "127.0.0.1";
 	config->puertoPlanificador = "4143";
 	config->ipMemoria = "127.0.0.1";
 	config->puertoMemoria = "4142";
 	config->cantidadHilos = 4;
-	config->retardo = 2;
+	config->retardo = 2;*/
 
-	//tipoConfiguracionCPU *config = leerConfiguracion();
+	tipoConfiguracionCPU *config = leerConfiguracion();
 
 	//Inicia el Socket para conectarse con el Planificador/
 	printf("Conectando al Planificador (%s : %s)... ", config->ipPlanificador,

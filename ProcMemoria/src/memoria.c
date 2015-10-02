@@ -45,13 +45,13 @@ int main(void) {
 
 
 	tprotocolo_desde_cpu_y_hacia_swap paquete_desde_cpu;
-	printf("estoy por recibir");
+	printf("estoy por recibir\n");
 	recibir_paquete_desde_cpu(&socketClienteCPU, &paquete_desde_cpu);
-	printf("%c\n",paquete_desde_cpu.cod_op);
-	printf("%d\n",paquete_desde_cpu.paginas);
-	printf("%d\n",paquete_desde_cpu.tamanio_mensaje);
-	printf("%d\n",paquete_desde_cpu.pid);
-	printf("%s\n",paquete_desde_cpu.mensaje);
+	printf("cod op desde cpu %c\n",paquete_desde_cpu.cod_op);
+	printf("paginas %d\n",paquete_desde_cpu.paginas);
+	printf("tamanio %d\n",paquete_desde_cpu.tamanio_mensaje);
+	printf("pid %d\n",paquete_desde_cpu.pid);
+	printf("mensaje %s\n",paquete_desde_cpu.mensaje);
 	switch (paquete_desde_cpu.cod_op) {
 
 		case 'f': {
@@ -76,9 +76,9 @@ int main(void) {
 
 			tprotocolo_swap_memoria swap_memoria;
 			recibir_paquete_desde_swap(socketClienteSWAP, &swap_memoria);
-			printf("\n%d\n",swap_memoria.pid);
-			printf("\n%d\n",swap_memoria.tamanio);
-			printf("\n%s\n",swap_memoria.mensaje);
+			printf("\ndesde swap pid %d\n",swap_memoria.pid);
+			printf("\ntamanio %d\n",swap_memoria.tamanio);
+			printf("\n mensaje %s\n",swap_memoria.mensaje);
 			tprotocolo_memoria_cpu memoria_cpu;
 
 			armar_estructura_protocolo_a_cpu(&memoria_cpu, paquete_desde_cpu.cod_op, 'i', swap_memoria.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje);
