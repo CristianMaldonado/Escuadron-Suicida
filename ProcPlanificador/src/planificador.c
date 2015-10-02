@@ -1,6 +1,6 @@
 #include "funcionesPlanificador.h"
 #include "estructuras.h"
-#include "../../lib/libSocket.h"
+#include "libSocket.h"
 #include <commons/string.h>
 #include <semaphore.h>
 

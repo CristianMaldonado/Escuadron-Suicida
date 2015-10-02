@@ -45,8 +45,19 @@ int main(void) {
 
 
 	tprotocolo_desde_cpu_y_hacia_swap paquete_desde_cpu;
+	int salir = 0;
+	while(!salir){
+
+		if(recibir_paquete_desde_cpu(&socketClienteCPU, &paquete_desde_cpu))
+		// para probar si recibe
+			printf("%s\n", paquete_desde_cpu.mensaje);
+		else{
+			// si no recibe termina el swap
+			salir = 1;
+			continue;
+		}
+
 	printf("estoy por recibir\n");
-	recibir_paquete_desde_cpu(&socketClienteCPU, &paquete_desde_cpu);
 	printf("cod op desde cpu %c\n",paquete_desde_cpu.cod_op);
 	printf("paginas %d\n",paquete_desde_cpu.paginas);
 	printf("tamanio %d\n",paquete_desde_cpu.tamanio_mensaje);
@@ -89,7 +100,7 @@ int main(void) {
 		}
 		break;
 	}
-
+	}
 	printf("Finalizo ...\n");
 
 	/////////////////////////////////////////////////////////////////////////////////////////////

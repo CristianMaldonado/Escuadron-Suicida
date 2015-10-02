@@ -53,20 +53,21 @@ int main(void) {
 
 	//Se recibe desde memoria
 	tprotocolo_memoria_swap protocolo_desde_memoria;
-	recibir_paquete_desde_memoria(&socket_memoria, &protocolo_desde_memoria);
 
-	/*
-	tprotocolo_memoria_swap prot;
+
+
+
 	int salir = 0;
 	while(!salir){
 
-		if(recibir_paquete_desde_memoria(&socketMemoria, &prot))
+		if(recibir_paquete_desde_memoria(&socket_memoria, &protocolo_desde_memoria))
 			// para probar si recibe
-			printf("%s\n", prot.mensaje);
-		else
+			printf("%s\n", protocolo_desde_memoria.mensaje);
+		else{
 			// si no recibe termina el swap
 			salir = 1;
-*/
+			continue;
+		}
 
 		switch(protocolo_desde_memoria.codigo_op){
 
@@ -179,8 +180,8 @@ int main(void) {
 			case 'e':
 				break;
 		}
-		//free(protocolo_desde_memoria.mensaje);
-
+		free(protocolo_desde_memoria.mensaje);
+	}
 
 
 

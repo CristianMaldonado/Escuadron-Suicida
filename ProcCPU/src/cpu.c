@@ -1,5 +1,5 @@
 #include <pthread.h>
-#include "../../lib/libSocket.h"
+#include "libSocket.h"
 #include <commons/config.h>
 #include <commons/process.h>
 #include "estructuras.h"
