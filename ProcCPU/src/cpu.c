@@ -26,12 +26,11 @@ void *procesarInstruccion(void *argumento){
 	string_append(&log,string_itoa(tid));
 	//if(socketMemoria == -1){ //POR ESTOS LOGS EL VALGRIND TIRA 57 ERRORES
 	//	string_append(&log," falló al conectar con Memoria");
-	//	log_info(logCpu, log);
 	//}
 	//else{
 	//	string_append(&log," conectado a la Memoria");
-	//	log_info(logCpu, log);
 	//}
+	log_info(logCpu, log);
 	free(log);//malloc(2)
 	while(1){
 		sem_wait(&ejecutaInstruccion); //TODO
@@ -59,7 +58,7 @@ void *procesarInstruccion(void *argumento){
 
 			            case 'i': {
 			             	 armarPaquetePlanificador(datosParaProcesar, (mensajeDeMemoria->codAux == 'a')?'f' : 'c', 'i',
-			                   	                		 mensajeAMemoria->pid, datosParaProcesar->estado,
+			                   	                		 mensajeAMemoria->pid,
 			                   							 datosParaProcesar->counterProgram,datosParaProcesar->quantum,
 														 datosParaProcesar->tamanioMensaje, datosParaProcesar->mensaje);
 			                   }break;
@@ -144,7 +143,7 @@ int main() {
 
 	while (status != 0) {
 		status = deserializarPlanificador(parametros);
-		//logueoRecepcionDePlanif(parametros);
+		logueoRecepcionDePlanif(parametros);
 		terminoPlanificador = false;
 		sem_post(&ejecutaInstruccion);
 
