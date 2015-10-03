@@ -352,7 +352,7 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 		string_append(&logueoMemoria, "Fallo \n");
 	}
 
-	if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'i')) {
+	if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'f')) {
 		string_append(&logueoMemoria, "Finalizado");
 			}
 	log_info(logCpu, logueoMemoria);
