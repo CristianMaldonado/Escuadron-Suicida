@@ -62,7 +62,7 @@ int main(void) {
 
 		if(recibir_paquete_desde_memoria(&socket_memoria, &protocolo_desde_memoria))
 			// para probar si recibe
-			printf("%s\n", protocolo_desde_memoria.mensaje);
+			printf("codigo op %c\n",protocolo_desde_memoria.codigo_op);
 		else{
 			// si no recibe termina el swap
 			salir = 1;
@@ -74,6 +74,7 @@ int main(void) {
 			//inicializar probado
 			case 'i': {
 				int comienzo, hay_espacio;
+				char codaux = 'i';
 				hay_espacio = dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo);
 				if (hay_espacio) {
 					//asignar el espacio solicitado
@@ -114,13 +115,16 @@ int main(void) {
 						list_add(lista_vacia, update);
 
 					}
-					else
+					else{
+						codaux = 'a';
 						log_proc_rechazado(logSwap, protocolo_desde_memoria.pid);
+					}
 				}
+
 				tprotocolo_swap_memoria swap_memoria;
-				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, "-");
+				armar_estructura_protocolo_a_memoria(&swap_memoria,codaux, protocolo_desde_memoria.pid, "-");
 				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socket_memoria, buffer, 8 + strlen("-"), 0);
+				send(socket_memoria, buffer, 9 + strlen("-"), 0);
 			}
 			break;
 
@@ -132,9 +136,7 @@ int main(void) {
 				for (i = 0; i < list_size(lista_ocupado); i++){
 
 					tlista_ocupado * espacio_ocupado = list_get(lista_ocupado, i);
-
 					if (espacio_ocupado->pid == protocolo_desde_memoria.pid) {
-
 						//agrego a la lista vacia el espacio que voy a liberar
 						tlista_vacio * espacio_vacio = malloc(sizeof(tlista_vacio));
 						espacio_vacio->comienzo = espacio_ocupado->comienzo;
@@ -170,9 +172,9 @@ int main(void) {
 				log_escritura(logSwap, protocolo_desde_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, pag_data);
 
 				tprotocolo_swap_memoria swap_memoria;
-				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, pag_data);
+				armar_estructura_protocolo_a_memoria(&swap_memoria,'i', protocolo_desde_memoria.pid, pag_data);
 				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socket_memoria, buffer, 8 + config_swap->tamanioPagina, 0);
+				send(socket_memoria, buffer, 9 + config_swap->tamanioPagina, 0);
 			}
 
 			break;

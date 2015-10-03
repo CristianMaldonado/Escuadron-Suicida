@@ -50,10 +50,8 @@ int get_comienzo_espacio_asignado(t_list * lista_ocupado, int pid) {
 
 		if (ocupado->pid == pid) {
 			int comienzo = ocupado->comienzo;
-			free(ocupado);
 			return comienzo;
 		}
-		free(ocupado);
 	}
 	return -1; // si no encuentra el pid en la lista
 }
@@ -76,7 +74,6 @@ int dame_si_hay_espacio(t_list** lista_vacia, int paginas_pedidas, int* comienzo
 				*comienzo = aux->comienzo;
 				aux->paginas_vacias -= paginas_pedidas;
 				list_add(*lista_vacia, aux);
-				return 1;
 			}
 			return 1;
 		}

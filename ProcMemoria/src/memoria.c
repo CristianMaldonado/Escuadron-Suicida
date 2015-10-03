@@ -90,9 +90,10 @@ int main(void) {
 			printf("\ndesde swap pid %d\n",swap_memoria.pid);
 			printf("\ntamanio %d\n",swap_memoria.tamanio);
 			printf("\n mensaje %s\n",swap_memoria.mensaje);
+			printf("\n codaux %c\n",swap_memoria.codAux);
 			tprotocolo_memoria_cpu memoria_cpu;
 
-			armar_estructura_protocolo_a_cpu(&memoria_cpu, paquete_desde_cpu.cod_op, 'i', swap_memoria.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje);
+			armar_estructura_protocolo_a_cpu(&memoria_cpu, paquete_desde_cpu.cod_op, swap_memoria.codAux, swap_memoria.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje);
 			buffer = serializar_a_cpu(&memoria_cpu);
 			send(socketClienteCPU, buffer, strlen(memoria_cpu.mensaje) + 15, 0);
 			free(paquete_desde_cpu.mensaje);

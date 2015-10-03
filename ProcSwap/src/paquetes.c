@@ -29,8 +29,8 @@ FILE* iniciar_archivo_swap(void) {
 }
 
 bool recibir_paquete_desde_memoria(int *socket_memoria, tprotocolo_memoria_swap *paquete_desde_memoria) {
-	void* buffer = malloc(13 * sizeof(int));
-	if (recv(*socket_memoria, buffer, 13, 0) <= 0) return false;
+	void* buffer = malloc(sizeof(tprotocolo_memoria_swap)-4);
+	if (recv(*socket_memoria, buffer, sizeof(tprotocolo_memoria_swap)-4, 0) <= 0) return false;
 	memcpy(&(paquete_desde_memoria->codigo_op), buffer ,1);
 	memcpy(&(paquete_desde_memoria->pid), buffer + 1 ,4);
 	memcpy(&(paquete_desde_memoria->cantidad_pagina), buffer + 5 ,4);
@@ -45,14 +45,16 @@ bool recibir_paquete_desde_memoria(int *socket_memoria, tprotocolo_memoria_swap 
 
 void* serializar_a_memoria(tprotocolo_swap_memoria *protocolo) {
 
-	void * chorro = malloc(8 + protocolo->tamanio);
-	memcpy(chorro, &(protocolo->pid), 4);
-	memcpy(chorro + 4, &(protocolo->tamanio), 4);
-	memcpy(chorro + 8, protocolo->mensaje, protocolo->tamanio);
+	void * chorro = malloc(9 + protocolo->tamanio);
+	memcpy(chorro, &(protocolo->codAux),1);
+	memcpy(chorro+1, &(protocolo->pid), 4);
+	memcpy(chorro + 5, &(protocolo->tamanio), 4);
+	memcpy(chorro + 9, protocolo->mensaje, protocolo->tamanio);
 	return chorro;
 }
 
-void armar_estructura_protocolo_a_memoria(tprotocolo_swap_memoria *protocolo, int pid, char* mensaje) {
+void armar_estructura_protocolo_a_memoria(tprotocolo_swap_memoria *protocolo,char codAux, int pid, char* mensaje) {
+	protocolo->codAux = codAux;
 	protocolo->pid = pid;
 	protocolo->mensaje = malloc(strlen(mensaje)+1);
 	strcpy(protocolo->mensaje, mensaje);

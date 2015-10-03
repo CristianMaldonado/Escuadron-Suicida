@@ -60,6 +60,8 @@ void *procesarInstruccion(void *argumento){
 			printf("pid %d\n",mensajeDeMemoria->pid);
 			printf("tamanio %d\n",mensajeDeMemoria->tamanioMensaje);
 			printf("operacion %c\n",mensajeDeMemoria->codOperacion);
+			printf("cod aux %c\n",mensajeDeMemoria->codAux);
+			if(mensajeDeMemoria->codAux == 'a' && mensajeDeMemoria->codOperacion == 'i') break;
 			 /* switch (mensajeDeMemoria->codOperacion){
 
 			            case 'i': {

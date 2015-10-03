@@ -26,6 +26,7 @@ typedef struct {
 }  __attribute__((packed)) tprotocolo_memoria_swap;
 
 typedef struct {
+	char codAux;
 	int pid;
 	int tamanio;
 	char *mensaje;

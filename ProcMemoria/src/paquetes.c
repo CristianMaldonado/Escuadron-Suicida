@@ -35,7 +35,7 @@ void* serializar_a_swap(tprotocolo_desde_cpu_y_hacia_swap *protocolo) {
 }
 
 bool recibir_paquete_desde_cpu(int *socket_cpu, tprotocolo_desde_cpu_y_hacia_swap *paquete_desde_cpu) {
-	void* buffer = malloc(13 * sizeof(int));
+	void* buffer = malloc(13);
 	if(recv(*socket_cpu, buffer, 13, 0) <= 0) return false;
 	memcpy(&(paquete_desde_cpu->cod_op), buffer ,1);
 	memcpy(&(paquete_desde_cpu->pid), buffer + 1 ,4);
@@ -50,10 +50,11 @@ bool recibir_paquete_desde_cpu(int *socket_cpu, tprotocolo_desde_cpu_y_hacia_swa
 }
 
 bool recibir_paquete_desde_swap(int socket_swap, tprotocolo_swap_memoria *paquete_desde_swap) {
-	void* buffer = malloc(8 * sizeof(int));
-	if(recv(socket_swap, buffer, 8, 0) <= 0) return false;
-	memcpy(&(paquete_desde_swap->pid), buffer, 4);
-	memcpy(&(paquete_desde_swap->tamanio), buffer + 4, 4);
+	void* buffer = malloc(sizeof(tprotocolo_swap_memoria)-4);
+	if(recv(socket_swap, buffer, sizeof(tprotocolo_swap_memoria)-4, 0) <= 0) return false;
+	memcpy(&(paquete_desde_swap->codAux),buffer, 1);
+	memcpy(&(paquete_desde_swap->pid), buffer+1, 4);
+	memcpy(&(paquete_desde_swap->tamanio), buffer + 5, 4);
 	// ahora el mensaje posta
 	paquete_desde_swap->mensaje = (char*)malloc(paquete_desde_swap->tamanio + 1);
 	if(recv(socket_swap, paquete_desde_swap->mensaje, paquete_desde_swap->tamanio, 0) <= 0) return false;

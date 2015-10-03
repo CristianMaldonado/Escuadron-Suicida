@@ -338,7 +338,7 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 	string_append(&logueoMemoria, string_itoa(respuestaMemoria->pid));
 	string_append(&logueoMemoria, " - ");
 
-	if (respuestaMemoria->codOperacion == 'i') {
+	if (respuestaMemoria->codOperacion == 'i' && respuestaMemoria->codAux != 'a') {
 		string_append(&logueoMemoria, "Iniciado \n");
 	}
 	if (respuestaMemoria->codOperacion == 'l') {
@@ -348,8 +348,8 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 		string_append(&logueoMemoria, respuestaMemoria->mensaje);
 	}
 
-	if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'a')) {
-		string_append(&logueoMemoria, "Fallo \n");
+	if ((respuestaMemoria->codOperacion == 'i') && (respuestaMemoria->codAux == 'a')) {
+		string_append(&logueoMemoria, "Fallo al iniciar\n");
 	}
 
 	if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'f')) {
