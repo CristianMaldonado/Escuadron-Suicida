@@ -10,4 +10,5 @@
 
 tconfig_memoria* leerConfiguracion();
 
+
 #endif /* SRC_CONFIG_H_ */

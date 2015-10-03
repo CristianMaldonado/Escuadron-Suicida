@@ -8,7 +8,8 @@
 #include <stdlib.h>
 #include "estructuras.h"
 #include "config.h"
-
+#include <string.h>
+#include <stdio.h>
 #include <commons/config.h>
 
 // funcion que obtiene los campos del archivo de configuracion del cpu
