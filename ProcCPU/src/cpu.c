@@ -4,10 +4,13 @@
 #include <commons/process.h>
 #include "estructuras.h"
 #include "funcionesCPU.h"
+#include "config.h"
 #include <commons/error.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 bool terminoPlanificador;
 
@@ -21,17 +24,16 @@ void *procesarInstruccion(void *argumento){
 	int tid = process_get_thread_id();
 
 	//LOGUEO DE CONEXION CON MEMORIA ---------> TODO PREGUNTAR POR LOG_TRACE
-	char* log=(char*)malloc(5);//malloc(2)
-	strcpy(log,"CPU ");
-	string_append(&log,string_itoa(tid));
-	//if(socketMemoria == -1){ //POR ESTOS LOGS EL VALGRIND TIRA 57 ERRORES
-	//	string_append(&log," falló al conectar con Memoria");
-	//}
-	//else{
-	//	string_append(&log," conectado a la Memoria");
-	//}
-	//log_info(logCpu, log);
-	free(log);//malloc(2)
+//	char* log=(char*)malloc(5);//malloc(2)
+//	strcpy(log,"CPU ");
+//	string_append(&log,string_itoa(tid));
+	if(socketMemoria == -1){ //POR ESTOS LOGS EL VALGRIND TIRA 57 ERRORES
+		log_info(logCpu, "CPU %d fallo al conectar con Memoria", tid);
+	}
+	else{
+		log_info(logCpu, "CPU %d se conecto con Memoria", tid);
+	}
+//	free(log);//malloc(2)
 	while(1){
 		sem_wait(&ejecutaInstruccion); //TODO
 

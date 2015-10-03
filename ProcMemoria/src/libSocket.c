@@ -60,8 +60,8 @@ void server_init(int *svrSocket, char *puerto){
 	/*creamos el socket*/
 	*svrSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);
 
-        int option = 1;
-        setsockopt(*svrSocket,SOL_SOCKET,(SO_REUSEPORT | SO_REUSEADDR),&option,sizeof(option));
+       // int option = 1;
+        //setsockopt(*svrSocket,SOL_SOCKET,(SO_REUSEPORT | SO_REUSEADDR),&option,sizeof(option));
 
 	bind(*svrSocket,serverInfo->ai_addr, serverInfo->ai_addrlen);
 

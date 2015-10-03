@@ -335,7 +335,7 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 	char* logueoMemoria = malloc(sizeof(char) * 10);
 
 	strcpy(logueoMemoria, "mProc: ");
-	string_append(&logueoMemoria, string_itoa(respuestaMemoria->pid));
+	string_append_with_format(&logueoMemoria, "%d", respuestaMemoria->pid);
 	string_append(&logueoMemoria, " - ");
 
 	if (respuestaMemoria->codOperacion == 'i' && respuestaMemoria->codAux != 'a') {
@@ -343,7 +343,7 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 	}
 	if (respuestaMemoria->codOperacion == 'l') {
 		string_append(&logueoMemoria, "Pagina: ");
-		string_append(&logueoMemoria, string_itoa(respuestaMemoria->numeroPagina));
+		string_append_with_format(&logueoMemoria, "%d", respuestaMemoria->numeroPagina);
 		string_append(&logueoMemoria, " leida: ");
 		string_append(&logueoMemoria, respuestaMemoria->mensaje);
 	}
@@ -354,7 +354,7 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 
 	if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'f')) {
 		string_append(&logueoMemoria, "Finalizado");
-			}
+	}
 	log_info(logCpu, logueoMemoria);
 	free(logueoMemoria);
 
