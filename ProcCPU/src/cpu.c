@@ -88,7 +88,7 @@ void *procesarInstruccion(void *argumento){
 			  //enviarAPlanificador(datosParaProcesar);
 
            loguearEstadoMemoria(mensajeDeMemoria, instruccionLeida);
-           sleep(3);
+           sleep(1);
 		}
 		free(lineaLeida);
 		fclose(archivo);

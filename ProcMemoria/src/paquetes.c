@@ -25,7 +25,7 @@ void armar_estructura_desde_cpu_y_hacia_swap(tprotocolo_desde_cpu_y_hacia_swap *
 
 void* serializar_a_swap(tprotocolo_desde_cpu_y_hacia_swap *protocolo) {
 	size_t messageLength = strlen(protocolo->mensaje);
-	void * chorro = malloc(13 + messageLength);
+	void * chorro = malloc(13 + protocolo->tamanio_mensaje);
 	memcpy(chorro, &(protocolo->cod_op), 1);
 	memcpy(chorro + 1, &(protocolo->pid), 4);
 	memcpy(chorro + 5, &(protocolo->paginas), 4);

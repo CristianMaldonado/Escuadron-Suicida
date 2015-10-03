@@ -26,12 +26,12 @@ int main(void) {
 	//Definimos datos Cliente listener
 	int socketClienteSWAP, socketServidorCPU, socketClienteCPU;
 
-	printf("Conectando al SWAP (%s : %s)... ", config->ipSwap, config->puertoEscucha);
-	client_init(&socketClienteSWAP, config->ipSwap, config->puertoEscucha);
+	printf("Conectando al SWAP (%s : %s)... ", config->ipSwap, config->puertoSwap);
+	client_init(&socketClienteSWAP, config->ipSwap, config->puertoSwap);
 	printf("OK\n");
 
 	//Definimos datos Server
-	server_init(&socketServidorCPU, "4142");
+	server_init(&socketServidorCPU, config->puertoEscucha);
 	printf("Memoria lista...\n");
 
 	server_acept(socketServidorCPU, &socketClienteCPU);

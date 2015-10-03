@@ -43,22 +43,20 @@ bool recibir_paquete_desde_memoria(int *socket_memoria, tprotocolo_memoria_swap 
 	return true;
 }
 
-
 void* serializar_a_memoria(tprotocolo_swap_memoria *protocolo) {
-	size_t messageLength = strlen(protocolo->mensaje);
-	void * chorro = malloc(8 + messageLength);
+
+	void * chorro = malloc(8 + protocolo->tamanio);
 	memcpy(chorro, &(protocolo->pid), 4);
 	memcpy(chorro + 4, &(protocolo->tamanio), 4);
-	memcpy(chorro + 8, protocolo->mensaje, messageLength);
+	memcpy(chorro + 8, protocolo->mensaje, protocolo->tamanio);
 	return chorro;
 }
 
-
 void armar_estructura_protocolo_a_memoria(tprotocolo_swap_memoria *protocolo, int pid, char* mensaje) {
 	protocolo->pid = pid;
-	protocolo->mensaje = malloc(strlen(mensaje) + 1);
+	protocolo->mensaje = malloc(strlen(mensaje)+1);
 	strcpy(protocolo->mensaje, mensaje);
-	protocolo->tamanio = strlen(protocolo->mensaje);
+	protocolo->tamanio = strlen(mensaje);
 }
 
 

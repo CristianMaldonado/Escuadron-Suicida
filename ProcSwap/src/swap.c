@@ -39,7 +39,7 @@ int main(void) {
 
 	//Crea el socket para escuchar
 	int server_socket;
-	server_init(&server_socket, "4142");
+	server_init(&server_socket, config_swap->puertoEscucha);
 	printf("SWAP listo...\n");
 
 	//Crea el socket para recibir a la memoria
@@ -163,15 +163,16 @@ int main(void) {
 				int desplazamiento_en_bytes = (pag_inicio + pag_leer)*config_swap->tamanioPagina;
 				fseek(swap, desplazamiento_en_bytes, SEEK_SET);
 
-				char * pag_data = malloc(config_swap->tamanioPagina);
+				char * pag_data = malloc(config_swap->tamanioPagina+1);
 				fread(pag_data, config_swap->tamanioPagina, 1, swap);
+				pag_data[config_swap->tamanioPagina] = '\0';
 
 				log_escritura(logSwap, protocolo_desde_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, pag_data);
 
 				tprotocolo_swap_memoria swap_memoria;
 				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, pag_data);
 				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socket_memoria, buffer, 8 + strlen(swap_memoria.mensaje), 0);
+				send(socket_memoria, buffer, 8 + config_swap->tamanioPagina, 0);
 			}
 
 			break;
