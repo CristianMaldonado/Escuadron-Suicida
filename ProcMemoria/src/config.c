@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 //Arma estructura del archivo en memoria
 tconfig_memoria* leerConfiguracion() {
