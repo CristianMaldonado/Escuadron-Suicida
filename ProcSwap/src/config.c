@@ -13,6 +13,7 @@
 #include "estructuras.h"
 #include "paquetes.h"
 #include <commons/string.h>
+#include <string.h>
 
 
 
@@ -33,8 +34,8 @@ tconfig_swap* leerConfiguracion() {
 
 void log_inicializar(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int paginas_asignadas) {
 
-	char * str = string_new();
-	string_append(&str, "inicializar-> pid: ");
+	char * str = malloc(20);
+	strcpy(str, "inicializar-> pid: ");
 	string_append(&str, string_itoa(pid));
 	string_append(&str, ", bytes_inicial: ");
 	string_append(&str, string_itoa(nro_pagina_inicial*tamanio_pagina));
@@ -47,8 +48,8 @@ void log_inicializar(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pa
 
 void log_finalizar(t_log *log, int pid, int tamanio_pagina, int paginas_asignadas) {
 
-	char * str = string_new();
-	string_append(&str, "finalizado-> pid: ");
+	char * str = malloc(20);;
+	strcpy(str, "finalizado-> pid: ");
 	string_append(&str, string_itoa(pid));
 	string_append(&str, ", tamanio_en_bytes_liberados: ");
 	string_append(&str, string_itoa(paginas_asignadas*tamanio_pagina));
@@ -59,8 +60,8 @@ void log_finalizar(t_log *log, int pid, int tamanio_pagina, int paginas_asignada
 
 void log_proc_rechazado(t_log *log, int pid){
 
-	char * str = string_new();
-	string_append(&str, "proceso rechazado-> pid: ");
+	char * str = malloc(30);
+	strcpy(str, "proceso rechazado-> pid: ");
 	string_append(&str, string_itoa(pid));
 	string_append(&str, "/n");
 
@@ -69,8 +70,8 @@ void log_proc_rechazado(t_log *log, int pid){
 
 void log_escritura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int pagina_a_leer, char* contenido){
 
-	char * str = string_new();
-	string_append(&str, "lectura-> pid: ");
+	char * str = malloc(20);
+	strcpy(str, "lectura-> pid: ");
 	string_append(&str, string_itoa(pid));
 	string_append(&str, ", bytes_inicial: ");
 	string_append(&str, string_itoa((nro_pagina_inicial + pagina_a_leer)*tamanio_pagina));
@@ -83,4 +84,3 @@ void log_escritura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagi
 	log_info(log,str);
 
 }
-

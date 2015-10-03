@@ -83,6 +83,7 @@ int main(void) {
 
 			//inicializar probado
 			case 'i': {
+				char codaux = 'i';
 				int comienzo, hay_espacio;
 				hay_espacio = dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo);
 				if (hay_espacio) {
@@ -125,12 +126,13 @@ int main(void) {
 
 					}
 					else
+						codaux = 'a';
 						log_proc_rechazado(logSwap, protocolo_desde_memoria.pid);
 				}
 				tprotocolo_swap_memoria swap_memoria;
-				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, "vacio");
-				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socket_memoria, buffer, 8 + strlen("vacio"), 0);
+								armar_estructura_protocolo_a_memoria(&swap_memoria,codaux, protocolo_desde_memoria.pid, "-");
+								void * buffer = serializar_a_memoria(&swap_memoria);
+								send(socket_memoria, buffer, 9 + strlen("-"), 0);
 			}
 			break;
 
@@ -173,15 +175,16 @@ int main(void) {
 				int desplazamiento_en_bytes = (pag_inicio + pag_leer)*config_swap->tamanioPagina;
 				fseek(swap, desplazamiento_en_bytes, SEEK_SET);
 
-				char * pag_data = malloc(config_swap->tamanioPagina + 1);
+				char * pag_data = malloc(config_swap->tamanioPagina);
 				fread(pag_data, config_swap->tamanioPagina, 1, swap);
+				pag_data[config_swap->tamanioPagina] = '\0';
 
 				log_escritura(logSwap, protocolo_desde_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, pag_data);
 
 				tprotocolo_swap_memoria swap_memoria;
-				armar_estructura_protocolo_a_memoria(&swap_memoria, protocolo_desde_memoria.pid, pag_data);
+				armar_estructura_protocolo_a_memoria(&swap_memoria,'i', protocolo_desde_memoria.pid, pag_data);
 				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socket_memoria, buffer, 8 + strlen(protocolo_desde_memoria.mensaje), 0);
+				send(socket_memoria, buffer, 9 + config_swap->tamanioPagina, 0);
 			}
 
 			break;

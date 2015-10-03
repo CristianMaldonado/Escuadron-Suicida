@@ -15,6 +15,17 @@
 #include <sys/socket.h>
 
 //Arma estructura del archivo en memoria
+#include "libSocket.h"
+#include <commons/config.h>
+#include <commons/log.h>
+#include "estructuras.h"
+#include "paquetes.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+//Arma estructura del archivo en memoria
 tconfig_memoria* leerConfiguracion() {
 	tconfig_memoria* datosMemoria = malloc(sizeof(tconfig_memoria));
 	t_config* config;
@@ -30,4 +41,3 @@ tconfig_memoria* leerConfiguracion() {
 	datosMemoria->retardoMemoria = config_get_int_value(config,"RETARDO_MEMORIA");
 	return datosMemoria;
 }
-

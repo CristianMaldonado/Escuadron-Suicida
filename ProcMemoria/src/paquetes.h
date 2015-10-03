@@ -1,10 +1,3 @@
-/*
- * paquetes.h
- *
- *  Created on: 25/9/2015
- *      Author: utnso
- */
-
 #ifndef SRC_PAQUETES_H_
 #define SRC_PAQUETES_H_
 
