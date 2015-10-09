@@ -14,13 +14,13 @@
 #include <sys/socket.h>
 #include <stdbool.h>
 
-FILE* iniciar_archivo_swap(void) {
-	tconfig_swap *config_swap = leerConfiguracion();
-	FILE* swap = fopen(config_swap->nombreSwap, "wb+"); //rb+ para archivo binario
-	size_t tamanio_swap = config_swap->tamanioPagina * config_swap->cantidadPaginas;
+FILE* iniciar_archivo_swap() {
+	//tconfig_swap *config_swap = leerConfiguracion();
+	FILE* swap = fopen("swap.dat", "rb+"); //rb+ para archivo binario
+	size_t tamanio_swap = 4 * 9;
 	//rellenamos en cero (char '/0' es 0)
 	int i ;
-	char cero[] = "1";
+	char cero[] = "0";
 	for (i = 0 ; i < tamanio_swap; i++)
 		fwrite(cero, sizeof(char), 1, swap);
 	fseek(swap, 0, SEEK_SET);
