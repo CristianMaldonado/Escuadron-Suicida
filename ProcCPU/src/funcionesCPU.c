@@ -273,16 +273,15 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo, int tam) {	//ruta+instruction pointer => leo la linea del ip y la devuelvo
 
 	int cont = 1;
-/*	if (*instructionPointer == 1) {//valgrind aca
+	/*if (*instructionPointer == 1) {//valgrind aca
 		fgets(lineaLeida, tam, archivo);
-		(*instructionPointer) = (*instructionPointer) + 1;
-		cont++;
-	}
+		//cont++;
+	}*/
 
-	while (!feof(archivo) && cont != (*instructionPointer)) {//valgrind aca
+	/*while (!feof(archivo) && cont <= (*instructionPointer) ) {//valgrind aca
 		fgets(lineaLeida, tam, archivo);
 		cont++;
-		(*instructionPointer) = (*instructionPointer) + 1;//valgrind aca
+
 	}*/
 	fgets(lineaLeida, tam, archivo);
 	(*instructionPointer) = (*instructionPointer) + 1;

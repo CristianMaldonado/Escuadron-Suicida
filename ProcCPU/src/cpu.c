@@ -11,8 +11,10 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <commons/collections/list.h>
 
 bool terminoPlanificador;
+tipoConfiguracionCPU *config;
 
 //TODO estructuras que usa el hilo definirlas aca
 void *procesarInstruccion(void *argumento){
@@ -92,7 +94,7 @@ void *procesarInstruccion(void *argumento){
 			  //enviarAPlanificador(datosParaProcesar);
 
            loguearEstadoMemoria(mensajeDeMemoria, instruccionLeida);
-           sleep(1);
+           sleep(config->retardo); //ver si hay q sincronizar el config (?
 		}
 		free(lineaLeida);
 		fclose(archivo);
@@ -116,7 +118,7 @@ int main() {
 	config->cantidadHilos = 4;
 	config->retardo = 2;*/
 
-	tipoConfiguracionCPU *config = leerConfiguracion();
+	config = leerConfiguracion();
 
 	//Inicia el Socket para conectarse con el Planificador/
 	printf("Conectando al Planificador (%s : %s)... ", config->ipPlanificador,
@@ -138,16 +140,23 @@ int main() {
 	//loguea conexion con Memoria
 	//if(socketMemoria == -1){log_info(logCpu, "Fallo al conectar con Memoria");}
 	//else{log_info(logCpu, "Conectado a la Memoria");}
+    t_list *lista = list_create();
 
 	//Hilo
 	pthread_t hilo;
 	pthread_attr_t atrib;
 	sem_init(&ejecutaInstruccion,0,0);
-	protocolo_planificador_cpu* parametros = malloc(sizeof(protocolo_planificador_cpu));
+	pthread_attr_init(&atrib);
+    int i;
+	protocolo_planificador_cpu* parametros = malloc(config->cantidadHilos * sizeof(protocolo_planificador_cpu));
+	//for (i=0; i<= config->cantidadHilos; i++){
 
 	// Lo que recibimos del planificador lo enviamos al hilo
-	pthread_attr_init(&atrib);
 	pthread_create(&hilo, &atrib, procesarInstruccion,(void*) parametros);
+	//list_add(lista,(void*)process_get_thread_id());
+	//}
+
+	//TODO: AVISAR A PLANIFICADOR CANTIDAD DE HILOS DISPONIBLES
 
 	int status = 1;
 
