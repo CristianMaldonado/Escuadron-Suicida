@@ -73,9 +73,12 @@ int main(void) {
 
 			//inicializar probado
 			case 'i': {
-				int comienzo, hay_espacio;
+				int comienzo = 4, hay_espacio;
 				char codaux = 'i';
-				hay_espacio = dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo);
+
+				printf("\nhay espacio: %d\n",hay_espacio = dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo));
+				printf("\ncomienzo: %d\n", comienzo);
+
 				if (hay_espacio) {
 					//asignar el espacio solicitado
 					tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
@@ -144,11 +147,16 @@ int main(void) {
 						list_add(lista_vacia,espacio_vacio);
 
 						//saco espacio de lista ocupado
-						list_remove(lista_ocupado, i);
-
 						log_finalizar(logSwap,espacio_ocupado->pid,config_swap->tamanioPagina, espacio_ocupado->paginas_ocupadas);
+						free(list_remove(lista_ocupado, i));
+
 					}
 				}
+				tlista_vacio *aaa = list_get(lista_vacia, 0);
+				tlista_vacio *bbb = list_get(lista_vacia, 1);
+				printf("\npaaaaginnasss vaciiiassss:  %d\n", aaa->paginas_vacias);
+				printf("\npaaaaginnasss vaciiiassss:  %d\n", bbb->paginas_vacias);
+
 			}
 
 			break;
