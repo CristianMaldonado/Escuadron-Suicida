@@ -19,7 +19,6 @@
 int main(void) {
 	system("clear");
 
-
 	t_log *logSwap = log_create("log.txt", "swap.c", false, LOG_LEVEL_INFO);
 
  	tconfig_swap* config_swap = leerConfiguracion();
@@ -75,7 +74,6 @@ int main(void) {
 			case 'i': {
 				int comienzo = 4, hay_espacio;
 				char codaux = 'i';
-
 				printf("\nhay espacio: %d\n",hay_espacio = dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo));
 				printf("\ncomienzo: %d\n", comienzo);
 
@@ -133,7 +131,6 @@ int main(void) {
 
 			//finalizar probado
 			case 'f':
-
 			{
 				int i;
 				for (i = 0; i < list_size(lista_ocupado); i++){
@@ -150,13 +147,17 @@ int main(void) {
 						log_finalizar(logSwap,espacio_ocupado->pid,config_swap->tamanioPagina, espacio_ocupado->paginas_ocupadas);
 						free(list_remove(lista_ocupado, i));
 
+						arreglame_la_lista_vacia_che(&lista_vacia);
 					}
 				}
-				tlista_vacio *aaa = list_get(lista_vacia, 0);
-				tlista_vacio *bbb = list_get(lista_vacia, 1);
-				printf("\npaaaaginnasss vaciiiassss:  %d\n", aaa->paginas_vacias);
-				printf("\npaaaaginnasss vaciiiassss:  %d\n", bbb->paginas_vacias);
 
+
+				int oo;
+				for (oo = 0; oo < list_size(lista_vacia) ; oo++) {
+					tlista_vacio *aaa = list_get(lista_vacia, oo);
+					printf("\npaaaaginnasss vaciiiassss:  %d\n", aaa->paginas_vacias);
+					printf("\ncomienzo: %d\n", aaa->comienzo);
+				}
 			}
 
 			break;
