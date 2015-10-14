@@ -41,7 +41,7 @@ void log_inicializar(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pa
 	string_append(&str, string_itoa(nro_pagina_inicial*tamanio_pagina));
 	string_append(&str, ", tamanio_en_bytes: ");
 	string_append(&str, string_itoa(paginas_asignadas*tamanio_pagina));
-	string_append(&str, "/n");
+	string_append(&str, "\n");
 
 	log_info(log,str);
 }
@@ -53,7 +53,7 @@ void log_finalizar(t_log *log, int pid, int tamanio_pagina, int paginas_asignada
 	string_append(&str, string_itoa(pid));
 	string_append(&str, ", tamanio_en_bytes_liberados: ");
 	string_append(&str, string_itoa(paginas_asignadas*tamanio_pagina));
-	string_append(&str, "/n");
+	string_append(&str, "\n");
 
 	log_info(log,str);
 }
@@ -63,7 +63,7 @@ void log_proc_rechazado(t_log *log, int pid){
 	char * str = malloc(30);
 	strcpy(str, "proceso rechazado-> pid: ");
 	string_append(&str, string_itoa(pid));
-	string_append(&str, "/n");
+	string_append(&str, "\n");
 
 	log_info(log,str);
 }
@@ -79,7 +79,7 @@ void log_escritura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagi
 	string_append(&str, string_itoa(tamanio_pagina));
 	string_append(&str, ", contenido: ");
 	string_append(&str, contenido);
-	string_append(&str, "/n");
+	string_append(&str, "\n");
 
 	log_info(log,str);
 
