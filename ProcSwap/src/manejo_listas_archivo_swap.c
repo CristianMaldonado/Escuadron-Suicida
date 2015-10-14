@@ -56,20 +56,19 @@ int get_comienzo_espacio_asignado(t_list * lista_ocupado, int pid) {
 	return -1; // si no encuentra el pid en la lista
 }
 
-// 1: hay espacio ; 2: no hay espacio
+// 1: hay espacio ; 0: no hay espacio
 int dame_si_hay_espacio(t_list** lista_vacia, int paginas_pedidas, int* comienzo) {
+
 	int i;
 	tlista_vacio *aux;
-	int flag;
 	for (i = 0; i < list_size(*lista_vacia); i++) {
 		aux = list_get(*lista_vacia, i);
-		*comienzo = aux->comienzo;
+
 		if (aux->paginas_vacias >= paginas_pedidas) {
-			flag = 0;
-			//actualizar el hueco vacio
-			//si sigue existiendo un hueco osea != 0
+			//actualizar el hueco vacio y si sigue existiendo un hueco osea != 0
+			*comienzo = aux->comienzo;
 			if (aux->paginas_vacias - paginas_pedidas != 0) {
-				*comienzo = aux->comienzo;
+				//*comienzo = aux->comienzo;
 				tlista_vacio *plistV = malloc(sizeof(tlista_vacio));
 				plistV->comienzo = paginas_pedidas + aux->comienzo;
 				plistV->paginas_vacias = aux->paginas_vacias - paginas_pedidas;
@@ -82,25 +81,20 @@ int dame_si_hay_espacio(t_list** lista_vacia, int paginas_pedidas, int* comienzo
 
 			return 1;
 		}
-		else
-			flag = 1;
 	}
-	/*
-	if(flag) {
-		*comienzo = aux->comienzo;
-		return 0; }*/
-	return  0;//aux->comienzo;
+
+	return  0;
 }
 
 
 int espacio_total_disponible(t_list* lista_vacia) {
 	int tamanio = 0, i;
-	tlista_vacio *aux = malloc(sizeof(tlista_vacio));
+	tlista_vacio *aux;
 	for (i = 0; i < list_size(lista_vacia); i++) {
 		aux = list_get(lista_vacia, i);
 		tamanio += aux->paginas_vacias;
 	}
-	free(aux);
+	//free(aux);
 	return tamanio;
 }
 

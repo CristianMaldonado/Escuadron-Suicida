@@ -72,6 +72,7 @@ int main(void) {
 
 			//inicializar probado
 			case 'i': {
+
 				int comienzo = 4, hay_espacio;
 				char codaux = 'i';
 				printf("\nhay espacio: %d\n",hay_espacio = dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo));
@@ -117,6 +118,7 @@ int main(void) {
 
 					}
 					else{
+
 						codaux = 'a';
 						log_proc_rechazado(logSwap, protocolo_desde_memoria.pid);
 					}
@@ -132,6 +134,7 @@ int main(void) {
 			//finalizar probado
 			case 'f':
 			{
+				printf("llego un finalizar");
 				int i;
 				for (i = 0; i < list_size(lista_ocupado); i++){
 
@@ -151,13 +154,6 @@ int main(void) {
 					}
 				}
 
-
-				int oo;
-				for (oo = 0; oo < list_size(lista_vacia) ; oo++) {
-					tlista_vacio *aaa = list_get(lista_vacia, oo);
-					printf("\npaaaaginnasss vaciiiassss:  %d\n", aaa->paginas_vacias);
-					printf("\ncomienzo: %d\n", aaa->comienzo);
-				}
 			}
 
 			break;
