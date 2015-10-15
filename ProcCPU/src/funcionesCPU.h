@@ -17,7 +17,7 @@ void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete, int* tamanio);
 void* serializarPaquetePlanificador(protocolo_planificador_cpu* paquete, int* tamanio);
 void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida);
 void enviarAMemoria(protocolo_cpu_memoria* message);
-void armarPaquete(protocolo_cpu_memoria* paquete,char tipoProceso, char codOperacion, int pid, int nroPagina, char* mensaje);
+void armarPaqueteMemoria(protocolo_cpu_memoria* paquete,char tipoProceso, char codOperacion, int pid, int nroPagina, char* mensaje);
 void armarPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoProceso,char codOperacion, int pid, testado estado, int counterProgram ,int quantum, int tamanioMensaje,char* mensaje);
 char* leerInstruccion(int* instructionPointer, char* lineaLeida, FILE* archivo, int tam);
 int deserializarMemoria(protocolo_memoria_cpu* package);

@@ -235,7 +235,7 @@ void enviarAPlanificador(protocolo_planificador_cpu* respuestaDeMemo){
 	free(empaquetado);
 }
 //MODIFICAR ARMAR PAQUETE PARAMETROS
-void armarPaquete(protocolo_cpu_memoria* paquete, char tipoProceso,char codOperacion, int pid, int nroPagina, char* mensaje) {
+void armarPaqueteMemoria(protocolo_cpu_memoria* paquete, char tipoProceso,char codOperacion, int pid, int nroPagina, char* mensaje) {
 	paquete->tipoProceso = tipoProceso;
 	paquete->tipoOperacion = codOperacion;
 	paquete->pid = pid;
@@ -254,36 +254,36 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 
 		if (string_starts_with(instruccion, "iniciar")) {
 			int numero = atoi(lineaFiltrada[1]);
-			armarPaquete(mensajeParaArmar, 'c', 'i',mensajeDePlanificador->pid,numero , "-");
+			armarPaqueteMemoria(mensajeParaArmar, 'c', 'i',mensajeDePlanificador->pid,numero , "-");
 		}
 		if (string_starts_with(instruccion, "leer")) {
 			int numero = atoi(lineaFiltrada[1]);
-			armarPaquete(mensajeParaArmar, 'c', 'l',mensajeDePlanificador->pid, numero, "-");
+			armarPaqueteMemoria(mensajeParaArmar, 'c', 'l',mensajeDePlanificador->pid, numero, "-");
 		}
 		//if(string_starts_with(message->lineaDeProceso,"escribir")) {  } //TODO cheackpoint 3 supongo
 		//if(string_starts_with(message->lineaDeProceso,"entrada-salida")) { }
 
 		if (string_starts_with(instruccion, "finalizar;")) {
-				armarPaquete(mensajeParaArmar, 'c', 'f', mensajeDePlanificador->pid, 0, "-");
+				armarPaqueteMemoria(mensajeParaArmar, 'c', 'f', mensajeDePlanificador->pid, 0, "-");
 		}
 		free(linea);
 		free(lineaFiltrada);
 }
 
 char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo, int tam) {	//ruta+instruction pointer => leo la linea del ip y la devuelvo
-
+	fseek(archivo,0,SEEK_SET);
 	int cont = 1;
 	/*if (*instructionPointer == 1) {//valgrind aca
 		fgets(lineaLeida, tam, archivo);
 		//cont++;
 	}*/
 
-	/*while (!feof(archivo) && cont <= (*instructionPointer) ) {//valgrind aca
+	while (!feof(archivo) && cont <= (*instructionPointer) ) {//valgrind aca
 		fgets(lineaLeida, tam, archivo);
 		cont++;
 
-	}*/
-	fgets(lineaLeida, tam, archivo);
+	}
+	//fgets(lineaLeida, tam, archivo);
 	(*instructionPointer) = (*instructionPointer) + 1;
 
 	if (!string_starts_with(lineaLeida, "finalizar;")) lineaLeida[strlen(lineaLeida)-1] = '\0';
