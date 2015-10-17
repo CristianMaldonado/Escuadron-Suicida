@@ -16,7 +16,6 @@
 bool terminoPlanificador;
 tipoConfiguracionCPU *config;
 
-//TODO estructuras que usa el hilo definirlas aca
 void *procesarInstruccion(void *argumento){
 
 	protocolo_planificador_cpu* datosParaProcesar;
@@ -25,17 +24,15 @@ void *procesarInstruccion(void *argumento){
 	protocolo_memoria_cpu* mensajeDeMemoria = malloc(sizeof(protocolo_memoria_cpu));
 	int tid = process_get_thread_id();
 
-	//LOGUEO DE CONEXION CON MEMORIA ---------> TODO PREGUNTAR POR LOG_TRACE
-//	char* log=(char*)malloc(5);//malloc(2)
-//	strcpy(log,"CPU ");
-//	string_append(&log,string_itoa(tid));
-	if(socketMemoria == -1){ //POR ESTOS LOGS EL VALGRIND TIRA 57 ERRORES
+	//LOGUEO DE CONEXION CON MEMORIA
+
+	if(socketMemoria == -1){
 		log_info(logCpu, "CPU %d fallo al conectar con Memoria", tid);
 	}
 	else{
 		log_info(logCpu, "CPU %d se conecto con Memoria", tid);
 	}
-//	free(log);//malloc(2)
+
 	while(1){
 		sem_wait(&ejecutaInstruccion); //TODO
 
@@ -130,16 +127,13 @@ int main() {
 	//loguea conexion con Planificador
 	if(socketPlanificador == -1)
 	log_info(logCpu, "Fallo al conectar con Planificador");
-	//else log_info(logCpu, "Conectado al Planificador");
+	else log_info(logCpu, "Conectado al Planificador");
 
 	//Inicia el Socket para conectarse con la Memoria
 	printf("Conectando a la Memoria (%s : %s)... ", config->ipMemoria,
 			config->puertoMemoria);
 	client_init(&socketMemoria, config->ipMemoria, config->puertoMemoria); printf("OK\n");
 
-	//loguea conexion con Memoria
-	//if(socketMemoria == -1){log_info(logCpu, "Fallo al conectar con Memoria");}
-	//else{log_info(logCpu, "Conectado a la Memoria");}
     t_list *lista = list_create();
 
 	//Hilo

@@ -19,7 +19,6 @@
 int main(void) {
 	system("clear");
 
-
 	t_log *logSwap = log_create("log.txt", "swap.c", false, LOG_LEVEL_INFO);
 
  	tconfig_swap* config_swap = leerConfiguracion();
@@ -73,9 +72,12 @@ int main(void) {
 
 			//inicializar probado
 			case 'i': {
-				int comienzo, hay_espacio;
+
+				int comienzo = 4, hay_espacio;
 				char codaux = 'i';
-				hay_espacio = dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo);
+				printf("\nhay espacio: %d\n",hay_espacio = dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo));
+				printf("\ncomienzo: %d\n", comienzo);
+
 				if (hay_espacio) {
 					//asignar el espacio solicitado
 					tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
@@ -116,6 +118,7 @@ int main(void) {
 
 					}
 					else{
+
 						codaux = 'a';
 						log_proc_rechazado(logSwap, protocolo_desde_memoria.pid);
 					}
@@ -130,8 +133,8 @@ int main(void) {
 
 			//finalizar probado
 			case 'f':
-
 			{
+				printf("llego un finalizar");
 				int i;
 				for (i = 0; i < list_size(lista_ocupado); i++){
 
@@ -144,11 +147,13 @@ int main(void) {
 						list_add(lista_vacia,espacio_vacio);
 
 						//saco espacio de lista ocupado
-						list_remove(lista_ocupado, i);
-
 						log_finalizar(logSwap,espacio_ocupado->pid,config_swap->tamanioPagina, espacio_ocupado->paginas_ocupadas);
+						free(list_remove(lista_ocupado, i));
+
+						arreglame_la_lista_vacia_che(&lista_vacia);
 					}
 				}
+
 			}
 
 			break;

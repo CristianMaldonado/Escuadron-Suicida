@@ -163,8 +163,7 @@ int deserializarMemoria(protocolo_memoria_cpu* package){
 		void* buffer = malloc(sizeof(protocolo_memoria_cpu)-4);  //TODO: RESERVAR MEMORIA
 		int offset = 0;
 
-		status = recv(socketMemoria, buffer,
-				sizeof(protocolo_memoria_cpu) -4, 0);
+		status = recv(socketMemoria, buffer,sizeof(protocolo_memoria_cpu) -4, 0);
 		if(!status) return 0;
 
 		memcpy(&(package->tipoProceso), buffer, sizeof(package->tipoProceso));
@@ -223,8 +222,6 @@ void armarPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoProc
 	paquete->tamanioMensaje = strlen(mensaje) + 1;
 	paquete->mensaje = malloc(paquete->tamanioMensaje);
 	strcpy(paquete->mensaje, mensaje);
-
-	//TODO Hacerlo mas genérico con un booleano y cargue la estructura (sin mandar todos los parametros)
 }
 
 void enviarAPlanificador(protocolo_planificador_cpu* respuestaDeMemo){
@@ -243,8 +240,6 @@ void armarPaqueteMemoria(protocolo_cpu_memoria* paquete, char tipoProceso,char c
 	paquete->tamanioMensaje = strlen(mensaje) + 1;
 	paquete->mensaje = malloc(paquete->tamanioMensaje);
 	strcpy(paquete->mensaje, mensaje);
-
-	//TODO Hacerlo mas genérico con un booleano y cargue la estructura (sin mandar todos los parametros)
 }
 
 void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensajeDePlanificador,protocolo_cpu_memoria* mensajeParaArmar) {
@@ -270,20 +265,16 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 		free(lineaFiltrada);
 }
 
-char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo, int tam) {	//ruta+instruction pointer => leo la linea del ip y la devuelvo
+/*Lee del archivo la linea indicada por el Instruction Pointer*/
+char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo, int tam) {
 	fseek(archivo,0,SEEK_SET);
 	int cont = 1;
-	/*if (*instructionPointer == 1) {//valgrind aca
-		fgets(lineaLeida, tam, archivo);
-		//cont++;
-	}*/
 
-	while (!feof(archivo) && cont <= (*instructionPointer) ) {//valgrind aca
+	while (!feof(archivo) && cont <= (*instructionPointer) ) {
 		fgets(lineaLeida, tam, archivo);
 		cont++;
-
 	}
-	//fgets(lineaLeida, tam, archivo);
+
 	(*instructionPointer) = (*instructionPointer) + 1;
 
 	if (!string_starts_with(lineaLeida, "finalizar;")) lineaLeida[strlen(lineaLeida)-1] = '\0';
@@ -297,27 +288,27 @@ void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion) {
 	char* estado;
 	if (contextoDeEjecucion->estado == LISTO) {
 		estado = malloc(7);
-		strcpy(estado, " LISTO");
+		strcpy(estado, "LISTO");
 	}
 	if (contextoDeEjecucion->estado == IO) {
 		estado = malloc(7);
-		strcpy(estado, " IO");
+		strcpy(estado, "IO");
 	}
 	if (contextoDeEjecucion->estado == EJECUTANDO) {
 		estado = malloc(12);
-		strcpy(estado, " EJECUTANDO");
+		strcpy(estado, "EJECUTANDO");
 	}
 	if (contextoDeEjecucion->estado == FINALIZADO) {
 		estado = malloc(12);
-		strcpy(estado, " FINALIZADO");
+		strcpy(estado, "FINALIZADO");
 	}
 
 	strcpy(logueoContexto, "Contexto de ejecucion recibido: \nPID: ");
-	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->pid));
+	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->pid);
 	string_append(&logueoContexto, "\nInstruccion: ");
-	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->counterProgram));
+	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->counterProgram);
 	string_append(&logueoContexto, " \nQuantum: ");
-	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->quantum));
+	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->quantum);
 	string_append(&logueoContexto, " \nEstado: ");
 	string_append(&logueoContexto, estado);
 	string_append(&logueoContexto, " \nRuta: ");
@@ -338,7 +329,7 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 	string_append(&logueoMemoria, " - ");
 
 	if (respuestaMemoria->codOperacion == 'i' && respuestaMemoria->codAux != 'a') {
-		string_append(&logueoMemoria, "Iniciado \n");
+		string_append(&logueoMemoria, "Iniciado");
 	}
 	if (respuestaMemoria->codOperacion == 'l') {
 		string_append(&logueoMemoria, "Pagina: ");
