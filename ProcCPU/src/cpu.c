@@ -52,6 +52,7 @@ void *procesarInstruccion(void *argumento){
 
 			printf("linea %s\n",instruccionLeida);
 			interpretarInstruccion(instruccionLeida, datosParaProcesar,mensajeAMemoria); //arma el paquete para memoria y lo carga en mensajeAMemoria
+			if(datosParaProcesar->tipoOperacion == 'E') break;
 
 			enviarAMemoria(mensajeAMemoria);
 			printf("pid %d\n",mensajeAMemoria->pid);
@@ -72,7 +73,7 @@ void *procesarInstruccion(void *argumento){
 														 datosParaProcesar->tamanioMensaje, datosParaProcesar->mensaje);
 			                   }break;
 
-			            case 'l': {
+			            case 'l','e': {
 			            	 armarPaquetePlanificador(datosParaProcesar, (mensajeDeMemoria->codAux == 'a')?'f' : 'c', 'l',
 			                  	                		 mensajeAMemoria->pid, datosParaProcesar->estado,
 			                  							 datosParaProcesar->counterProgram,datosParaProcesar->quantum,
@@ -134,7 +135,7 @@ int main() {
 			config->puertoMemoria);
 	client_init(&socketMemoria, config->ipMemoria, config->puertoMemoria); printf("OK\n");
 
-    t_list *lista = list_create();
+    int vectorHilos[config->cantidadHilos];
 
 	//Hilo
 	pthread_t hilo;
@@ -147,7 +148,7 @@ int main() {
 
 	// Lo que recibimos del planificador lo enviamos al hilo
 	pthread_create(&hilo, &atrib, procesarInstruccion,(void*) parametros);
-	//list_add(lista,(void*)process_get_thread_id());
+	//vectorHilos[i] = process_get_thread_id();
 	//}
 
 	//TODO: AVISAR A PLANIFICADOR CANTIDAD DE HILOS DISPONIBLES
@@ -175,3 +176,10 @@ int main() {
 	log_destroy(logCpu);
 	return 0;
 }
+
+
+
+
+/*for(i=0;i<=hilos;i++){
+	pthread_join(vector_hilos[i],NULL);
+}*/

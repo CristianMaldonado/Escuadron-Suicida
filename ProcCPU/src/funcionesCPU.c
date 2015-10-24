@@ -224,6 +224,11 @@ void armarPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoProc
 	strcpy(paquete->mensaje, mensaje);
 }
 
+void armarPaquetePlanificadorIO(protocolo_planificador_cpu* paquete){
+	paquete->tipoOperacion = 'E';
+	//TODO: Modificar estado (?
+}
+
 void enviarAPlanificador(protocolo_planificador_cpu* respuestaDeMemo){
 
 	int tamanio;
@@ -255,8 +260,18 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 			int numero = atoi(lineaFiltrada[1]);
 			armarPaqueteMemoria(mensajeParaArmar, 'c', 'l',mensajeDePlanificador->pid, numero, "-");
 		}
-		//if(string_starts_with(message->lineaDeProceso,"escribir")) {  } //TODO cheackpoint 3 supongo
-		//if(string_starts_with(message->lineaDeProceso,"entrada-salida")) { }
+		if(string_starts_with(instruccion,"escribir")) {
+			int numero = atoi(lineaFiltrada[1]);
+			armarPaqueteMemoria(mensajeParaArmar, 'c', 'e',mensajeDePlanificador->pid, numero, lineaFiltrada[2]);
+		} //TODO cheackpoint 3 supongo
+		if(string_starts_with(instruccion,"entrada-salida")) {
+			int tiempo = atoi(lineaFiltrada[1]);
+			//armarPaquetePlanificador(mensajeDePlanificador, 'c','E', mensajeDePlanificador->pid, mensajeDePlanificador->estado,
+			//		mensajeDePlanificador->counterProgram,mensajeDePlanificador->quantum, mensajeDePlanificador->tamanioMensaje, mensajeDePlanificador->mensaje);
+            armarPaquetePlanificadorIO(mensajeDePlanificador);
+            enviarAPlanificador(mensajeDePlanificador);
+            loguearPlanificadorIO(mensajeDePlanificador, tiempo);
+		}
 
 		if (string_starts_with(instruccion, "finalizar;")) {
 				armarPaqueteMemoria(mensajeParaArmar, 'c', 'f', mensajeDePlanificador->pid, 0, "-");
@@ -338,6 +353,13 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 		string_append(&logueoMemoria, respuestaMemoria->mensaje);
 	}
 
+	if (respuestaMemoria->codOperacion == 'e'){
+		string_append(&logueoMemoria, "Pagina: ");
+		string_append_with_format(&logueoMemoria, "%d", respuestaMemoria->numeroPagina);
+		string_append(&logueoMemoria, " escrita: ");
+		string_append(&logueoMemoria, respuestaMemoria->mensaje);
+	}
+
 	if ((respuestaMemoria->codOperacion == 'i') && (respuestaMemoria->codAux == 'a')) {
 		string_append(&logueoMemoria, "Fallo al iniciar\n");
 	}
@@ -348,5 +370,16 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 	log_info(logCpu, logueoMemoria);
 	free(logueoMemoria);
 
+}
+
+void loguearPlanificadorIO(protocolo_planificador_cpu* mensajeDePlanificador, int tiempo){
+	char* logueoIO = malloc(sizeof(char) * 10);
+	strcpy(logueoIO, "mProc: ");
+	string_append_with_format(&logueoIO, "%d", mensajeDePlanificador->pid);
+	string_append(&logueoIO, " en entrada-salida de tiempo ");
+	string_append_with_format(&logueoIO, "%d", tiempo);
+
+	log_info(logCpu, logueoIO);
+	free(logueoIO);
 }
 
