@@ -383,3 +383,5 @@ void loguearPlanificadorIO(protocolo_planificador_cpu* mensajeDePlanificador, in
 	free(logueoIO);
 }
 
+
+

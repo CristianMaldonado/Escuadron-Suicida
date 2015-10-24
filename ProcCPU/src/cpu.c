@@ -54,6 +54,7 @@ void *procesarInstruccion(void *argumento){
 			interpretarInstruccion(instruccionLeida, datosParaProcesar,mensajeAMemoria); //arma el paquete para memoria y lo carga en mensajeAMemoria
 			if(datosParaProcesar->tipoOperacion == 'E') break;
 
+
 			enviarAMemoria(mensajeAMemoria);
 			printf("pid %d\n",mensajeAMemoria->pid);
 			printf("tamanio %d\n",mensajeAMemoria->tamanioMensaje);

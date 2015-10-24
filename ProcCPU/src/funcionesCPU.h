@@ -28,4 +28,5 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 void enviarAPlanificador(protocolo_planificador_cpu* respuestaDeMemo);
 void crearMockitoPlanif(protocolo_planificador_cpu* package);
 
+
 #endif /* SRC_FUNCIONESCPU_H_ */
