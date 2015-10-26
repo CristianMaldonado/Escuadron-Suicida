@@ -48,10 +48,11 @@ void armarPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoProc
 	strcpy(paquete->mensaje, mensaje);
 }
 
-void armarPaquetePlanificadorIO(protocolo_planificador_cpu* paquete){
-	paquete->tipoOperacion = 'E';
+void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoOperacion){
+	paquete->tipoOperacion = tipoOperacion;
 	//TODO: Modificar estado (?
 }
+
 
 void enviarAPlanificador(protocolo_planificador_cpu* respuestaDeMemo){
 
@@ -92,13 +93,17 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 			int tiempo = atoi(lineaFiltrada[1]);
 			//armarPaquetePlanificador(mensajeDePlanificador, 'c','E', mensajeDePlanificador->pid, mensajeDePlanificador->estado,
 			//		mensajeDePlanificador->counterProgram,mensajeDePlanificador->quantum, mensajeDePlanificador->tamanioMensaje, mensajeDePlanificador->mensaje);
-            armarPaquetePlanificadorIO(mensajeDePlanificador);
+            actualizarOperacionPaquetePlanificador(mensajeDePlanificador,'e');
             enviarAPlanificador(mensajeDePlanificador);
             loguearPlanificadorIO(mensajeDePlanificador, tiempo);
 		}
 
 		if (string_starts_with(instruccion, "finalizar;")) {
 				armarPaqueteMemoria(mensajeParaArmar, 'c', 'f', mensajeDePlanificador->pid, 0, "-");
+				armarPaquetePlanificador(mensajeDePlanificador, 'c','F', mensajeDePlanificador->pid, mensajeDePlanificador->estado,
+									mensajeDePlanificador->counterProgram,mensajeDePlanificador->quantum, mensajeDePlanificador->tamanioMensaje, mensajeDePlanificador->mensaje);
+				//enviarAPlanificador(mensajeDePlanificador);
+
 		}
 		free(linea);
 		free(lineaFiltrada);
@@ -124,10 +129,9 @@ char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo, i
 
 /*void calcularTamanioDeLinea(FILE* archivo,int* tamanio){
 	int i;
-	char letra;
-	for(i=0;letra != '\n';i++){
-		letra = fgetc(archivo);
-	}
+
+	for(i=0;(getc(archivo) != '\n') && (!feof(archivo));i++);
+
 	tamanio = &i;
 }*/
 

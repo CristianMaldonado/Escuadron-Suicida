@@ -8,6 +8,8 @@
 #include "logueo.h"
 #include <stdlib.h>
 #include <string.h>
+#include <commons/log.h>
+#include <commons/string.h>
 
 void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion) {
 	char* logueoContexto = (char*)malloc(50);

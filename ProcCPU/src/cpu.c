@@ -48,8 +48,9 @@ void *procesarInstruccion(void *argumento){
 		int tamanio = ftell(archivo);
 		fseek(archivo, 0, SEEK_SET);
 		char* lineaLeida = malloc(tamanio);
+		int quantum = 0;
 
-		while(!feof(archivo)){ //TODO: Agregar lo del quatum
+		while((!feof(archivo) && (quantum<= datosParaProcesar->quantum || datosParaProcesar->quantum == 0))){ //TODO: Agregar lo del quatum
 			//calcularTamanioDeLinea(archivo,&tamanio);
 			char* instruccionLeida = leerInstruccion(&(datosParaProcesar->counterProgram), lineaLeida, archivo,tamanio);
 
@@ -97,6 +98,11 @@ void *procesarInstruccion(void *argumento){
 
            loguearEstadoMemoria(mensajeDeMemoria, instruccionLeida);
            sleep(config->retardo); //ver si hay q sincronizar el config (?
+           quantum++;
+		}
+		if(datosParaProcesar->quantum !=0){
+			actualizarOperacionPaquetePlanificador(datosParaProcesar,'q');
+			enviarAPlanificador(datosParaProcesar);
 		}
 		free(lineaLeida);
 		fclose(archivo);
