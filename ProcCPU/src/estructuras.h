@@ -11,6 +11,7 @@
 #include <semaphore.h>
 #include <commons/log.h>
 sem_t ejecutaInstruccion;
+sem_t nuevoProceso;
 t_log *logCpu;
 int socketPlanificador;
 int socketMemoria;

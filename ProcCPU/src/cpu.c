@@ -4,6 +4,8 @@
 #include <commons/process.h>
 #include "estructuras.h"
 #include "funcionesCPU.h"
+#include "logueo.h"
+#include "serializacion.h"
 #include "config.h"
 #include <commons/error.h>
 #include <string.h>
@@ -48,6 +50,7 @@ void *procesarInstruccion(void *argumento){
 		char* lineaLeida = malloc(tamanio);
 
 		while(!feof(archivo)){ //TODO: Agregar lo del quatum
+			//calcularTamanioDeLinea(archivo,&tamanio);
 			char* instruccionLeida = leerInstruccion(&(datosParaProcesar->counterProgram), lineaLeida, archivo,tamanio);
 
 			printf("linea %s\n",instruccionLeida);
@@ -97,6 +100,7 @@ void *procesarInstruccion(void *argumento){
 		}
 		free(lineaLeida);
 		fclose(archivo);
+		sem_post(&nuevoProceso);
 	}
 	free(mensajeAMemoria);
 	free(mensajeDeMemoria);
@@ -142,6 +146,7 @@ int main() {
 	pthread_t hilo;
 	pthread_attr_t atrib;
 	sem_init(&ejecutaInstruccion,0,0);
+	sem_init(&nuevoProceso,0,1);
 	pthread_attr_init(&atrib);
     int i;
 	protocolo_planificador_cpu* parametros = malloc(config->cantidadHilos * sizeof(protocolo_planificador_cpu));
@@ -157,6 +162,7 @@ int main() {
 	int status = 1;
 
 	while (status != 0) {
+		sem_wait(&nuevoProceso);
 		status = deserializarPlanificador(parametros);
 		logueoRecepcionDePlanif(parametros);
 		terminoPlanificador = false;
@@ -173,6 +179,8 @@ int main() {
 
 	close(socketMemoria);
 	close(socketPlanificador);
+	sem_destroy(&nuevoProceso);
+	sem_destroy(&ejecutaInstruccion);
 	log_info(logCpu, "Cerrada conexion saliente");
 	log_destroy(logCpu);
 	return 0;
