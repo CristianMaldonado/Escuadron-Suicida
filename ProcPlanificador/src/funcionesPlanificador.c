@@ -1,14 +1,17 @@
 #include "estructuras.h"
 #include <commons/string.h>
 #include <semaphore.h>
+#include <stdio.h>
 
 
-int maxLineas(FILE* archivo){
+int maxLineas(char* path){
+	FILE* archivo = fopen(path, "r+");
 	fseek(archivo,0,SEEK_SET);
 	int cont=1;
 	while (!feof(archivo)) {
 		cont++;
 	}
+
 	return cont;
 }
 
@@ -21,7 +24,7 @@ tpcb* armarPCB(char* path, int cant) {//OK
 	pcb->nombre = string_new();
 	pcb->estado = LISTO;
 	pcb->siguiente = 1;
-	pcb->maximo=maxLineas((FILE*) path);
+	pcb->maximo= 100; //maxLineas(pcb->ruta);
 	return pcb;
 }
 
@@ -32,7 +35,7 @@ void finalizarPID(char* pidBuscado,t_queue* colaProc){
 	int position = 0;
 	while (element != NULL){
 		pcb=(element->data);
-		if((pcb->pid)==pidBuscado){
+		if((pcb->pid)!=pidBuscado){
 			element=element->next;
 			position++;
 		}

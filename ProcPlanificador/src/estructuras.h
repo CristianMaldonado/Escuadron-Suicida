@@ -26,10 +26,14 @@
 sem_t hayProgramas;
 
 typedef struct{
-	int socket;
+	t_list* listaCpus;
 	t_queue* procesos;
 }tParametroEnviar;
 
+typedef struct {
+	int socket;
+	t_list* listaCpus;
+} tParametroSelector;
 typedef struct {
 	char* puertoEscucha;
 	char algoritmo;

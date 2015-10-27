@@ -7,18 +7,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
-#include <sys/select.h>
-    #include <stdio.h>
-    #include <sys/time.h>
-    #include <sys/types.h>
-    #include <unistd.h>
 #include "config.h"
+#include "selector.h"
 
 #define PACKAGESIZE 30
-/*
-t_list* listaEjecutando=list_create();
-t_list* listaCPU=list_create();
-*/
+
+//t_list* listaEjecutando=list_create();
+
+
 void definirMensaje(tpcb* pcb,char* message){
 	//char *message=malloc(strlen(pcb[0].ruta)+(2*sizeof(int))+sizeof(testado)+10+1);
 	message[0]='p';
@@ -37,6 +33,7 @@ void *enviar(void *arg){
 	parametros = (tParametroEnviar*) arg;
 
 	int tamanio = 0;
+	int socketCPU;
 	puts("estas en el hilo bien por vos");
 	while(1){
 		sem_wait(&hayProgramas);
@@ -51,7 +48,8 @@ void *enviar(void *arg){
 		void* message=malloc(sizeof(protocolo_planificador_cpu) + strlen(pcb->ruta));
 		message = serializarPaqueteCPU(package, &tamanio);
 		//message[strlen((message))] = '\0';
-		int a = send(parametros->socket,message,tamanio,0);
+		socketCPU = list_remove(parametros->listaCpus, 0);
+		int a = send(socketCPU,message,tamanio,0);
 		if(a == -1) puts("fallo envio");
 		else printf("%d\n",a);
 		/*char algooo[PACKAGESIZE]; test al pedo
@@ -70,10 +68,11 @@ int main(){
 	int cantProc=1;
 	t_queue* colaProcesos;
 	t_queue* colaIO;
-	//t_list* listaEjecutando;
-	//t_list* listaCPU;
+	t_list* listaEjecutando=list_create();
+	t_list* listaCpuLibres= list_create();
 
-	pthread_t enviarAlCpu;
+
+	pthread_t enviarAlCpu,selectorCpu;
 	pthread_attr_t attr;
 	sem_init(&hayProgramas,0,0);
 
@@ -101,14 +100,23 @@ int main(){
 
 	//list_add(listaCPU,serverSocket);
 
-	int socketCPU;
+	/*int socketCPU;
 	server_acept(serverSocket, &socketCPU);
-	printf("CPU aceptado...\n");
+	printf("CPU aceptado...\n");*/
+
+	tParametroSelector sel;
+	sel.socket = serverSocket;
+	sel.listaCpus = listaCpuLibres;
+
+	pthread_attr_init(&attr);
+	pthread_create( &selectorCpu, &attr, selector,(void*) &sel);
+
+	//selector(serverSocket, listaCpuLibres);
 
 	colaProcesos=queue_create();
 
 	tParametroEnviar envio;
-	envio.socket=socketCPU;
+	envio.listaCpus=listaCpuLibres;
 	envio.procesos=colaProcesos;
 
 	pthread_attr_init(&attr);
@@ -133,7 +141,7 @@ int main(){
 	}
 
 	close(serverSocket);
-	close(socketCPU);
+	//close(socketCPU);
 	queue_destroy(colaProcesos);
 	return 0;
 }

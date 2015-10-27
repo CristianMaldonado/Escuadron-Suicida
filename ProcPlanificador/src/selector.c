@@ -1,13 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include "selector.h"
+#include "estructuras.h"
 
-int selector(int server) {
+void *selector(void* arg) {
 	fd_set master;   // conjunto maestro de descriptores de fichero
 	fd_set read_fds; // conjunto temporal de descriptores de fichero para select()
 	struct sockaddr_in addr; // dirección del servidor
@@ -20,6 +14,8 @@ int selector(int server) {
 	int yes = 1;        // para setsockopt() SO_REUSEADDR, más abajo
 	int i, j;
 
+	tParametroSelector* parametros;
+    parametros = (tParametroSelector*) arg;
 	FD_ZERO(&master);    // borra los conjuntos maestro y temporal
 	FD_ZERO(&read_fds);
 
@@ -27,7 +23,7 @@ int selector(int server) {
 		tv.tv_sec = 0;
 		tv.tv_usec = 100000;
 
-	listener=server;
+	listener=parametros->socket;
 
 	// añadir listener al conjunto maestro
 	FD_SET(listener, &master);
@@ -53,6 +49,7 @@ int selector(int server) {
 						perror("accept");
 					} else {
 						FD_SET(newfd, &master); // añadir al conjunto maestro
+						list_add(parametros->listaCpus,newfd);
 						if (newfd > fdmax) {    // actualizar el máximo
 							fdmax = newfd;
 						}
@@ -76,16 +73,18 @@ int selector(int server) {
 					}
 					else {
 						// tenemos datos de algún cliente
-						for (j = 0; j <= fdmax; j++) {
-							if (FD_ISSET(j, &master)) {
+						//for (j = 0; j <= fdmax; j++) {
+						//	if (FD_ISSET(j, &master)) {
 								//TODO gestionar llegada
-							}
-						}
+								list_add(parametros->listaCpus,i);
+							//}
+						//}
 					}
 				} // Esto es ¡TAN FEO!
 			}
 		}
 	}
 
-	return 0;
+	//return 0;
 }
+
