@@ -7,11 +7,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
+#include <sys/select.h>
+    #include <stdio.h>
+    #include <sys/time.h>
+    #include <sys/types.h>
+    #include <unistd.h>
 #include "config.h"
 
 #define PACKAGESIZE 30
-
-
+/*
+t_list* listaEjecutando=list_create();
+t_list* listaCPU=list_create();
+*/
 void definirMensaje(tpcb* pcb,char* message){
 	//char *message=malloc(strlen(pcb[0].ruta)+(2*sizeof(int))+sizeof(testado)+10+1);
 	message[0]='p';
@@ -53,6 +60,7 @@ void *enviar(void *arg){
 		printf("Envie paquete");
 		free(package);
 		free(message);
+		//list_add(&listaEjecutando,pcb);
 		free(pcb);
 	}
 }
@@ -61,6 +69,10 @@ int main(){
 	system("clear");
 	int cantProc=1;
 	t_queue* colaProcesos;
+	t_queue* colaIO;
+	//t_list* listaEjecutando;
+	//t_list* listaCPU;
+
 	pthread_t enviarAlCpu;
 	pthread_attr_t attr;
 	sem_init(&hayProgramas,0,0);
@@ -86,6 +98,9 @@ int main(){
 	//log_info(logPlanificador, "planificador iniciado");
 
 	//Inicia el socket para atender al CPU
+
+	//list_add(listaCPU,serverSocket);
+
 	int socketCPU;
 	server_acept(serverSocket, &socketCPU);
 	printf("CPU aceptado...\n");

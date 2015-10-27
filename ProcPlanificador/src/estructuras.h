@@ -46,6 +46,7 @@ typedef struct {
 	char* nombre;
 	testado estado;
 	int siguiente;
+	int maximo;
 }tpcb;
 
 typedef struct {

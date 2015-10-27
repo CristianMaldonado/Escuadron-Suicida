@@ -2,6 +2,17 @@
 #include <commons/string.h>
 #include <semaphore.h>
 
+
+int maxLineas(FILE* archivo){
+	fseek(archivo,0,SEEK_SET);
+	int cont=1;
+	while (!feof(archivo)) {
+		cont++;
+	}
+	return cont;
+}
+
+
 tpcb* armarPCB(char* path, int cant) {//OK
 	tpcb* pcb = malloc(sizeof(tpcb));
 	pcb->ruta = (char*) malloc(strlen(path) + 1);
@@ -10,7 +21,26 @@ tpcb* armarPCB(char* path, int cant) {//OK
 	pcb->nombre = string_new();
 	pcb->estado = LISTO;
 	pcb->siguiente = 1;
+	pcb->maximo=maxLineas((FILE*) path);
 	return pcb;
+}
+
+void finalizarPID(char* pidBuscado,t_queue* colaProc){
+	t_list* lista= (colaProc)->elements;
+	t_link_element* element = lista->head;
+	tpcb* pcb;
+	int position = 0;
+	while (element != NULL){
+		pcb=(element->data);
+		if((pcb->pid)==pidBuscado){
+			element=element->next;
+			position++;
+		}
+		else{
+			exit(1);
+		}
+	}
+	pcb->siguiente=pcb->maximo;
 }
 
 int clasificarComando(char* message) {//OK
@@ -49,7 +79,7 @@ void procesarComando(int nro_comando, char* message, int cantProc,t_queue* colaP
 		sem_post(&hayProgramas);
 		break;
 	case 4:
-		printf("Entro por finalizar\n");
+		finalizarPID(&message[10],colaProc);
 		break;
 	default:
 		printf("Comando ingresado incorrecto\n");
@@ -157,4 +187,5 @@ void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio){ /
 	return paqueteSerializado;
 
 }
+
 

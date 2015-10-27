@@ -21,6 +21,8 @@ int deserializarCPU(protocolo_planificador_cpu *package,int socketCPU);
 
 void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio);
 
+int maxLineas(FILE* archivo);
+
 /*char* definirMensaje(tpcb* pcb);*/
 
 #endif /* SRC_FUNCIONESPLANIFICADOR_H_ */
