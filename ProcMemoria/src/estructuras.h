@@ -8,6 +8,23 @@
 #ifndef SRC_ESTRUCTURAS_H_
 #define SRC_ESTRUCTURAS_H_
 
+#include <stdbool.h>
+#include <commons/collections/list.h>
+
+// tabla de paginas
+typedef struct {
+	int nro_pagina;
+	int	nro_marco;
+	bool fue_modificado;
+	bool en_uso;
+} pagina_direccion ;
+
+typedef struct {
+	int pid;
+	t_list * list_pagina_direccion;
+} tabla_paginas;
+
+
 typedef struct {
 	char* puertoEscucha;
 	char* ipSwap;

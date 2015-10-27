@@ -177,7 +177,7 @@ int main(void) {
 				log_escritura(logSwap, protocolo_desde_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, pag_data);
 
 				tprotocolo_swap_memoria swap_memoria;
-				armar_estructura_protocolo_a_memoria(&swap_memoria,'i', protocolo_desde_memoria.pid, pag_data);
+				armar_estructura_protocolo_a_memoria(&swap_memoria, 'i', protocolo_desde_memoria.pid, pag_data);
 				void * buffer = serializar_a_memoria(&swap_memoria);
 				send(socket_memoria, buffer, 9 + config_swap->tamanioPagina, 0);
 			}
