@@ -128,13 +128,15 @@ int main() {
 	config->retardo = 2;*/
 
 	config = leerConfiguracion();
-
+	 int i;
 	//Inicia el Socket para conectarse con el Planificador/
 	printf("Conectando al Planificador (%s : %s)... ", config->ipPlanificador,
 			config->puertoPlanificador);
+	for(i=0;i<=config->cantidadHilos;i++){
 	client_init(&socketPlanificador, config->ipPlanificador,
 			config->puertoPlanificador);
 	printf("OK\n");
+	//vectorHilos[i].socket = socketPlanificador;
 
 	//loguea conexion con Planificador
 	if(socketPlanificador == -1)
@@ -146,7 +148,7 @@ int main() {
 			config->puertoMemoria);
 	client_init(&socketMemoria, config->ipMemoria, config->puertoMemoria); printf("OK\n");
 
-    int vectorHilos[config->cantidadHilos];
+    pthread_t vectorHilos[config->cantidadHilos];
 
 	//Hilo
 	pthread_t hilo;
@@ -154,16 +156,19 @@ int main() {
 	sem_init(&ejecutaInstruccion,0,0);
 	sem_init(&nuevoProceso,0,1);
 	pthread_attr_init(&atrib);
-    int i;
+
 	protocolo_planificador_cpu* parametros = malloc(config->cantidadHilos * sizeof(protocolo_planificador_cpu));
 	//for (i=0; i<= config->cantidadHilos; i++){
+     //vectorHilos[i].tid= process_get_thread_id();
 
 	// Lo que recibimos del planificador lo enviamos al hilo
 	pthread_create(&hilo, &atrib, procesarInstruccion,(void*) parametros);
+	//pthread_create(&vectorHilos[i], &atrib, procesarInstruccion,(void*) parametros);
 	//vectorHilos[i] = process_get_thread_id();
 	//}
 
 	//TODO: AVISAR A PLANIFICADOR CANTIDAD DE HILOS DISPONIBLES
+	//TODO: DEFINIR ESTRUCTURA SOCKET-HILO
 
 	int status = 1;
 
@@ -182,6 +187,10 @@ int main() {
 	terminoPlanificador = true;
 
 	pthread_join(hilo,NULL);
+	/*for(i=0;i<=config->cantidadHilos;i++){
+		pthread_join(vectorHilos[i],NULL);
+	}*/
+
 
 	close(socketMemoria);
 	close(socketPlanificador);
@@ -195,6 +204,3 @@ int main() {
 
 
 
-/*for(i=0;i<=hilos;i++){
-	pthread_join(vector_hilos[i],NULL);
-}*/
