@@ -54,7 +54,7 @@ int dame_la_direccion_de_la_pagina(tabla_paginas *tabla, int pagina) {
 	return -1;
 }
 
-bool estan_los_frames_ocupados(pagina_direccion tabla_paginas) {
+bool estan_los_frames_ocupados(t_list *tabla_paginas) {
 	int i = 0;
 	pagina_direccion *pagina = list_get(tabla_paginas, 0);
 	while(pagina) {
@@ -65,5 +65,40 @@ bool estan_los_frames_ocupados(pagina_direccion tabla_paginas) {
 	}
 	return true;
 }
+
+int dame_un_marco_libre(t_list *lista_tabla_de_paginas, int cantidad_marcos) {
+	int i, j, k;
+	for(i = 0; i < cantidad_marcos ; i++) {
+
+		bool libre = true;
+
+		for(j = 0; j < list_size(lista_tabla_de_paginas); j++) {
+
+			bool no_libre = false;
+
+			tabla_paginas *tabla = list_get(lista_tabla_de_paginas, j);
+			for(k = 0; k < list_size(tabla->list_pagina_direccion); k++) {
+
+				pagina_direccion *pagina = list_get(tabla->list_pagina_direccion, k);
+				if(pagina->nro_marco == i && pagina->en_uso) {
+					no_libre = true;
+					libre = false;
+					break;
+				}
+			}
+			if (no_libre)
+				break;
+		}
+		if(libre)
+			return i;
+	}
+	return -1;
+}
+
+
+
+
+
+
 
 

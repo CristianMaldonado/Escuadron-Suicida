@@ -9,6 +9,7 @@ tabla_paginas * inicializar_tabla_de_paginas(int cantidad_maxima_marcos_por_proc
 void eliminar_tabla_de_proceso(int pid, t_list ** lista_tabla_de_paginas);
 tabla_paginas *dame_la_tabla_de_paginas(int pid, t_list ** lista_tabla_de_paginas);
 int dame_la_direccion_de_la_pagina(tabla_paginas *tabla, int pagina);
-
+bool estan_los_frames_ocupados(t_list *tabla_paginas);
+int dame_un_marco_libre(t_list *lista_tabla_de_paginas, int cantidad_marcos);
 
 #endif /* SRC_FUNCIONES_MEMORIA_H_ */
