@@ -132,7 +132,7 @@ int main() {
 	//Inicia el Socket para conectarse con el Planificador/
 	printf("Conectando al Planificador (%s : %s)... ", config->ipPlanificador,
 			config->puertoPlanificador);
-	for(i=0;i<=config->cantidadHilos;i++){
+	//for(i=0;i<=config->cantidadHilos;i++){
 	client_init(&socketPlanificador, config->ipPlanificador,
 			config->puertoPlanificador);
 	printf("OK\n");
