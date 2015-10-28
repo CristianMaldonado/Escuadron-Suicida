@@ -66,11 +66,9 @@ void *enviar(void *arg){
 int main(){
 	system("clear");
 	int cantProc=1;
-	t_queue* colaProcesos;
-	t_queue* colaIO;
-	t_list* listaEjecutando=list_create();
-	t_list* listaCpuLibres= list_create();
 
+	listaEjecutando= list_create();
+	listaCpuLibres= list_create();
 
 	pthread_t enviarAlCpu,selectorCpu;
 	pthread_attr_t attr;
@@ -132,7 +130,7 @@ int main(){
 
 		nro_comando = clasificarComando(&message[0]);
         //TODO: VER SI EL PROCESAR COMANDO TIENE QUE RECIBIR TODAS LAS LISTAS Y COLAS, O HACERLAS GLOBALES PARA EL PS
-		procesarComando(nro_comando,&message[0],cantProc,colaProcesos);
+		procesarComando(nro_comando,&message[0],&cantProc,colaProcesos);
 
 		nro_comando=0;
 

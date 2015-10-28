@@ -25,6 +25,11 @@
 
 sem_t hayProgramas;
 
+t_queue* colaProcesos;
+t_queue* colaIO;
+t_list* listaEjecutando;
+t_list* listaCpuLibres;
+
 typedef struct{
 	t_list* listaCpus;
 	t_queue* procesos;

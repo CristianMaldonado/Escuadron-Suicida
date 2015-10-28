@@ -6,11 +6,12 @@
 
 int maxLineas(char* path){
 	FILE* archivo = fopen(path, "r+");
-	fseek(archivo,0,SEEK_SET);
+
 	int cont=1;
 	while (!feof(archivo)) {
 		cont++;
 	}
+	fclose(archivo);
 
 	return cont;
 }
@@ -35,7 +36,7 @@ tpcb* armarPCB(char* path, int cant) {//OK
 	pcb->nombre = string_new();
 	pcb->estado = LISTO;
 	pcb->siguiente = 1;
-	pcb->maximo= 100; //maxLineas(pcb->ruta);
+	pcb->maximo= 100;//maxLineas(path);
 	return pcb;
 }
 
@@ -57,8 +58,8 @@ void finalizarPID(char* pidBuscado,t_queue* colaProc){
 	pcb->siguiente=pcb->maximo;
 }
 
-char* convertirEstado(testado estadoEnum){
-char* estado;
+void convertirEstado(testado estadoEnum, char* estado){
+
 if (estadoEnum == LISTO) {
 	estado = malloc(7);
 	strcpy(estado, "LISTO");
@@ -75,28 +76,35 @@ if (estadoEnum == FINALIZADO) {
 	estado = malloc(12);
 	strcpy(estado, "FINALIZADO");
 }
-return estado;
+
  }
 
 void mostrarEstadoProcesos(t_queue* colaProc){
-	char* logueoContexto = (char*)malloc(50);
+	char* infoProceso = (char*)malloc(50);
+
 	t_list* lista= (colaProc)->elements;
 	t_link_element* element = lista->head;
 	tpcb* pcb;
 	int pos= 0;
 	while (element != NULL){
+		char* estado = string_new();
 			pcb=(element->data);
 				element=element->next;
-				pos++;
-		}
-	strcpy(logueoContexto, "mProc: ");
-	string_append_with_format(&logueoContexto, "%d ", pcb->pid);
-	string_append(&logueoContexto, pcb->nombre);
-	string_append(&logueoContexto, " -> ");
-	string_append_with_format(&logueoContexto, "%d", convertirEstado(pcb->estado));
+				convertirEstado(pcb->estado, estado);
+				strcpy(infoProceso, "mProc: ");
+				string_append_with_format(&infoProceso, "%d ", pcb->pid);
+				string_append(&infoProceso, pcb->nombre);
+				string_append(&infoProceso, " -> ");
+				string_append_with_format(&infoProceso, "%d", estado);
+				printf("%s",infoProceso);
 
-    printf(logueoContexto);
-    free(logueoContexto);
+				free(estado);
+				pos++;
+
+		}
+
+
+    free(infoProceso);
 }
 
 int clasificarComando(char* message) {//OK
@@ -119,7 +127,7 @@ int clasificarComando(char* message) {//OK
 	}
 }
 
-void procesarComando(int nro_comando, char* message, int cantProc,t_queue* colaProc) {//OK
+void procesarComando(int nro_comando, char* message, int* cantProc,t_queue* colaProc) {//OK
 	tpcb* pcb;
 	switch (nro_comando) {
 	case 1:
@@ -130,9 +138,9 @@ void procesarComando(int nro_comando, char* message, int cantProc,t_queue* colaP
 		printf("Entro por cpu\n");
 		break;
 	case 3:
-		pcb = armarPCB(&message[7], cantProc);//TODO cambiar como el interpretar instruccion
+		pcb = armarPCB(&message[7], *cantProc);//TODO cambiar como el interpretar instruccion
 		queue_push(colaProc, pcb);
-		cantProc++;
+		(*cantProc) = (*cantProc)+ 1;
 		sem_post(&hayProgramas);
 		break;
 	case 4:
