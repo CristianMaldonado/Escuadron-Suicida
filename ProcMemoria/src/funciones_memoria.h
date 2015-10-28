@@ -16,5 +16,6 @@ void avisar_a_cpu(char cod_op, char cod_aux, int pid, int paginas, char *mensaje
 t_list * inicializar_tlb(int nro_entradas);
 int dame_la_direccion_posta_de_la_pagina_en_la_tlb(t_list ** tlb, int pid, int nro_pagina);
 void actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pagina);
+void borrame_las_entradas_del_proceso(int pid, t_list ** tlb);
 
 #endif /* SRC_FUNCIONES_MEMORIA_H_ */

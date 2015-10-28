@@ -130,8 +130,8 @@ t_list * inicializar_tlb(int nro_entradas) {
 
 int dame_la_direccion_posta_de_la_pagina_en_la_tlb(t_list ** tlb, int pid, int nro_pagina) {
 	int i;
-	for(i = 0; i < list_size(tlb); i++) {
-		cache_13 * aux = list_get(tlb, i);
+	for(i = 0; i < list_size(*tlb); i++) {
+		cache_13 * aux = list_get(*tlb, i);
 		if(aux->pid == pid && aux->nro_pagina == nro_pagina)
 			return aux->direccion_posta;
 	}
@@ -162,3 +162,17 @@ void actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pag
 
 }
 
+void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
+	int i;
+	for(i = 0; i< list_size(*tlb); i++) {
+		cache_13 * aux = list_get(*tlb, i);
+
+		if(aux->pid == pid) {
+			free(list_remove(*tlb, i));
+
+			cache_13 * nueva_entrada = malloc(sizeof(cache_13));
+			nueva_entrada->esta_en_uso = false;
+			list_add(*tlb, nueva_entrada);
+		}
+	}
+}

@@ -53,7 +53,9 @@ int main(void) {
 	///////////////////////////////////////////////////////////////////////////////////////
 	// creamos la tlb cache_13
 
-	t_list * tlb = inicializar_tlb(config->entradasTLB);
+	t_list * tlb;
+	if(config->habilitadaTLB)
+		tlb = inicializar_tlb(config->entradasTLB);
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
@@ -99,6 +101,10 @@ int main(void) {
 
 			eliminar_tabla_de_proceso(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
 
+			if(config->habilitadaTLB)
+				borrame_las_entradas_del_proceso(paquete_desde_cpu.pid, &tlb);
+
+
 			tprotocolo_memoria_cpu paquete_memoria_cpu;
 			armar_estructura_protocolo_a_cpu(&paquete_memoria_cpu, paquete_desde_cpu.cod_op, 'f', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje);
 			buffer = serializar_a_cpu(&paquete_memoria_cpu);
@@ -111,7 +117,10 @@ int main(void) {
 		case 'e':
 		case 'l': {
 
-			int direccion_posta = dame_la_direccion_posta_de_la_pagina_en_la_tlb(&tlb, paquete_desde_cpu.pid, paquete_desde_cpu.paginas);
+			int direccion_posta = -1;
+			if(config->habilitadaTLB)
+				direccion_posta = dame_la_direccion_posta_de_la_pagina_en_la_tlb(&tlb, paquete_desde_cpu.pid, paquete_desde_cpu.paginas);
+
 
 			if(direccion_posta == -1) {
 
@@ -123,7 +132,8 @@ int main(void) {
 				// es valida o no la direccion
 				if(nro_marco != -1) {
 
-					actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, nro_marco * config->tamanioMarco, paquete_desde_cpu.paginas);
+					if(config->habilitadaTLB)
+						actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, nro_marco * config->tamanioMarco, paquete_desde_cpu.paginas);
 
 					if(paquete_desde_cpu.cod_op == 'l') {
 						char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanioMarco);
@@ -149,8 +159,8 @@ int main(void) {
 						pagina_nueva->nro_marco = pagina_ocupada->nro_marco;
 
 						list_add(tabla_de_paginas->list_pagina_direccion, pagina_nueva);
-
-						actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, pagina_nueva->nro_marco * config->tamanioMarco, paquete_desde_cpu.paginas);
+						if(config->habilitadaTLB)
+							actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, pagina_nueva->nro_marco * config->tamanioMarco, paquete_desde_cpu.paginas);
 
 						// la pagina ocupada la paso a la swap si esta modificada
 
@@ -202,10 +212,10 @@ int main(void) {
 									tabla->nro_pagina = paquete_desde_cpu.paginas;
 									tabla->nro_marco = nro_frame;
 
-									actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, tabla->nro_marco * config->tamanioMarco, paquete_desde_cpu.paginas);
+									if(config->habilitadaTLB)
+										actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, tabla->nro_marco * config->tamanioMarco, paquete_desde_cpu.paginas);
 
 									// copiar el contenido del marco de la swap al marco de memoria
-
 									// traerse la pagina nueva desde swap
 									tprotocolo_desde_cpu_y_hacia_swap paquete_a_swap;
 									armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, 'l', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje);
@@ -254,10 +264,9 @@ int main(void) {
 			}
 		}
 		break;
-
 		}
 	}
-	printf("Finalizo ...\n");
+	printf("Ando ...\n");
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 
