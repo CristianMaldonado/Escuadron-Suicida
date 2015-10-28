@@ -53,12 +53,6 @@ int main(void) {
 	///////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
-
-
-
-
 	tprotocolo_desde_cpu_y_hacia_swap paquete_desde_cpu;
 	int salir = 0;
 	while(!salir){
@@ -72,12 +66,7 @@ int main(void) {
 			continue;
 		}
 
-	printf("estoy por recibir\n");
-	printf("cod op desde cpu %c\n",paquete_desde_cpu.cod_op);
-	printf("paginas %d\n",paquete_desde_cpu.paginas);
-	printf("tamanio %d\n",paquete_desde_cpu.tamanio_mensaje);
-	printf("pid %d\n",paquete_desde_cpu.pid);
-	printf("mensaje %s\n",paquete_desde_cpu.mensaje);
+
 	switch (paquete_desde_cpu.cod_op) {
 
 		case 'i': {
@@ -91,14 +80,10 @@ int main(void) {
 			if(swap_memoria.codAux != 'a')
 				list_add(lista_tabla_de_paginas, inicializar_tabla_de_paginas(config->maximoMarcosPorProceso, paquete_desde_cpu.pid));
 
+			avisar_a_cpu_leer(paquete_desde_cpu.cod_op, swap_memoria.codAux, swap_memoria.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje, socketClienteCPU);
 
-			tprotocolo_memoria_cpu memoria_cpu;
-
-			armar_estructura_protocolo_a_cpu(&memoria_cpu, paquete_desde_cpu.cod_op, swap_memoria.codAux, swap_memoria.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje);
-			buffer = serializar_a_cpu(&memoria_cpu);
-			send(socketClienteCPU, buffer, strlen(memoria_cpu.mensaje) + 15, 0);
 			free(paquete_desde_cpu.mensaje);
-			free(buffer);
+
 		}
 		break;
 
@@ -134,13 +119,10 @@ int main(void) {
 
 			// es valida o no la direccion
 			if(direccion != -1) {
+
+				char * mensaje = dame_mensaje_de_memoria(&memoria, direccion, config->tamanioMarco);
+
 				tprotocolo_memoria_cpu memoria_cpu;
-
-				char *mensaje_memoria = memoria + direccion * config->tamanioMarco;
-				char *mensaje = malloc(config->tamanioMarco + 1);
-				memcpy(mensaje, mensaje_memoria, config->tamanioMarco);
-				mensaje[config->tamanioMarco] = '\0';
-
 				armar_estructura_protocolo_a_cpu(&memoria_cpu, paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje);
 				void * buffer;
 				buffer = serializar_a_cpu(&memoria_cpu);
@@ -162,12 +144,9 @@ int main(void) {
 					pagina_nueva->nro_marco = pagina_ocupada->nro_marco;
 
 					///////////////////////////////////////////////////////
-					// si la pagina ocupada esta modificada la paso a la swap
+					// la pagina ocupada la paso a la swap
 
-					char *mensaje_memoria = memoria + pagina_ocupada->nro_marco * config->tamanioMarco;
-					char *mensaje = malloc(config->tamanioMarco + 1);
-					memcpy(mensaje, mensaje_memoria, config->tamanioMarco);
-					mensaje[config->tamanioMarco] = '\0';
+					char * mensaje = dame_mensaje_de_memoria(&memoria, pagina_ocupada->nro_marco, config->tamanioMarco);
 
 					tprotocolo_desde_cpu_y_hacia_swap paquete_a_swap;
 
@@ -178,8 +157,7 @@ int main(void) {
 					free(mensaje);
 					///////////////////////////////////////////////////////
 					// traerse la pagina nueva desde swap
-
-					armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, 'l', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje);
+					armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, 'l', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "vacio");
 					buffer = serializar_a_swap(&paquete_desde_cpu);
 					send(socketClienteSWAP, buffer, strlen(paquete_desde_cpu.mensaje) + 13, 0);
 					free(buffer);
@@ -188,17 +166,13 @@ int main(void) {
 					recibir_paquete_desde_swap(socketClienteSWAP, &swap_memoria);
 
 					//pasar la pagina desde el swap a la memoria
-
 					memcpy(memoria + pagina_nueva->nro_marco * config->tamanioMarco, swap_memoria.mensaje, swap_memoria.tamanio);
 
 					//avisar a la cpu
-					tprotocolo_memoria_cpu memoria_cpu;
-					armar_estructura_protocolo_a_cpu(&memoria_cpu, paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje);
-					buffer = serializar_a_cpu(&memoria_cpu);
-					send(socketClienteCPU, buffer, strlen(memoria_cpu.mensaje) + 15, 0);
+					avisar_a_cpu_leer(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje, socketClienteCPU);
+
 					free(paquete_desde_cpu.mensaje);
 					free(buffer);
-					free(mensaje);
 					free(pagina_ocupada);
 				}
 				else {
@@ -215,8 +189,6 @@ int main(void) {
 								tabla->nro_pagina = paquete_desde_cpu.paginas;
 								tabla->nro_marco = nro_frame;
 
-
-								//////////////////
 								// copiar el contenido del marco de la swap al marco de memoria
 
 								// traerse la pagina nueva desde swap
@@ -233,42 +205,21 @@ int main(void) {
 
 								memcpy(memoria + nro_frame * config->tamanioMarco, swap_memoria.mensaje, swap_memoria.tamanio);
 
-								//////////////////
 								//avisar a la cpu
+								char * mensaje = dame_mensaje_de_memoria(&memoria, nro_frame, config->tamanioMarco);
+								avisar_a_cpu_leer(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
 
-								char *mensaje_memoria = memoria + nro_frame * config->tamanioMarco;
-								char *mensaje = malloc(config->tamanioMarco + 1);
-								memcpy(mensaje, mensaje_memoria, config->tamanioMarco);
-								mensaje[config->tamanioMarco] = '\0';
-
-								tprotocolo_memoria_cpu memoria_cpu;
-								armar_estructura_protocolo_a_cpu(&memoria_cpu, paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje);
-								buffer = serializar_a_cpu(&memoria_cpu);
-								send(socketClienteCPU, buffer, strlen(memoria_cpu.mensaje) + 15, 0);
 								free(paquete_desde_cpu.mensaje);
-								free(buffer);
 								free(mensaje);
-
 							}
-
 						}
-
-
 					} else {
 						// avisale a la cpu que fallo
-						tprotocolo_memoria_cpu memoria_cpu;
-						armar_estructura_protocolo_a_cpu(&memoria_cpu, paquete_desde_cpu.cod_op, 'a', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "fallo");
-						void * buffer = serializar_a_cpu(&memoria_cpu);
-						send(socketClienteCPU, buffer, strlen(memoria_cpu.mensaje) + 15, 0);
+						avisar_a_cpu_leer(paquete_desde_cpu.cod_op, 'a', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "fallo", socketClienteCPU);
 						free(paquete_desde_cpu.mensaje);
-						free(buffer);
 					}
-
 				}
-
 			}
-
-
 			/*
 			void* buffer = serializar_a_swap(&paquete_desde_cpu);
 			send(socketClienteSWAP, buffer, strlen(paquete_desde_cpu.mensaje) + 13, 0);
@@ -294,7 +245,6 @@ int main(void) {
 	printf("Finalizo ...\n");
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
-
 
 	close(socketClienteSWAP);
 	close(socketClienteCPU);

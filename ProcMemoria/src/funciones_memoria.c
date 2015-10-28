@@ -2,6 +2,10 @@
 #include "estructuras.h"
 #include <commons/collections/list.h>
 #include <stdbool.h>
+#include <string.h>
+#include "paquetes.h"
+#include <sys/types.h>
+#include <sys/socket.h>
 
 char * crear_memoria(int cantidad_marcos, int tamanio_marcos) {
 	return malloc(cantidad_marcos * tamanio_marcos);
@@ -95,10 +99,23 @@ int dame_un_marco_libre(t_list *lista_tabla_de_paginas, int cantidad_marcos) {
 	return -1;
 }
 
+char * dame_mensaje_de_memoria(char **memoria, int nro_marco, int tamanio_marco) {
 
+	char *mensaje_memoria = *memoria + nro_marco * tamanio_marco;
+	char *mensaje = malloc(tamanio_marco + 1);
+	memcpy(mensaje, mensaje_memoria, tamanio_marco);
+	mensaje[tamanio_marco] = '\0';
 
+	return mensaje;
+}
 
-
+void avisar_a_cpu_leer(char cod_op, char cod_aux, int pid, int paginas, char *mensaje, int socket_cli_cpu) {
+	tprotocolo_memoria_cpu memoria_cpu;
+	armar_estructura_protocolo_a_cpu(&memoria_cpu, cod_op, cod_aux, pid, paginas, mensaje);
+	void * buffer = serializar_a_cpu(&memoria_cpu);
+	send(socket_cli_cpu, buffer, strlen(memoria_cpu.mensaje) + 15, 0);
+	free(buffer);
+}
 
 
 
