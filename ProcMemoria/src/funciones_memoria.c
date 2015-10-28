@@ -117,5 +117,48 @@ void avisar_a_cpu(char cod_op, char cod_aux, int pid, int paginas, char *mensaje
 	free(buffer);
 }
 
+t_list * inicializar_tlb(int nro_entradas) {
+	t_list * tlb = list_create();
+	int i;
+	for(i = 0 ; i < nro_entradas ; i++) {
+		cache_13 *entrada = malloc(sizeof(cache_13));
+		entrada->esta_en_uso = false;
+		list_add(tlb, entrada);
+	}
+	return tlb;
+}
 
+int dame_la_direccion_posta_de_la_pagina_en_la_tlb(t_list ** tlb, int pid, int nro_pagina) {
+	int i;
+	for(i = 0; i < list_size(tlb); i++) {
+		cache_13 * aux = list_get(tlb, i);
+		if(aux->pid == pid && aux->nro_pagina == nro_pagina)
+			return aux->direccion_posta;
+	}
+	return -1;
+}
+
+void actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pagina) {
+	int i;
+	for(i = 0; i< list_size(*tlb); i++) {
+		cache_13 * aux = list_get(*tlb, i);
+		if(!aux->esta_en_uso) {
+			aux->direccion_posta = direccion_posta;
+			aux->esta_en_uso = true;
+			aux->pid = pid;
+			aux->nro_pagina = nro_pagina;
+			return;
+		}
+	}
+	// esta lleno, sacar por fifo
+	free(list_remove(*tlb, 0));
+
+	cache_13 * nueva_entrada = malloc(sizeof(cache_13));
+	nueva_entrada->direccion_posta = direccion_posta;
+	nueva_entrada->esta_en_uso = true;
+	nueva_entrada->nro_pagina = nro_pagina;
+	nueva_entrada->pid = pid;
+	list_add(*tlb, nueva_entrada);
+
+}
 

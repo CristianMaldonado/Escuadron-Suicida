@@ -11,6 +11,15 @@
 #include <stdbool.h>
 #include <commons/collections/list.h>
 
+
+typedef struct {
+	int pid;
+	int nro_pagina;
+	int direccion_posta;
+	bool esta_en_uso;
+} cache_13;
+
+
 // tabla de paginas
 typedef struct {
 	int nro_pagina;
