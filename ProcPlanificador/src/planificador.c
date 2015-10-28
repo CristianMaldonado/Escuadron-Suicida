@@ -131,7 +131,7 @@ int main(){
 		fgets(message, PACKAGESIZE, stdin);
 
 		nro_comando = clasificarComando(&message[0]);
-
+        //TODO: VER SI EL PROCESAR COMANDO TIENE QUE RECIBIR TODAS LAS LISTAS Y COLAS, O HACERLAS GLOBALES PARA EL PS
 		procesarComando(nro_comando,&message[0],cantProc,colaProcesos);
 
 		nro_comando=0;

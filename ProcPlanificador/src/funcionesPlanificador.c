@@ -15,6 +15,17 @@ int maxLineas(char* path){
 	return cont;
 }
 
+char* nombrePrograma(char* path){
+	int i= 0;
+	char** vector = string_split(path,"/");
+
+	while(vector[i] != NULL){
+		i++;
+	}
+
+	return vector[i-1];
+}
+
 
 tpcb* armarPCB(char* path, int cant) {//OK
 	tpcb* pcb = malloc(sizeof(tpcb));
@@ -46,6 +57,48 @@ void finalizarPID(char* pidBuscado,t_queue* colaProc){
 	pcb->siguiente=pcb->maximo;
 }
 
+char* convertirEstado(testado estadoEnum){
+char* estado;
+if (estadoEnum == LISTO) {
+	estado = malloc(7);
+	strcpy(estado, "LISTO");
+}
+if (estadoEnum == IO) {
+	estado = malloc(7);
+	strcpy(estado, "IO");
+}
+if (estadoEnum == EJECUTANDO) {
+	estado = malloc(12);
+	strcpy(estado, "EJECUTANDO");
+}
+if (estadoEnum == FINALIZADO) {
+	estado = malloc(12);
+	strcpy(estado, "FINALIZADO");
+}
+return estado;
+ }
+
+void mostrarEstadoProcesos(t_queue* colaProc){
+	char* logueoContexto = (char*)malloc(50);
+	t_list* lista= (colaProc)->elements;
+	t_link_element* element = lista->head;
+	tpcb* pcb;
+	int pos= 0;
+	while (element != NULL){
+			pcb=(element->data);
+				element=element->next;
+				pos++;
+		}
+	strcpy(logueoContexto, "mProc: ");
+	string_append_with_format(&logueoContexto, "%d ", pcb->pid);
+	string_append(&logueoContexto, pcb->nombre);
+	string_append(&logueoContexto, " -> ");
+	string_append_with_format(&logueoContexto, "%d", convertirEstado(pcb->estado));
+
+    printf(logueoContexto);
+    free(logueoContexto);
+}
+
 int clasificarComando(char* message) {//OK
 	if (!strcmp(message, "ps\n")) {
 		return 1;
@@ -71,6 +124,7 @@ void procesarComando(int nro_comando, char* message, int cantProc,t_queue* colaP
 	switch (nro_comando) {
 	case 1:
 		printf("Entro por ps\n");
+		mostrarEstadoProcesos(colaProc);
 		break;
 	case 2:
 		printf("Entro por cpu\n");
