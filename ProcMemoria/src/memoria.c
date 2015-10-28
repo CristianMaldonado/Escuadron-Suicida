@@ -80,7 +80,7 @@ int main(void) {
 			if(swap_memoria.codAux != 'a')
 				list_add(lista_tabla_de_paginas, inicializar_tabla_de_paginas(config->maximoMarcosPorProceso, paquete_desde_cpu.pid));
 
-			avisar_a_cpu_leer(paquete_desde_cpu.cod_op, swap_memoria.codAux, swap_memoria.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje, socketClienteCPU);
+			avisar_a_cpu(paquete_desde_cpu.cod_op, swap_memoria.codAux, swap_memoria.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje, socketClienteCPU);
 
 			free(paquete_desde_cpu.mensaje);
 
@@ -88,13 +88,7 @@ int main(void) {
 		break;
 
 
-		case 'e': {
-
-
-		}
-		break;
-
-		case 'f': {
+			case 'f': {
 			void* buffer = serializar_a_swap(&paquete_desde_cpu);
 			send(socketClienteSWAP, buffer, strlen(paquete_desde_cpu.mensaje) + 13, 0);
 			free(buffer);
@@ -110,26 +104,34 @@ int main(void) {
 		}
 		break;
 
+		case 'e':
 		case 'l': {
 
 			tabla_paginas *tabla_de_paginas = dame_la_tabla_de_paginas(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
 
 			// paginas es numero de pagina o cantidad de paginas depende el protocolo, en este caso es numero de pagina
-			int direccion = dame_la_direccion_de_la_pagina(tabla_de_paginas, paquete_desde_cpu.paginas);
+			int nro_marco = dame_la_direccion_de_la_pagina(tabla_de_paginas, paquete_desde_cpu.paginas);
 
 			// es valida o no la direccion
-			if(direccion != -1) {
+			if(nro_marco != -1) {
+				if(paquete_desde_cpu.cod_op == 'l') {
 
-				char * mensaje = dame_mensaje_de_memoria(&memoria, direccion, config->tamanioMarco);
+					char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanioMarco);
 
-				tprotocolo_memoria_cpu memoria_cpu;
-				armar_estructura_protocolo_a_cpu(&memoria_cpu, paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje);
-				void * buffer;
-				buffer = serializar_a_cpu(&memoria_cpu);
-				send(socketClienteCPU, buffer, strlen(mensaje) + 15, 0);
-				free(paquete_desde_cpu.mensaje);
-				free(buffer);
-				free(mensaje);
+					avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
+						/*
+					tprotocolo_memoria_cpu memoria_cpu;
+					armar_estructura_protocolo_a_cpu(&memoria_cpu, paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje);
+					void * buffer;
+					buffer = serializar_a_cpu(&memoria_cpu);
+					send(socketClienteCPU, buffer, strlen(mensaje) + 15, 0);*/
+					free(paquete_desde_cpu.mensaje);
+					free(mensaje);
+				} else {
+					memcpy(memoria + nro_marco * config->tamanioMarco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
+					avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
+					free(paquete_desde_cpu.mensaje);
+				}
 			}
 			else {
 
@@ -142,6 +144,8 @@ int main(void) {
 					pagina_nueva->fue_modificado = false;
 					pagina_nueva->nro_pagina = paquete_desde_cpu.paginas;
 					pagina_nueva->nro_marco = pagina_ocupada->nro_marco;
+
+					list_add(tabla_de_paginas->list_pagina_direccion, pagina_nueva);
 
 					///////////////////////////////////////////////////////
 					// la pagina ocupada la paso a la swap
@@ -165,14 +169,19 @@ int main(void) {
 					tprotocolo_swap_memoria swap_memoria;
 					recibir_paquete_desde_swap(socketClienteSWAP, &swap_memoria);
 
+
 					//pasar la pagina desde el swap a la memoria
 					memcpy(memoria + pagina_nueva->nro_marco * config->tamanioMarco, swap_memoria.mensaje, swap_memoria.tamanio);
 
 					//avisar a la cpu
-					avisar_a_cpu_leer(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje, socketClienteCPU);
+					if(paquete_desde_cpu.cod_op == 'l') {
+						avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje, socketClienteCPU);
+					} else {
+						memcpy(memoria + nro_marco * config->tamanioMarco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
+						avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
+					}
 
 					free(paquete_desde_cpu.mensaje);
-					free(buffer);
 					free(pagina_ocupada);
 				}
 				else {
@@ -191,6 +200,8 @@ int main(void) {
 
 								// copiar el contenido del marco de la swap al marco de memoria
 
+
+
 								// traerse la pagina nueva desde swap
 								tprotocolo_desde_cpu_y_hacia_swap paquete_a_swap;
 								armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, 'l', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje);
@@ -205,17 +216,21 @@ int main(void) {
 
 								memcpy(memoria + nro_frame * config->tamanioMarco, swap_memoria.mensaje, swap_memoria.tamanio);
 
-								//avisar a la cpu
-								char * mensaje = dame_mensaje_de_memoria(&memoria, nro_frame, config->tamanioMarco);
-								avisar_a_cpu_leer(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
-
+								if(paquete_desde_cpu.cod_op == 'l') {
+									//avisar a la cpu
+									char * mensaje = dame_mensaje_de_memoria(&memoria, nro_frame, config->tamanioMarco);
+									avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
+									free(mensaje);
+								} else { // escribir
+									memcpy(memoria + nro_marco * config->tamanioMarco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
+									avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
+								}
 								free(paquete_desde_cpu.mensaje);
-								free(mensaje);
 							}
 						}
 					} else {
-						// avisale a la cpu que fallo
-						avisar_a_cpu_leer(paquete_desde_cpu.cod_op, 'a', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "fallo", socketClienteCPU);
+						// avisale a la cpu que fallo leer o escribir
+						avisar_a_cpu(paquete_desde_cpu.cod_op, 'a', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "fallo", socketClienteCPU);
 						free(paquete_desde_cpu.mensaje);
 					}
 				}

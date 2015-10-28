@@ -109,7 +109,7 @@ char * dame_mensaje_de_memoria(char **memoria, int nro_marco, int tamanio_marco)
 	return mensaje;
 }
 
-void avisar_a_cpu_leer(char cod_op, char cod_aux, int pid, int paginas, char *mensaje, int socket_cli_cpu) {
+void avisar_a_cpu(char cod_op, char cod_aux, int pid, int paginas, char *mensaje, int socket_cli_cpu) {
 	tprotocolo_memoria_cpu memoria_cpu;
 	armar_estructura_protocolo_a_cpu(&memoria_cpu, cod_op, cod_aux, pid, paginas, mensaje);
 	void * buffer = serializar_a_cpu(&memoria_cpu);
