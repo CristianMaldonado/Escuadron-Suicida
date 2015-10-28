@@ -78,13 +78,14 @@ int main(){
 	t_log *logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
 	//logPlanificador->pid = 1;
 
-	/*tconfig_planif* configPlanificador = malloc(sizeof(tconfig_planif));
+	tconfig_planif* configPlanificador = malloc(sizeof(tconfig_planif));
 	configPlanificador->puertoEscucha = "4143";
 	configPlanificador->quantum = 5;
-	configPlanificador->algoritmo = "FIFO";*/
+	configPlanificador->algoritmo = "FIFO";
+
 
 	//leemos el archivo de configuracion
-	tconfig_planif *configPlanificador = leerConfiguracion();
+	//tconfig_planif *configPlanificador = leerConfiguracion();
 
 	//Inicia el socket para escuchar
 	int serverSocket;

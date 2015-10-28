@@ -6,9 +6,10 @@
 
 int maxLineas(char* path){
 	FILE* archivo = fopen(path, "r+");
-
-	int cont=1;
+	int cont = 1;
+	int i;
 	while (!feof(archivo)) {
+		for(i=0; fgetc(archivo) != '\n' && !feof(archivo);i++);
 		cont++;
 	}
 	fclose(archivo);
@@ -30,13 +31,14 @@ char* nombrePrograma(char* path){
 
 tpcb* armarPCB(char* path, int cant) {//OK
 	tpcb* pcb = malloc(sizeof(tpcb));
-	pcb->ruta = (char*) malloc(strlen(path) + 1);
+	pcb->ruta = (char*) malloc(strlen(path)+1);
 	strcpy(pcb->ruta, path);
+	path[strlen(path)-1] = '\0';
 	pcb->pid = cant;
 	pcb->nombre = string_new();
 	pcb->estado = LISTO;
 	pcb->siguiente = 1;
-	pcb->maximo= 100;//maxLineas(path);
+	pcb->maximo= maxLineas(path);
 	return pcb;
 }
 
