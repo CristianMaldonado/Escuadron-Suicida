@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "estructuras.h"
 #include <commons/collections/list.h>
+#include <commons/log.h>
 #include <stdbool.h>
 #include <string.h>
 #include "paquetes.h"
@@ -174,5 +175,57 @@ void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
 			nueva_entrada->esta_en_uso = false;
 			list_add(*tlb, nueva_entrada);
 		}
+	}
+}
+
+void limpiar_la_tlb(t_list ** tlb){
+
+	int numEntradas = list_size(*tlb);
+
+	while(!list_is_empty(*tlb))
+		free(list_remove(*tlb,0));
+
+	*tlb = inicializar_tlb(numEntradas);
+}
+
+void limpiar_memoria(t_list ** tablas_de_paginas, char * memoria, int tamanioMarco, int socketSwap){
+
+	int i;
+	for(i = 0; i< list_size(*tablas_de_paginas); i++){
+
+		tabla_paginas * entrada_tabla = list_remove(*tablas_de_paginas,0);
+
+		int j;
+		for (j = 0; j < list_size(entrada_tabla->list_pagina_direccion); j++){
+
+			pagina_direccion * pagina = list_remove(entrada_tabla->list_pagina_direccion,0);
+			if (pagina->en_uso && pagina->fue_modificado){
+
+				char * mensaje = dame_mensaje_de_memoria(&memoria, pagina->nro_marco, tamanioMarco);
+
+				tprotocolo_desde_cpu_y_hacia_swap paquete_a_swap;
+				armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, 'e', entrada_tabla->pid, pagina->nro_pagina, mensaje);
+
+				void* buffer = serializar_a_swap(&paquete_a_swap);
+				send(socketSwap, buffer, strlen(mensaje) + 13, 0);
+				free(buffer);
+				free(mensaje);
+			}
+		}
+	}
+}
+
+void volcar_memoria(char * memoria, tconfig_memoria * config, t_log * logMem){
+
+	int ptr = 0;
+	while (ptr < config->tamanioMarco*config->cantidadMarcos){
+
+		char * msj = malloc(config->tamanioMarco + 1);
+		memcpy(msj, memoria + ptr, config->tamanioMarco);
+		msj[config->tamanioMarco] = '\0';
+
+		log_info(logMem, "Numero de marco %d: %s", ptr / config->tamanioMarco, msj);
+
+		ptr += config->tamanioMarco;
 	}
 }

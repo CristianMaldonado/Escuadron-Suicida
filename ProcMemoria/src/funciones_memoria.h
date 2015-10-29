@@ -17,5 +17,8 @@ t_list * inicializar_tlb(int nro_entradas);
 int dame_la_direccion_posta_de_la_pagina_en_la_tlb(t_list ** tlb, int pid, int nro_pagina);
 void actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pagina);
 void borrame_las_entradas_del_proceso(int pid, t_list ** tlb);
+void limpiar_la_tlb(t_list ** tlb);
+void limpiar_memoria(t_list ** tablas_de_paginas, char * memoria, int tamanioMarco, int socketSwap);
+void volcar_memoria(char * memoria, tconfig_memoria * config, t_log * logMem);
 
 #endif /* SRC_FUNCIONES_MEMORIA_H_ */
