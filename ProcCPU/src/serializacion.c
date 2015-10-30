@@ -98,7 +98,7 @@ void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete, int* tamanio) {
 
 }
 
-int deserializarPlanificador(protocolo_planificador_cpu *package) {
+int deserializarPlanificador(protocolo_planificador_cpu *package,int socketPlanificador) {
 	int status;
 	void* buffer = malloc(sizeof(protocolo_planificador_cpu)-4);
 	int offset = 0;

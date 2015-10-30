@@ -54,7 +54,7 @@ void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete,
 }
 
 
-void enviarAPlanificador(protocolo_planificador_cpu* respuestaDeMemo){
+void enviarAPlanificador(protocolo_planificador_cpu* respuestaDeMemo,int socketPlanificador){
 
 	int tamanio;
 	void* empaquetado = serializarPaquetePlanificador(respuestaDeMemo,&tamanio);
@@ -72,7 +72,7 @@ void armarPaqueteMemoria(protocolo_cpu_memoria* paquete, char tipoProceso,char c
 	strcpy(paquete->mensaje, mensaje);
 }
 
-void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensajeDePlanificador,protocolo_cpu_memoria* mensajeParaArmar) {
+void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensajeDePlanificador,protocolo_cpu_memoria* mensajeParaArmar,int socketPlanificador) {
 
 		char** linea = string_split(instruccion, ";");
 		char** lineaFiltrada = string_split(linea[0]," ");
@@ -94,7 +94,7 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 			//armarPaquetePlanificador(mensajeDePlanificador, 'c','E', mensajeDePlanificador->pid, mensajeDePlanificador->estado,
 			//		mensajeDePlanificador->counterProgram,mensajeDePlanificador->quantum, mensajeDePlanificador->tamanioMensaje, mensajeDePlanificador->mensaje);
             actualizarOperacionPaquetePlanificador(mensajeDePlanificador,'e');
-            enviarAPlanificador(mensajeDePlanificador);
+            enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
             loguearPlanificadorIO(mensajeDePlanificador, tiempo);
 		}
 
@@ -102,7 +102,7 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 				armarPaqueteMemoria(mensajeParaArmar, 'c', 'f', mensajeDePlanificador->pid, 0, "-");
 				armarPaquetePlanificador(mensajeDePlanificador, 'c','F', mensajeDePlanificador->pid, mensajeDePlanificador->estado,
 									mensajeDePlanificador->counterProgram,mensajeDePlanificador->quantum, mensajeDePlanificador->tamanioMensaje, mensajeDePlanificador->mensaje);
-				//enviarAPlanificador(mensajeDePlanificador);
+				enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
 
 		}
 		free(linea);

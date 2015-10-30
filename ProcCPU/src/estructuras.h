@@ -13,8 +13,11 @@
 sem_t ejecutaInstruccion;
 sem_t nuevoProceso;
 t_log *logCpu;
-int socketPlanificador;
+//int socketPlanificador;
 int socketMemoria;
+
+pthread_mutex_t mutexSocket;
+pthread_mutex_t mutexProceso;
 
 typedef enum {
 	LISTO, IO, EJECUTANDO, FINALIZADO
