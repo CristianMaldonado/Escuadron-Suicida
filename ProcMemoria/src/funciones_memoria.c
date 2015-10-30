@@ -31,7 +31,8 @@ tabla_paginas * inicializar_tabla_de_paginas(int cantidad_maxima_marcos_por_proc
 
 void eliminar_tabla_de_proceso(int pid, t_list ** lista_tabla_de_paginas) {
 	int i;
-	for(i = 0 ; i < list_size(*lista_tabla_de_paginas) ; i++) {
+	int count = list_size(*lista_tabla_de_paginas);
+	for(i = 0 ; i < count ; i++) {
 		tabla_paginas *tabla = list_get(*lista_tabla_de_paginas, i);
 		if(tabla->pid == pid)
 			free(list_remove(*lista_tabla_de_paginas, i));
@@ -58,6 +59,20 @@ int dame_la_direccion_de_la_pagina(tabla_paginas *tabla, int pagina) {
 	}
 	return -1;
 }
+
+// pone en true el byte de modificado
+void poneme_en_modificado_la_entrada(tabla_paginas *tabla, int pagina) {
+	int i;
+	for(i = 0 ; i < list_size(tabla->list_pagina_direccion) ; i++) {
+		pagina_direccion *tabla_aux = list_get(tabla->list_pagina_direccion, i);
+
+		if(tabla_aux->en_uso && tabla_aux->nro_pagina == pagina) {
+			tabla_aux->fue_modificado = true;
+			break;
+		}
+	}
+}
+
 
 bool estan_los_frames_ocupados(t_list *tabla_paginas) {
 	int i = 0;
@@ -165,7 +180,8 @@ void actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pag
 
 void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
 	int i;
-	for(i = 0; i< list_size(*tlb); i++) {
+	int count = list_size(*tlb);
+	for(i = 0; i < count ; i++) {
 		cache_13 * aux = list_get(*tlb, i);
 
 		if(aux->pid == pid) {
@@ -174,6 +190,7 @@ void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
 			cache_13 * nueva_entrada = malloc(sizeof(cache_13));
 			nueva_entrada->esta_en_uso = false;
 			list_add(*tlb, nueva_entrada);
+			break;
 		}
 	}
 }
@@ -189,16 +206,15 @@ void limpiar_la_tlb(t_list ** tlb){
 }
 
 void limpiar_memoria(t_list ** tablas_de_paginas, char * memoria, int tamanioMarco, int socketSwap){
-
 	int i;
 	for(i = 0; i< list_size(*tablas_de_paginas); i++){
 
-		tabla_paginas * entrada_tabla = list_remove(*tablas_de_paginas,0);
-
+		tabla_paginas * entrada_tabla = list_get(*tablas_de_paginas,0);
 		int j;
 		for (j = 0; j < list_size(entrada_tabla->list_pagina_direccion); j++){
 
-			pagina_direccion * pagina = list_remove(entrada_tabla->list_pagina_direccion,0);
+			pagina_direccion * pagina = list_get(entrada_tabla->list_pagina_direccion,0);
+
 			if (pagina->en_uso && pagina->fue_modificado){
 
 				char * mensaje = dame_mensaje_de_memoria(&memoria, pagina->nro_marco, tamanioMarco);
@@ -211,6 +227,7 @@ void limpiar_memoria(t_list ** tablas_de_paginas, char * memoria, int tamanioMar
 				free(buffer);
 				free(mensaje);
 			}
+			pagina->en_uso = false;
 		}
 	}
 }

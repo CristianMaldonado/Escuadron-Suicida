@@ -166,7 +166,7 @@ int main(void) {
 					direccion_posta = dame_la_direccion_posta_de_la_pagina_en_la_tlb(&tlb, paquete_desde_cpu.pid, paquete_desde_cpu.paginas);
 
 
-				if(direccion_posta == -1) {
+				if(direccion_posta == -1) { // si la pagina esta en la tlb
 
 					tabla_paginas *tabla_de_paginas = dame_la_tabla_de_paginas(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
 
@@ -174,7 +174,7 @@ int main(void) {
 					int nro_marco = dame_la_direccion_de_la_pagina(tabla_de_paginas, paquete_desde_cpu.paginas);
 
 					// es valida o no la direccion
-					if(nro_marco != -1) {
+					if(nro_marco != -1) { // si la pagina esta en memoria
 
 						if(config->habilitadaTLB)
 							actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, nro_marco * config->tamanioMarco, paquete_desde_cpu.paginas);
@@ -186,11 +186,12 @@ int main(void) {
 							free(mensaje);
 						} else {
 							memcpy(memoria + nro_marco * config->tamanioMarco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
+							poneme_en_modificado_la_entrada(tabla_de_paginas, paquete_desde_cpu.paginas);
 							avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
 							free(paquete_desde_cpu.mensaje);
 						}
 					}
-					else {
+					else { // si no esta en la memoria
 
 						if(estan_los_frames_ocupados(tabla_de_paginas->list_pagina_direccion)) {
 							pagina_direccion *pagina_ocupada = list_remove(tabla_de_paginas->list_pagina_direccion, 0);
@@ -237,12 +238,13 @@ int main(void) {
 								avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje, socketClienteCPU);
 							} else {
 								memcpy(memoria + nro_marco * config->tamanioMarco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
+								pagina_nueva->fue_modificado = true;
 								avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
 							}
 							free(paquete_desde_cpu.mensaje);
 							free(pagina_ocupada);
 						}
-						else {
+						else { // si hay algun frame libre
 							// asignar un marco libre, bucar en las tablas de paginas de cada proceso y si hay uno libre es porque
 							// no figura en ninguna tabla de pagina de los proceso
 							int nro_frame = dame_un_marco_libre(lista_tabla_de_paginas, config->tamanioMarco);
@@ -280,9 +282,11 @@ int main(void) {
 											free(mensaje);
 										} else { // escribir
 											memcpy(memoria + nro_marco * config->tamanioMarco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
+											tabla->fue_modificado = true;
 											avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
 										}
 										free(paquete_desde_cpu.mensaje);
+										break; // cuando la tabla ya esta libre corto con el break el for
 									}
 								}
 							} else {
@@ -292,16 +296,20 @@ int main(void) {
 							}
 						}
 					}
-				} else { // termina el if de si esta en la tlb
+				} else { // si no esta en la tlb
 
 					if(paquete_desde_cpu.cod_op == 'l') { // leer
 						int nro_marco = direccion_posta / config->tamanioMarco;
 						char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanioMarco);
+
 						avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
 						free(mensaje);
 
-					} else { // escribir
+					} else { // escribir, y poner el bit de modificado en true
 						memcpy(memoria + direccion_posta, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
+						tabla_paginas * tabla_de_paginas = dame_la_tabla_de_paginas(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
+
+						poneme_en_modificado_la_entrada(tabla_de_paginas, paquete_desde_cpu.paginas);
 						avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
 					}
 					free(paquete_desde_cpu.mensaje);

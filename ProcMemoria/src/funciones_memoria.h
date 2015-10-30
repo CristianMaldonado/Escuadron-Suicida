@@ -20,5 +20,6 @@ void borrame_las_entradas_del_proceso(int pid, t_list ** tlb);
 void limpiar_la_tlb(t_list ** tlb);
 void limpiar_memoria(t_list ** tablas_de_paginas, char * memoria, int tamanioMarco, int socketSwap);
 void volcar_memoria(char * memoria, tconfig_memoria * config, t_log * logMem);
+void poneme_en_modificado_la_entrada(tabla_paginas *tabla, int pagina);
 
 #endif /* SRC_FUNCIONES_MEMORIA_H_ */
