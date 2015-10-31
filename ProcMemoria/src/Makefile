@@ -19,5 +19,5 @@ paquetes.o : paquetes.c estructuras.h configuracion.h
 	gcc -c paquetes.c -lcommons
 
 clean:
-	rm -f memoria \ 
+	rm -f memoria \
 		memoria.o configuracion.o funciones_memoria.o libSocket.o paquetes.o
