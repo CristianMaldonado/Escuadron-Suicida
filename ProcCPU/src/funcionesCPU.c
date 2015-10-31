@@ -93,7 +93,7 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 			int tiempo = atoi(lineaFiltrada[1]);
 			//armarPaquetePlanificador(mensajeDePlanificador, 'c','E', mensajeDePlanificador->pid, mensajeDePlanificador->estado,
 			//		mensajeDePlanificador->counterProgram,mensajeDePlanificador->quantum, mensajeDePlanificador->tamanioMensaje, mensajeDePlanificador->mensaje);
-            actualizarOperacionPaquetePlanificador(mensajeDePlanificador,'e');
+            actualizarOperacionPaquetePlanificador(mensajeDePlanificador,'E');
             enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
             loguearPlanificadorIO(mensajeDePlanificador, tiempo);
 		}

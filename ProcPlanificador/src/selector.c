@@ -1,5 +1,6 @@
 #include "selector.h"
 #include "estructuras.h"
+#include "logueo.h"
 
 void *selector(void* arg) {
 	fd_set master;   // conjunto maestro de descriptores de fichero
@@ -53,6 +54,7 @@ void *selector(void* arg) {
 						if (newfd > fdmax) {    // actualizar el máximo
 							fdmax = newfd;
 						}
+						logueoConeccionCPUS(newfd,newfd);
 						printf("selectserver: new connection from %s on "
 								"socket %d\n", inet_ntoa(addr.sin_addr),
 								newfd);
@@ -64,6 +66,7 @@ void *selector(void* arg) {
 						// error o conexión cerrada por el cliente
 						if (nbytes == 0) {
 							// conexión cerrada
+							logueoConeccionCPUS(i,nbytes);
 							printf("selectserver: socket %d hung up\n", i);
 						} else {
 							perror("recv");
@@ -73,12 +76,14 @@ void *selector(void* arg) {
 					}
 					else {
 						// tenemos datos de algún cliente
-						//for (j = 0; j <= fdmax; j++) {
-						//	if (FD_ISSET(j, &master)) {
+						for (j = 0; j <= fdmax; j++) {
+							if (FD_ISSET(j, &master)) {
 								//TODO gestionar llegada
+								recv(i,buf,sizeof(buf),0);
+								//ACA TENDRIA QUE IR EL LOGUEO DE FINALIZADO????
 								list_add(parametros->listaCpus,i);
-							//}
-						//}
+							}
+						}
 					}
 				} // Esto es ¡TAN FEO!
 			}

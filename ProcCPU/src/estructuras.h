@@ -10,14 +10,19 @@
 
 #include <semaphore.h>
 #include <commons/log.h>
+
 sem_t ejecutaInstruccion;
+sem_t envioParaMemoria;
 sem_t nuevoProceso;
+
 t_log *logCpu;
 //int socketPlanificador;
 int socketMemoria;
 
 pthread_mutex_t mutexSocket;
 pthread_mutex_t mutexProceso;
+pthread_mutex_t mutexLogueoPlanificador;
+pthread_mutex_t mutexLogueoMemoria;
 
 typedef enum {
 	LISTO, IO, EJECUTANDO, FINALIZADO

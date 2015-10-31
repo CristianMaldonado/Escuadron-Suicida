@@ -21,14 +21,19 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <sys/socket.h>
+#include <stdbool.h>
+#include "logueo.h"
 
 
 sem_t hayProgramas;
+bool llegoExit;
 
 t_queue* colaProcesos;
 t_queue* colaIO;
 t_list* listaEjecutando;
 t_list* listaCpuLibres;
+
+t_log* logPlanificador;
 
 typedef struct{
 	t_list* listaCpus;
@@ -39,6 +44,7 @@ typedef struct {
 	int socket;
 	t_list* listaCpus;
 } tParametroSelector;
+
 typedef struct {
 	char* puertoEscucha;
 	char algoritmo;
