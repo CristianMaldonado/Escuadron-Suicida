@@ -5,10 +5,10 @@
  *      Author: utnso
  */
 
-#ifndef SRC_CONFIG_H_
-#define SRC_CONFIG_H_
+#ifndef SRC_CONFIGURACION_H_
+#define SRC_CONFIGURACION_H_
 
 tconfig_memoria* leerConfiguracion();
 
 
-#endif /* SRC_CONFIG_H_ */
+#endif /* SRC_CONFIGURACION_H_ */

@@ -9,7 +9,7 @@
 #include "estructuras.h"
 #include <string.h>
 #include "paquetes.h"
-#include "config.h"
+#include "configuracion.h"
 #include <stdbool.h>
 #include <unistd.h>
 #include "funciones_memoria.h"
