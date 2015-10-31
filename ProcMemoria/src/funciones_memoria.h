@@ -15,11 +15,12 @@ char * dame_mensaje_de_memoria(char **memoria, int nro_marco, int tamanio_marco)
 void avisar_a_cpu(char cod_op, char cod_aux, int pid, int paginas, char *mensaje, int socket_cli_cpu);
 t_list * inicializar_tlb(int nro_entradas);
 int dame_la_direccion_posta_de_la_pagina_en_la_tlb(t_list ** tlb, int pid, int nro_pagina);
-void actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pagina);
+char actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pagina);
 void borrame_las_entradas_del_proceso(int pid, t_list ** tlb);
 void limpiar_la_tlb(t_list ** tlb);
 void limpiar_memoria(t_list ** tablas_de_paginas, char * memoria, int tamanioMarco, int socketSwap);
 void volcar_memoria(char * memoria, tconfig_memoria * config, t_log * logMem);
 void poneme_en_modificado_la_entrada(tabla_paginas *tabla, int pagina);
+int dame_el_numero_de_entrada_de_la_tlb(t_list * tlb, int direccion);
 
 #endif /* SRC_FUNCIONES_MEMORIA_H_ */

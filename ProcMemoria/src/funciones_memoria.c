@@ -154,7 +154,7 @@ int dame_la_direccion_posta_de_la_pagina_en_la_tlb(t_list ** tlb, int pid, int n
 	return -1;
 }
 
-void actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pagina) {
+char actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pagina) {
 	int i;
 	for(i = 0; i< list_size(*tlb); i++) {
 		cache_13 * aux = list_get(*tlb, i);
@@ -163,7 +163,7 @@ void actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pag
 			aux->esta_en_uso = true;
 			aux->pid = pid;
 			aux->nro_pagina = nro_pagina;
-			return;
+			return 'e'; // e = encontro una entrada
 		}
 	}
 	// esta lleno, sacar por fifo
@@ -175,7 +175,7 @@ void actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pag
 	nueva_entrada->nro_pagina = nro_pagina;
 	nueva_entrada->pid = pid;
 	list_add(*tlb, nueva_entrada);
-
+	return 'f'; // f = fifo
 }
 
 void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
@@ -246,3 +246,15 @@ void volcar_memoria(char * memoria, tconfig_memoria * config, t_log * logMem){
 		ptr += config->tamanioMarco;
 	}
 }
+
+int dame_el_numero_de_entrada_de_la_tlb(t_list * tlb, int direccion) {
+	int i;
+	for(i = 0; i < list_size(tlb) ; i++) {
+		cache_13 * aux = list_get(tlb, i);
+		if(direccion == aux->direccion_posta)
+			return i;
+	}
+	return -1;
+}
+
+
