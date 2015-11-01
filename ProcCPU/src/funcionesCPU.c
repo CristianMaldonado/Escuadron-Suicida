@@ -73,7 +73,7 @@ void armarPaqueteMemoria(protocolo_cpu_memoria* paquete, char tipoProceso,char c
 	strcpy(paquete->mensaje, mensaje);
 }
 
-void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensajeDePlanificador,protocolo_cpu_memoria* mensajeParaArmar,int socketPlanificador,protocolo_planificador_cpu* mensajeAPlanificador) {
+void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensajeDePlanificador,protocolo_cpu_memoria* mensajeParaArmar,int socketPlanificador) {
 
 		char** linea = string_split(instruccion, ";");
 		char** lineaFiltrada = string_split(linea[0]," ");
@@ -92,12 +92,9 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 		} //TODO cheackpoint 3 supongo
 		if(string_starts_with(instruccion,"entrada-salida")) {
 			int tiempo = atoi(lineaFiltrada[1]);
-			armarPaquetePlanificador(mensajeAPlanificador,mensajeDePlanificador->tipoProceso,mensajeDePlanificador->tipoOperacion,
-					mensajeDePlanificador->pid,mensajeDePlanificador->estado,mensajeDePlanificador->counterProgram,
-					mensajeDePlanificador->quantum,mensajeDePlanificador->tamanioMensaje,mensajeDePlanificador->mensaje);
-			//ctualizarOperacionPaquetePlanificador(mensajeDePlanificador,'E',mensajeDePlanificador->tipoOperacion);
-            enviarAPlanificador(mensajeAPlanificador,socketPlanificador);
-            loguearPlanificadorIO(mensajeAPlanificador, tiempo);
+			actualizarOperacionPaquetePlanificador(mensajeDePlanificador,'E',mensajeDePlanificador->tipoOperacion);
+            enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
+            loguearPlanificadorIO(mensajeDePlanificador, tiempo);
 		}
 
 		if (string_starts_with(instruccion, "finalizar;")) {

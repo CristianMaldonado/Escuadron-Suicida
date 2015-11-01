@@ -35,13 +35,13 @@ void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int
 	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->pid);
 	string_append(&logueoContexto, "\nInstruccion: ");
 	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->counterProgram);
-	string_append(&logueoContexto, " \nQuantum: ");
+	string_append(&logueoContexto, " Quantum: ");
 	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->quantum);
-	string_append(&logueoContexto, " \nEstado: ");
+	string_append(&logueoContexto, " Estado: ");
 	string_append(&logueoContexto, estado);
 	string_append(&logueoContexto, " \nRuta: ");
 	string_append(&logueoContexto, contextoDeEjecucion->mensaje);
-	string_append_with_format(&logueoContexto, " %d\n", tid);
+	string_append_with_format(&logueoContexto, " Recibido por el CPU %d\n", tid);
 
 	log_info(logCpu, logueoContexto);
 	free(estado);

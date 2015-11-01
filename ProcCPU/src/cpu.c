@@ -24,7 +24,6 @@ void *procesarInstruccion(void *argumento) {
 	datosParaProcesar = (protocolo_planificador_cpu*) argumento;
 	protocolo_cpu_memoria* mensajeAMemoria = malloc(sizeof(protocolo_cpu_memoria));
 	protocolo_memoria_cpu* mensajeDeMemoria = malloc(sizeof(protocolo_memoria_cpu));
-	protocolo_planificador_cpu* mensajeAPlanificador = malloc(sizeof(protocolo_planificador_cpu));
 	int tid = process_get_thread_id();
 	int socketPlanifAux;
 
@@ -45,21 +44,17 @@ void *procesarInstruccion(void *argumento) {
 	pthread_mutex_unlock(&mutexSocket);
 
 	while (1) {
-		//sem_wait(&nuevoProceso);
+
 		status = deserializarPlanificador(datosParaProcesar, socketPlanifAux);
 		if(status == 0) {
 			//pthread_exit(0);
 			sem_post(&ejecutaInstruccion);//TODO
 		}
 		//pthread_mutex_lock(&mutexProceso);
-		pthread_mutex_lock(&mutexLogueoPlanificador);
+		pthread_mutex_lock(&mutexLogueoPlanificador);//TODO rafaga
 		logueoRecepcionDePlanif(datosParaProcesar,tid);
 		pthread_mutex_unlock(&mutexLogueoPlanificador);
 
-		//sem_post(&ejecutaInstruccion);
-
-		//sem_wait(&ejecutaInstruccion);
-		puts("voy a abrir archivo\n");
 		FILE* archivo = fopen(datosParaProcesar->mensaje, "r+");
 		if (archivo == NULL) error_show("Error al abrir mCod");
 
@@ -75,8 +70,8 @@ void *procesarInstruccion(void *argumento) {
 			char* instruccionLeida = leerInstruccion(&(datosParaProcesar->counterProgram), lineaLeida, archivo,tamanio);
 
 			printf("linea %s\n", instruccionLeida);//
-			interpretarInstruccion(instruccionLeida, datosParaProcesar,mensajeAMemoria, socketPlanifAux,mensajeAPlanificador);//si es IO arma y envia a planificador
-			if (mensajeAPlanificador->tipoOperacion == 'E') break;
+			interpretarInstruccion(instruccionLeida, datosParaProcesar,mensajeAMemoria, socketPlanifAux);//si es IO arma y envia a planificador
+			if (datosParaProcesar->tipoOperacion == 'E') break;
 			puts("voy a enviar a memoria\n");
 			enviarAMemoria(mensajeAMemoria);
 
@@ -118,9 +113,11 @@ void *procesarInstruccion(void *argumento) {
 
 			 }
 			enviarAPlanificador(datosParaProcesar,socketPlanifAux);
-			pthread_mutex_lock(&mutexLogueoMemoria);
+
+			pthread_mutex_lock(&mutexLogueoMemoria);//TODO rafaga
 			loguearEstadoMemoria(mensajeDeMemoria, instruccionLeida);
 			pthread_mutex_unlock(&mutexLogueoMemoria);
+
 			sleep(config->retardo);
 			quantum++;
 		}
@@ -130,7 +127,6 @@ void *procesarInstruccion(void *argumento) {
 		}
 		free(lineaLeida);
 		fclose(archivo);
-		//sem_post(&nuevoProceso);
 		//pthread_mutex_unlock(&mutexProceso);
 	}
 	free(mensajeAMemoria);

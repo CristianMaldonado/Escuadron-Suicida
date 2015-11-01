@@ -1,6 +1,7 @@
 #include "selector.h"
 #include "estructuras.h"
 #include "logueo.h"
+#include "funcionesPlanificador.h"
 
 void *selector(void* arg) {
 	fd_set master;   // conjunto maestro de descriptores de fichero
@@ -13,7 +14,8 @@ void *selector(void* arg) {
 	char buf[256];    // buffer para datos del cliente
 	int nbytes;
 	int yes = 1;        // para setsockopt() SO_REUSEADDR, más abajo
-	int i, j;
+	int i, j,status;
+	protocolo_planificador_cpu* respuestaDeCPU = malloc(sizeof(protocolo_planificador_cpu));
 
 	tParametroSelector* parametros;
     parametros = (tParametroSelector*) arg;
@@ -76,10 +78,23 @@ void *selector(void* arg) {
 					}
 					else {
 						// tenemos datos de algún cliente
-						for (j = 0; j <= fdmax; j++) {
+						for (j = 0; j <= fdmax; j++) {//TODO CASE GIGANTE SEGUN LO QUE RESPONDA LA CPU PARA METER EL PROC EN DETERMINADA COLA
 							if (FD_ISSET(j, &master)) {
 								//TODO gestionar llegada
-								recv(i,buf,sizeof(buf),0);
+								status = deserializarCPU(respuestaDeCPU,i);
+								//if(status == 0) error_show("Desconeccion de CPU");
+								switch(respuestaDeCPU->tipoProceso){
+								case 'i':{
+
+								}break;
+
+								case 'l':{
+
+								}break;
+								case 'f':{
+
+								}break;
+								}
 								//ACA TENDRIA QUE IR EL LOGUEO DE FINALIZADO????
 								list_add(parametros->listaCpus,i);
 							}
@@ -89,7 +104,7 @@ void *selector(void* arg) {
 			}
 		}
 	}
-
+	free(respuestaDeCPU);
 	//return 0;
 }
 
