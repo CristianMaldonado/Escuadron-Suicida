@@ -48,7 +48,7 @@ void sigHandler(int numSignal){
 			pthread_mutex_unlock(&mutex);
 		break;
 
-		//volcar
+		//volcar, en la consola es SIGIO (kill -l SIGIO <pid>)
 		case SIGPOLL:
 			pthread_mutex_lock(&mutex);
 				log_seniales(logMem, "SIGPOLL, volcar memoria");

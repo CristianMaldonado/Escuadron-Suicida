@@ -17,6 +17,7 @@
 FILE* iniciar_archivo_swap(void) {
 	tconfig_swap *config_swap = leerConfiguracion();
 	FILE* swap = fopen(config_swap->nombreSwap, "wb+"); //rb+ para archivo binario
+	//FILE* swap = fopen(config_swap->nombreSwap, "rb+"); para probar
 	size_t tamanio_swap = config_swap->tamanioPagina * config_swap->cantidadPaginas;
 	//rellenamos en cero (char '/0' es 0)
 	int i ;

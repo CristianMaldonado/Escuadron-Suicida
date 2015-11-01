@@ -178,23 +178,58 @@ char actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pag
 	return 'f'; // f = fifo
 }
 
+// es de seba
+void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
+	int i,j,k;
+	t_list * entradas_a_borrar = list_create();
+
+	int size = list_size(*tlb);
+
+	for(i = 0; i < size ; i++) {
+
+		cache_13 * aux = list_get(*tlb, i);
+
+		if(aux->pid == pid && aux->esta_en_uso) {
+
+			int * aux = malloc(sizeof(int));
+			*aux = i;
+			list_add(entradas_a_borrar, aux);
+		}
+	}
+	int entradas = list_size(entradas_a_borrar);
+
+	for(j = 0; j < entradas ; j++) {
+
+		int * list = list_remove(entradas_a_borrar, list_size(entradas_a_borrar) - 1);
+
+		free(list_remove(*tlb, *list));
+		free(list);
+	}
+	for(k = 0 ; k < entradas ; k++) {
+		cache_13 * nueva_entrada = malloc(sizeof(cache_13));
+		nueva_entrada->esta_en_uso = false;
+		nueva_entrada->pid = -1;
+		list_add(*tlb, nueva_entrada);
+	}
+}
+/*
 void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
 	int i;
 	int count = list_size(*tlb);
 	for(i = 0; i < count ; i++) {
 		cache_13 * aux = list_get(*tlb, i);
 
-		if(aux->pid == pid) {
+		if(aux->pid == pid && aux->esta_en_uso) {
+			printf("borro\n");
 			free(list_remove(*tlb, i));
-
 			cache_13 * nueva_entrada = malloc(sizeof(cache_13));
 			nueva_entrada->esta_en_uso = false;
+			nueva_entrada->pid = -1;
 			list_add(*tlb, nueva_entrada);
-			break;
 		}
 	}
 }
-
+*/
 void limpiar_la_tlb(t_list ** tlb){
 
 	int numEntradas = list_size(*tlb);
@@ -209,11 +244,11 @@ void limpiar_memoria(t_list ** tablas_de_paginas, char * memoria, int tamanioMar
 	int i;
 	for(i = 0; i< list_size(*tablas_de_paginas); i++){
 
-		tabla_paginas * entrada_tabla = list_get(*tablas_de_paginas,0);
+		tabla_paginas * entrada_tabla = list_get(*tablas_de_paginas, i);
 		int j;
 		for (j = 0; j < list_size(entrada_tabla->list_pagina_direccion); j++){
 
-			pagina_direccion * pagina = list_get(entrada_tabla->list_pagina_direccion,0);
+			pagina_direccion * pagina = list_get(entrada_tabla->list_pagina_direccion, j);
 
 			if (pagina->en_uso && pagina->fue_modificado){
 
@@ -227,6 +262,8 @@ void limpiar_memoria(t_list ** tablas_de_paginas, char * memoria, int tamanioMar
 				free(buffer);
 				free(mensaje);
 			}
+
+			printf("limpio pagina %d\n", j );
 			pagina->en_uso = false;
 		}
 	}
