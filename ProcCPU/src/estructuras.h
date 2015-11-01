@@ -22,6 +22,7 @@ int socketMemoria;
 pthread_mutex_t mutexSocket;
 pthread_mutex_t mutexProceso;
 pthread_mutex_t mutexLogueoMemoria;
+pthread_mutex_t mutexLogueoPlanificador;
 
 typedef enum {
 	LISTO, IO, EJECUTANDO, FINALIZADO

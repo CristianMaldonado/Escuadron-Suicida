@@ -48,8 +48,9 @@ void armarPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoProc
 	strcpy(paquete->mensaje, mensaje);
 }
 
-void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoOperacion){
+void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoOperacion,char codOperacion){
 	paquete->tipoOperacion = tipoOperacion;
+	paquete->tipoProceso = codOperacion;
 	//TODO: Modificar estado (?
 }
 
@@ -72,7 +73,7 @@ void armarPaqueteMemoria(protocolo_cpu_memoria* paquete, char tipoProceso,char c
 	strcpy(paquete->mensaje, mensaje);
 }
 
-void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensajeDePlanificador,protocolo_cpu_memoria* mensajeParaArmar,int socketPlanificador) {
+void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensajeDePlanificador,protocolo_cpu_memoria* mensajeParaArmar,int socketPlanificador,protocolo_planificador_cpu* mensajeAPlanificador) {
 
 		char** linea = string_split(instruccion, ";");
 		char** lineaFiltrada = string_split(linea[0]," ");
@@ -91,18 +92,16 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 		} //TODO cheackpoint 3 supongo
 		if(string_starts_with(instruccion,"entrada-salida")) {
 			int tiempo = atoi(lineaFiltrada[1]);
-			//armarPaquetePlanificador(mensajeDePlanificador, 'c','E', mensajeDePlanificador->pid, mensajeDePlanificador->estado,
-			//		mensajeDePlanificador->counterProgram,mensajeDePlanificador->quantum, mensajeDePlanificador->tamanioMensaje, mensajeDePlanificador->mensaje);
-            actualizarOperacionPaquetePlanificador(mensajeDePlanificador,'E');
-            enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
-            loguearPlanificadorIO(mensajeDePlanificador, tiempo);
+			armarPaquetePlanificador(mensajeAPlanificador,mensajeDePlanificador->tipoProceso,mensajeDePlanificador->tipoOperacion,
+					mensajeDePlanificador->pid,mensajeDePlanificador->estado,mensajeDePlanificador->counterProgram,
+					mensajeDePlanificador->quantum,mensajeDePlanificador->tamanioMensaje,mensajeDePlanificador->mensaje);
+			//ctualizarOperacionPaquetePlanificador(mensajeDePlanificador,'E',mensajeDePlanificador->tipoOperacion);
+            enviarAPlanificador(mensajeAPlanificador,socketPlanificador);
+            loguearPlanificadorIO(mensajeAPlanificador, tiempo);
 		}
 
 		if (string_starts_with(instruccion, "finalizar;")) {
 				armarPaqueteMemoria(mensajeParaArmar, 'c', 'f', mensajeDePlanificador->pid, 0, "-");
-				actualizarOperacionPaquetePlanificador(mensajeDePlanificador,'f');
-				enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
-
 		}
 		free(linea);
 		free(lineaFiltrada);
