@@ -34,6 +34,7 @@ void sigHandler(int numSignal){
 		//borrar tlb
 		case SIGUSR1:
 			pthread_mutex_lock(&mutex);
+				log_seniales(logMem, "SIGUSR1, limpiar tlb");
 				limpiar_la_tlb(&tlb);
 			pthread_mutex_unlock(&mutex);
 		break;
@@ -41,6 +42,7 @@ void sigHandler(int numSignal){
 		//borrar memoria
 		case SIGUSR2:
 			pthread_mutex_unlock(&mutex);
+				log_seniales(logMem, "SIGUSR2, limpiar memoria y tlb");
 				limpiar_la_tlb(&tlb);
 				limpiar_memoria(&lista_tabla_de_paginas,memoria,config->tamanioMarco, socketClienteSWAP);
 			pthread_mutex_unlock(&mutex);
@@ -49,7 +51,8 @@ void sigHandler(int numSignal){
 		//volcar
 		case SIGPOLL:
 			pthread_mutex_lock(&mutex);
-				volcar_memoria(memoria, config,logMem);
+				log_seniales(logMem, "SIGPOLL, volcar memoria");
+				volcar_memoria(memoria, config, logMem);
 			pthread_mutex_unlock(&mutex);
 		break;
 	}
@@ -189,6 +192,8 @@ int main(void) {
 							nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, direccion_posta);
 						}
 
+						log_acceso_memoria(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_marco);
+
 						if(paquete_desde_cpu.cod_op == 'l') {
 							char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
 
@@ -210,6 +215,8 @@ int main(void) {
 						}
 					}
 					else { // si no esta en la memoria
+
+						log_acceso_a_swap(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas);
 
 						if(estan_los_frames_ocupados(tabla_de_paginas->list_pagina_direccion)) {
 							pagina_direccion *pagina_ocupada = list_remove(tabla_de_paginas->list_pagina_direccion, 0);
@@ -339,6 +346,7 @@ int main(void) {
 					int nro_marco = direccion_posta / config->tamanioMarco;
 					int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, direccion_posta);
 
+					log_acceso_memoria(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_marco);
 					if(paquete_desde_cpu.cod_op == 'l') { // leer
 
 						char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanioMarco);
