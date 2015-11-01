@@ -21,7 +21,6 @@ int socketMemoria;
 
 pthread_mutex_t mutexSocket;
 pthread_mutex_t mutexProceso;
-pthread_mutex_t mutexLogueoPlanificador;
 pthread_mutex_t mutexLogueoMemoria;
 
 typedef enum {

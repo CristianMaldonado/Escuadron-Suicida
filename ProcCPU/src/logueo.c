@@ -11,7 +11,7 @@
 #include <commons/log.h>
 #include <commons/string.h>
 
-void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion) {
+void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int tid) {//eliminar tid
 	char* logueoContexto = (char*)malloc(50);
 	char* estado;
 	if (contextoDeEjecucion->estado == LISTO) {
@@ -41,6 +41,7 @@ void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion) {
 	string_append(&logueoContexto, estado);
 	string_append(&logueoContexto, " \nRuta: ");
 	string_append(&logueoContexto, contextoDeEjecucion->mensaje);
+	string_append_with_format(&logueoContexto, " %d\n", tid);
 
 	log_info(logCpu, logueoContexto);
 	free(estado);

@@ -100,8 +100,7 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 
 		if (string_starts_with(instruccion, "finalizar;")) {
 				armarPaqueteMemoria(mensajeParaArmar, 'c', 'f', mensajeDePlanificador->pid, 0, "-");
-				armarPaquetePlanificador(mensajeDePlanificador, 'c','F', mensajeDePlanificador->pid, mensajeDePlanificador->estado,
-									mensajeDePlanificador->counterProgram,mensajeDePlanificador->quantum, mensajeDePlanificador->tamanioMensaje, mensajeDePlanificador->mensaje);
+				actualizarOperacionPaquetePlanificador(mensajeDePlanificador,'f');
 				enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
 
 		}

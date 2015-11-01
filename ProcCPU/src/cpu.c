@@ -52,7 +52,7 @@ void *procesarInstruccion(void *argumento) {
 		}
 		pthread_mutex_trylock(&mutexProceso);
 
-		logueoRecepcionDePlanif(datosParaProcesar);
+		logueoRecepcionDePlanif(datosParaProcesar,tid);
 
 		FILE* archivo = fopen(datosParaProcesar->mensaje, "r+");
 		if (archivo == NULL) error_show("Error al abrir mCod");
@@ -86,7 +86,7 @@ void *procesarInstruccion(void *argumento) {
 			printf("cod aux %c\n", mensajeDeMemoria->codAux);//
 
 			if (mensajeDeMemoria->codAux == 'a' && mensajeDeMemoria->codOperacion == 'i') break;
-			/* switch (mensajeDeMemoria->codOperacion){
+			 switch (mensajeDeMemoria->codOperacion){
 
 			 case 'i': {
 			 armarPaquetePlanificador(datosParaProcesar, (mensajeDeMemoria->codAux == 'a')?'f' : 'c', 'i',
@@ -95,22 +95,23 @@ void *procesarInstruccion(void *argumento) {
 			 datosParaProcesar->tamanioMensaje, datosParaProcesar->mensaje);
 			 }break;
 
-			 case 'l','e': {
+			 /*case 'l','e': {
 			 armarPaquetePlanificador(datosParaProcesar, (mensajeDeMemoria->codAux == 'a')?'f' : 'c', 'l',
 			 mensajeAMemoria->pid, datosParaProcesar->estado,
 			 datosParaProcesar->counterProgram,datosParaProcesar->quantum,
 			 datosParaProcesar->tamanioMensaje,
 			 datosParaProcesar->mensaje);
-			 }break;
-			 case 'f':{
+			 }break;*/
+
+			/* case 'f':{
 			 armarPaquetePlanificador(datosParaProcesar, (mensajeDeMemoria->codAux == 'a')?'f' : 'f', 'i',
 			 datosParaProcesar->pid, datosParaProcesar->estado,
 			 datosParaProcesar->counterProgram,datosParaProcesar->quantum,
 			 datosParaProcesar->tamanioMensaje,datosParaProcesar->mensaje);
-			 }break;
+			 }break; 		*/
 
 
-			 }*/
+			 }
 			//enviarAPlanificador(datosParaProcesar);
 			//pthread_mutex_lock(&mutexLogueoMemoria);
 			loguearEstadoMemoria(mensajeDeMemoria, instruccionLeida);
@@ -147,7 +148,6 @@ int main() {
 
 	pthread_mutex_init(&mutexSocket, NULL);
 	pthread_mutex_init(&mutexLogueoMemoria, NULL);
-	pthread_mutex_init(&mutexLogueoPlanificador, NULL);
 	pthread_mutex_init(&mutexProceso, NULL);
 
 	config = leerConfiguracion();
@@ -207,7 +207,6 @@ int main() {
 	pthread_mutex_destroy(&mutexProceso);
 	pthread_mutex_destroy(&mutexSocket);
 	pthread_mutex_destroy(&mutexLogueoMemoria);
-	pthread_mutex_destroy(&mutexLogueoPlanificador);
 	pthread_attr_destroy(&atrib);
 	log_info(logCpu, "Cerrada conexion saliente");
 	log_destroy(logCpu);
