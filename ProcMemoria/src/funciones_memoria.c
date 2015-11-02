@@ -163,7 +163,6 @@ char actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pag
 	return 'f'; // f = fifo
 }
 
-// es de seba
 void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
 	int i,j,k;
 	t_list * entradas_a_borrar = list_create();
@@ -176,13 +175,13 @@ void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
 			list_add(entradas_a_borrar, aux);
 		}
 	}
-	int entradas = list_size(entradas_a_borrar);
-	for(j = 0; j < entradas ; j++) {
+	int cant_entradas_a_borrar = list_size(entradas_a_borrar);
+	for(j = 0; j < cant_entradas_a_borrar ; j++) {
 		int * list = list_remove(entradas_a_borrar, list_size(entradas_a_borrar) - 1);
 		free(list_remove(*tlb, *list));
 		free(list);
 	}
-	for(k = 0 ; k < entradas ; k++) {
+	for(k = 0 ; k < cant_entradas_a_borrar ; k++) {
 		cache_13 * nueva_entrada = malloc(sizeof(cache_13));
 		nueva_entrada->esta_en_uso = false;
 		nueva_entrada->pid = -1;
@@ -197,23 +196,22 @@ void limpiar_la_tlb(t_list ** tlb){
 	*tlb = inicializar_tlb(cant_entradas);
 }
 
-void limpiar_memoria(t_list ** tablas_de_paginas, char * memoria, int tamanioMarco, int socketSwap){
+void limpiar_memoria(t_list ** tabla_de_paginas, char * memoria, int tamanio_marco, int socket_swap) {
 	int i;
-	for(i = 0; i< list_size(*tablas_de_paginas); i++){
-		tabla_paginas * entrada_tabla = list_get(*tablas_de_paginas, i);
+	for(i = 0 ; i< list_size(*tabla_de_paginas) ; i++) {
+		tabla_paginas * tabla = list_get(*tabla_de_paginas, i);
 		int j;
-		for (j = 0; j < list_size(entrada_tabla->list_pagina_direccion); j++){
-			pagina_direccion * pagina = list_get(entrada_tabla->list_pagina_direccion, j);
+		for (j = 0 ; j < list_size(tabla->list_pagina_direccion) ; j++) {
+			pagina_direccion * pagina = list_get(tabla->list_pagina_direccion, j);
 			if (pagina->en_uso && pagina->fue_modificado){
-				char * mensaje = dame_mensaje_de_memoria(&memoria, pagina->nro_marco, tamanioMarco);
+				char * mensaje = dame_mensaje_de_memoria(&memoria, pagina->nro_marco, tamanio_marco);
 				tprotocolo_desde_cpu_y_hacia_swap paquete_a_swap;
-				armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, 'e', entrada_tabla->pid, pagina->nro_pagina, mensaje);
+				armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, 'e', tabla->pid, pagina->nro_pagina, mensaje);
 				void* buffer = serializar_a_swap(&paquete_a_swap);
-				send(socketSwap, buffer, strlen(mensaje) + 13, 0);
+				send(socket_swap, buffer, strlen(mensaje) + 13, 0);
 				free(buffer);
 				free(mensaje);
 			}
-			printf("limpio pagina %d\n", j );
 			pagina->en_uso = false;
 		}
 	}
