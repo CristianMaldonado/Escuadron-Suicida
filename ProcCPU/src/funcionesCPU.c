@@ -293,33 +293,33 @@ char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo, i
 
 }
 
-void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion) {
+void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion) {//eliminar tid
 	char* logueoContexto = (char*)malloc(50);
 	char* estado;
 	if (contextoDeEjecucion->estado == LISTO) {
 		estado = malloc(7);
-		strcpy(estado, " LISTO");
+		strcpy(estado, "LISTO");
 	}
 	if (contextoDeEjecucion->estado == IO) {
 		estado = malloc(7);
-		strcpy(estado, " IO");
+		strcpy(estado, "IO");
 	}
 	if (contextoDeEjecucion->estado == EJECUTANDO) {
 		estado = malloc(12);
-		strcpy(estado, " EJECUTANDO");
+		strcpy(estado, "EJECUTANDO");
 	}
 	if (contextoDeEjecucion->estado == FINALIZADO) {
 		estado = malloc(12);
-		strcpy(estado, " FINALIZADO");
+		strcpy(estado, "FINALIZADO");
 	}
 
 	strcpy(logueoContexto, "Contexto de ejecucion recibido: \nPID: ");
-	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->pid));
+	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->pid);
 	string_append(&logueoContexto, "\nInstruccion: ");
-	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->counterProgram));
-	string_append(&logueoContexto, " \nQuantum: ");
-	string_append(&logueoContexto, string_itoa(contextoDeEjecucion->quantum));
-	string_append(&logueoContexto, " \nEstado: ");
+	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->counterProgram);
+	string_append(&logueoContexto, " Quantum: ");
+	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->quantum);
+	string_append(&logueoContexto, " Estado: ");
 	string_append(&logueoContexto, estado);
 	string_append(&logueoContexto, " \nRuta: ");
 	string_append(&logueoContexto, contextoDeEjecucion->mensaje);
@@ -329,7 +329,7 @@ void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion) {
     free(logueoContexto);
 
 }
-
+/*
 void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida){
 
 	char* logueoMemoria = malloc(sizeof(char) * 10);
@@ -356,6 +356,43 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 		string_append(&logueoMemoria, "Finalizado");
 			}
 	log_info(logCpu, logueoMemoria);
+	free(logueoMemoria);
+
+}*/
+void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria,char* texto){
+
+	char* logueoMemoria = malloc(sizeof(char) * 15);
+
+	strcpy(logueoMemoria, "\nmProc: ");
+	string_append_with_format(&logueoMemoria, "%d", respuestaMemoria->pid);
+	string_append(&logueoMemoria, " - ");
+
+	if (respuestaMemoria->codOperacion == 'i' && respuestaMemoria->codAux != 'a') {
+		string_append(&logueoMemoria, "Iniciado");
+	}
+	if (respuestaMemoria->codOperacion == 'l') {
+		string_append(&logueoMemoria, "Pagina: ");
+		string_append_with_format(&logueoMemoria, "%d", respuestaMemoria->numeroPagina);
+		string_append(&logueoMemoria, " leida: ");
+		string_append(&logueoMemoria, respuestaMemoria->mensaje);
+	}
+
+	if (respuestaMemoria->codOperacion == 'e'){
+		string_append(&logueoMemoria, "Pagina: ");
+		string_append_with_format(&logueoMemoria, "%d", respuestaMemoria->numeroPagina);
+		string_append(&logueoMemoria, " escrita: ");
+		string_append(&logueoMemoria, respuestaMemoria->mensaje);
+	}
+
+	if ((respuestaMemoria->codOperacion == 'i') && (respuestaMemoria->codAux == 'a')) {
+		string_append(&logueoMemoria, "Fallo al iniciar\n");
+	}
+
+	if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'f')) {
+		string_append(&logueoMemoria, "Finalizado");
+	}
+
+	string_append(&texto,logueoMemoria);
 	free(logueoMemoria);
 
 }
