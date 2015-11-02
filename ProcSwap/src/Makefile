@@ -21,4 +21,4 @@ paquetes.o: paquetes.c estructuras.h config.h
 
 clean: 
 	rm -f swap \
-		swap.o config.o libSocket.o manejo_listas_archivo_swap.o paquetes.o swap.dat
+		swap.o config.o libSocket.o manejo_listas_archivo_swap.o paquetes.o swap.dat log.txt
