@@ -80,7 +80,7 @@ int main(){
 
 	tconfig_planif* configPlanificador = malloc(sizeof(tconfig_planif));
 	configPlanificador->puertoEscucha = "4143";
-	configPlanificador->quantum = 5;
+	configPlanificador->quantum = 0;
 	configPlanificador->algoritmo = 'F';
 
 

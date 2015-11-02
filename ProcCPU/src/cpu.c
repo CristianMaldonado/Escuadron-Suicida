@@ -63,6 +63,8 @@ void *procesarInstruccion(void *argumento) {
 		fseek(archivo, 0, SEEK_SET);
 		char* lineaLeida = malloc(tamanio);
 
+		char* textoALoguear = (char*)malloc(sizeof(char) * 30);
+
 		int quantum = 0;
 
 		while ((!feof(archivo) && (quantum <= datosParaProcesar->quantum || datosParaProcesar->quantum == 0))) {
@@ -80,6 +82,7 @@ void *procesarInstruccion(void *argumento) {
 			printf("operacion %c\n", mensajeAMemoria->tipoOperacion);//
 
 			deserializarMemoria(mensajeDeMemoria);
+			prepararLogueoDeMemoria(mensajeDeMemoria,textoALoguear);
 
 			printf("pid %d\n", mensajeDeMemoria->pid);//
 			printf("tamanio %d\n", mensajeDeMemoria->tamanioMensaje);//
@@ -114,10 +117,6 @@ void *procesarInstruccion(void *argumento) {
 			 }
 			enviarAPlanificador(datosParaProcesar,socketPlanifAux);
 
-			pthread_mutex_lock(&mutexLogueoMemoria);//TODO rafaga
-			loguearEstadoMemoria(mensajeDeMemoria, instruccionLeida);
-			pthread_mutex_unlock(&mutexLogueoMemoria);
-
 			sleep(config->retardo);
 			quantum++;
 		}
@@ -127,7 +126,11 @@ void *procesarInstruccion(void *argumento) {
 		}
 		free(lineaLeida);
 		fclose(archivo);
+		pthread_mutex_lock(&mutexLogueoMemoria);//TODO rafaga
+		log_info(logCpu,textoALoguear);
+		pthread_mutex_unlock(&mutexLogueoMemoria);
 		//pthread_mutex_unlock(&mutexProceso);
+		free(textoALoguear);
 	}
 	free(mensajeAMemoria);
 	free(mensajeDeMemoria);
@@ -145,8 +148,9 @@ int main() {
 	 config->puertoPlanificador = "4143";
 	 config->ipMemoria = "127.0.0.1";
 	 config->puertoMemoria = "4142";
-	 config->cantidadHilos = 4;
-	 config->retardo = 2;*/
+	 config->cantidadHilos = 1;
+	 config->retardo = 1;*/
+
 	pthread_mutex_init(&mutexLogueoPlanificador,NULL);
 	pthread_mutex_init(&mutexSocket, NULL);
 	pthread_mutex_init(&mutexLogueoMemoria, NULL);

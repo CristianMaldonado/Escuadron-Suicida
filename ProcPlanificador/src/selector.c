@@ -81,9 +81,10 @@ void *selector(void* arg) {
 						for (j = 0; j <= fdmax; j++) {//TODO CASE GIGANTE SEGUN LO QUE RESPONDA LA CPU PARA METER EL PROC EN DETERMINADA COLA
 							if (FD_ISSET(j, &master)) {
 								//TODO gestionar llegada
-								status = deserializarCPU(respuestaDeCPU,i);
+								recv(i,buf,sizeof(buf),0);
+								//status = deserializarCPU(respuestaDeCPU,i);
 								//if(status == 0) error_show("Desconeccion de CPU");
-								switch(respuestaDeCPU->tipoProceso){
+								/*switch(respuestaDeCPU->tipoProceso){
 								case 'i':{
 
 								}break;
@@ -94,7 +95,7 @@ void *selector(void* arg) {
 								case 'f':{
 
 								}break;
-								}
+								}*/
 								//ACA TENDRIA QUE IR EL LOGUEO DE FINALIZADO????
 								list_add(parametros->listaCpus,i);
 							}

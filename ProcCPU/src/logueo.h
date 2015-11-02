@@ -12,7 +12,9 @@
 #include "estructuras.h"
 
 void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int tid);
-void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida);
+//void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida);
 void loguearPlanificadorIO(protocolo_planificador_cpu* mensajeDePlanificador, int tiempo);
+void prepararLogueoDeMemoria(protocolo_memoria_cpu* respuestaMemoria,char* texto);
+void loguearRafaga(char* textoALoguear);
 
 #endif
