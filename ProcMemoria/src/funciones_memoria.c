@@ -154,7 +154,6 @@ char actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pag
 	}
 	// esta lleno, sacar por fifo
 	free(list_remove(*tlb, 0));
-
 	cache_13 * nueva_entrada = malloc(sizeof(cache_13));
 	nueva_entrada->direccion_posta = direccion_posta;
 	nueva_entrada->esta_en_uso = true;
@@ -168,26 +167,18 @@ char actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pag
 void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
 	int i,j,k;
 	t_list * entradas_a_borrar = list_create();
-
 	int size = list_size(*tlb);
-
 	for(i = 0; i < size ; i++) {
-
 		cache_13 * aux = list_get(*tlb, i);
-
 		if(aux->pid == pid && aux->esta_en_uso) {
-
 			int * aux = malloc(sizeof(int));
 			*aux = i;
 			list_add(entradas_a_borrar, aux);
 		}
 	}
 	int entradas = list_size(entradas_a_borrar);
-
 	for(j = 0; j < entradas ; j++) {
-
 		int * list = list_remove(entradas_a_borrar, list_size(entradas_a_borrar) - 1);
-
 		free(list_remove(*tlb, *list));
 		free(list);
 	}
@@ -200,67 +191,51 @@ void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
 }
 
 void limpiar_la_tlb(t_list ** tlb){
-
-	int numEntradas = list_size(*tlb);
-
+	int cant_entradas = list_size(*tlb);
 	while(!list_is_empty(*tlb))
 		free(list_remove(*tlb,0));
-
-	*tlb = inicializar_tlb(numEntradas);
+	*tlb = inicializar_tlb(cant_entradas);
 }
 
 void limpiar_memoria(t_list ** tablas_de_paginas, char * memoria, int tamanioMarco, int socketSwap){
 	int i;
 	for(i = 0; i< list_size(*tablas_de_paginas); i++){
-
 		tabla_paginas * entrada_tabla = list_get(*tablas_de_paginas, i);
 		int j;
 		for (j = 0; j < list_size(entrada_tabla->list_pagina_direccion); j++){
-
 			pagina_direccion * pagina = list_get(entrada_tabla->list_pagina_direccion, j);
-
 			if (pagina->en_uso && pagina->fue_modificado){
-
 				char * mensaje = dame_mensaje_de_memoria(&memoria, pagina->nro_marco, tamanioMarco);
-
 				tprotocolo_desde_cpu_y_hacia_swap paquete_a_swap;
 				armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, 'e', entrada_tabla->pid, pagina->nro_pagina, mensaje);
-
 				void* buffer = serializar_a_swap(&paquete_a_swap);
 				send(socketSwap, buffer, strlen(mensaje) + 13, 0);
 				free(buffer);
 				free(mensaje);
 			}
-
 			printf("limpio pagina %d\n", j );
 			pagina->en_uso = false;
 		}
 	}
 }
 
-void volcar_memoria(char * memoria, tconfig_memoria * config, t_log * logMem){
-
-	int ptr = 0;
-	while (ptr < config->tamanioMarco*config->cantidadMarcos){
-
-		char * msj = malloc(config->tamanioMarco + 1);
-		memcpy(msj, memoria + ptr, config->tamanioMarco);
-		msj[config->tamanioMarco] = '\0';
-
-		log_info(logMem, "Numero de marco %d: %s", ptr / config->tamanioMarco, msj);
-
-		ptr += config->tamanioMarco;
+void volcar_memoria(char * memoria, tconfig_memoria * config, t_log * logMem) {
+	int buffer_memoria = 0;
+	while (buffer_memoria < config->tamanio_marco * config->cantidad_marcos) {
+		char * mensaje = malloc(config->tamanio_marco + 1);
+		memcpy(mensaje, memoria + buffer_memoria, config->tamanio_marco);
+		mensaje[config->tamanio_marco] = '\0';
+		log_info(logMem, "Numero de marco %d: %s", buffer_memoria / config->tamanio_marco, mensaje);
+		buffer_memoria += config->tamanio_marco;
 	}
 }
 
-int dame_el_numero_de_entrada_de_la_tlb(t_list * tlb, int direccion) {
+int dame_el_numero_de_entrada_de_la_tlb(t_list * tlb, int direccion_posta) {
 	int i;
 	for(i = 0; i < list_size(tlb) ; i++) {
 		cache_13 * aux = list_get(tlb, i);
-		if(direccion == aux->direccion_posta)
+		if(direccion_posta == aux->direccion_posta)
 			return i;
 	}
 	return -1;
 }
-
-

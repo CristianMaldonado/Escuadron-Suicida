@@ -39,8 +39,8 @@ typedef struct {
 	char* ipSwap;
 	char* puertoSwap;
 	int maximoMarcosPorProceso;
-	int cantidadMarcos;
-	int tamanioMarco;
+	int cantidad_marcos;
+	int tamanio_marco;
 	int entradasTLB;
 	char habilitadaTLB;
 	int retardoMemoria;

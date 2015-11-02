@@ -24,8 +24,8 @@ tconfig_memoria* leerConfiguracion() {
 	datosMemoria->ipSwap = config_get_string_value(config, "IP_SWAP");
 	datosMemoria->puertoSwap = config_get_string_value(config, "PUERTO_SWAP");
 	datosMemoria->maximoMarcosPorProceso = config_get_int_value(config,"MAXIMO_MARCOS_POR_PROCESO");
-	datosMemoria->cantidadMarcos = config_get_int_value(config,"CANTIDAD_MARCOS");
-	datosMemoria->tamanioMarco = config_get_int_value(config, "TAMANIO_MARCO");
+	datosMemoria->cantidad_marcos = config_get_int_value(config,"CANTIDAD_MARCOS");
+	datosMemoria->tamanio_marco = config_get_int_value(config, "TAMANIO_MARCO");
 	datosMemoria->entradasTLB = config_get_int_value(config, "ENTRADAS_TLB");
 	datosMemoria->habilitadaTLB = config_get_string_value(config,"TLB_HABILITADA")[0];
 	datosMemoria->retardoMemoria = config_get_int_value(config,"RETARDO_MEMORIA");
