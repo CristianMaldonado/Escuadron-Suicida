@@ -9,10 +9,9 @@
 #include <commons/log.h>
 #include "config.h"
 #include "selector.h"
-#include <stdbool.h>
-#include "logueo.h"
 
 #define PACKAGESIZE 30
+
 //t_list* listaEjecutando=list_create();
 
 
@@ -38,7 +37,7 @@ void *enviar(void *arg){
 	puts("estas en el hilo bien por vos");
 	while(1){
 		sem_wait(&hayProgramas);
-		if(llegoExit) pthread_exit(0);
+		puts("pasaste el semaforo");
 		pcb=queue_pop(parametros->procesos);
 		printf("saque pcb\n");
 
@@ -46,7 +45,6 @@ void *enviar(void *arg){
 		adaptadorPCBaProtocolo(pcb,package);
 		printf("estoy por serializqar\n");
 
-		logueoProcesos(pcb->pid,pcb->ruta);
 		void* message=malloc(sizeof(protocolo_planificador_cpu) + strlen(pcb->ruta));
 		message = serializarPaqueteCPU(package, &tamanio);
 		//message[strlen((message))] = '\0';
@@ -54,7 +52,9 @@ void *enviar(void *arg){
 		int a = send(socketCPU,message,tamanio,0);
 		if(a == -1) puts("fallo envio");
 		else printf("%d\n",a);
-
+		/*char algooo[PACKAGESIZE]; test al pedo
+		recv(parametros->socket,algooo,PACKAGESIZE,0);
+		printf("%s",algooo);*/
 		printf("Envie paquete");
 		free(package);
 		free(message);
@@ -75,13 +75,13 @@ int main(){
 	sem_init(&hayProgramas,0,0);
 
 	//creacion de la instancia de log
-	logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
+	t_log *logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
 	//logPlanificador->pid = 1;
 
 	tconfig_planif* configPlanificador = malloc(sizeof(tconfig_planif));
 	configPlanificador->puertoEscucha = "4143";
 	configPlanificador->quantum = 0;
-	configPlanificador->algoritmo = 'F';
+	configPlanificador->algoritmo = "FIFO";
 
 
 	//leemos el archivo de configuracion
@@ -117,7 +117,7 @@ int main(){
 	tParametroEnviar envio;
 	envio.listaCpus=listaCpuLibres;
 	envio.procesos=colaProcesos;
-	llegoExit = false;
+
 	pthread_attr_init(&attr);
 	pthread_create( &enviarAlCpu, &attr, enviar,(void*) &envio);
 
@@ -132,25 +132,15 @@ int main(){
 		nro_comando = clasificarComando(&message[0]);
         //TODO: VER SI EL PROCESAR COMANDO TIENE QUE RECIBIR TODAS LAS LISTAS Y COLAS, O HACERLAS GLOBALES PARA EL PS
 		procesarComando(nro_comando,&message[0],&cantProc,colaProcesos);
-		llegoExit = false;
+
 		nro_comando=0;
 
-		if (!strcmp(message,"exit\n")) {
-			llegoExit = true;
-			sem_post(&hayProgramas);
-			enviar2 = 0;
-		}
+		if (!strcmp(message,"exit\n")) enviar2 = 0;
 
 	}
 
-	pthread_join(enviarAlCpu,NULL);
-	//pthread_join(selectorCpu,NULL);
-	pthread_attr_destroy(&attr);
 	close(serverSocket);
 	//close(socketCPU);
-	list_destroy(listaCpuLibres);
-	list_destroy(listaEjecutando);
-	sem_destroy(&hayProgramas);
 	queue_destroy(colaProcesos);
 	return 0;
 }

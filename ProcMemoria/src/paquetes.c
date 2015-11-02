@@ -6,12 +6,12 @@
  */
 
 #include "estructuras.h"
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <stdbool.h>
-#include "configuracion.h"
 
 
 void armar_estructura_desde_cpu_y_hacia_swap(tprotocolo_desde_cpu_y_hacia_swap *protocolo, char cod_op, int pid, int paginas, char* mensaje) {

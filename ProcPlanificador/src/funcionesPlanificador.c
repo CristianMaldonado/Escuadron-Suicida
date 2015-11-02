@@ -2,7 +2,6 @@
 #include <commons/string.h>
 #include <semaphore.h>
 #include <stdio.h>
-#include "logueo.h"
 
 
 int maxLineas(char* path){
@@ -25,10 +24,12 @@ char* nombrePrograma(char* path){
 	while(vector[i] != NULL){
 		i++;
 	}
+
 	return vector[i-1];
 }
 
-tpcb* armarPCB(char* path, int cant) {
+
+tpcb* armarPCB(char* path, int cant) {//OK
 	tpcb* pcb = malloc(sizeof(tpcb));
 	pcb->ruta = (char*) malloc(strlen(path)+1);
 	strcpy(pcb->ruta, path);
@@ -41,7 +42,7 @@ tpcb* armarPCB(char* path, int cant) {
 	return pcb;
 }
 
-void finalizarPID(char* pidBuscado,t_queue* colaProc){//TODO arreglar
+void finalizarPID(char* pidBuscado,t_queue* colaProc){
 	t_list* lista= (colaProc)->elements;
 	t_link_element* element = lista->head;
 	tpcb* pcb;
@@ -61,22 +62,22 @@ void finalizarPID(char* pidBuscado,t_queue* colaProc){//TODO arreglar
 
 void convertirEstado(testado estadoEnum, char* estado){
 
-	if (estadoEnum == LISTO) {
-		estado = malloc(7);
-		strcpy(estado, "LISTO");
-	}
-	if (estadoEnum == IO) {
-		estado = malloc(7);
-		strcpy(estado, "IO");
-	}
-	if (estadoEnum == EJECUTANDO) {
-		estado = malloc(12);
-		strcpy(estado, "EJECUTANDO");
-	}
-	if (estadoEnum == FINALIZADO) {
-		estado = malloc(12);
-		strcpy(estado, "FINALIZADO");
-	}
+if (estadoEnum == LISTO) {
+	estado = malloc(7);
+	strcpy(estado, "LISTO");
+}
+if (estadoEnum == IO) {
+	estado = malloc(7);
+	strcpy(estado, "IO");
+}
+if (estadoEnum == EJECUTANDO) {
+	estado = malloc(12);
+	strcpy(estado, "EJECUTANDO");
+}
+if (estadoEnum == FINALIZADO) {
+	estado = malloc(12);
+	strcpy(estado, "FINALIZADO");
+}
 
  }
 
@@ -90,17 +91,21 @@ void mostrarEstadoProcesos(t_queue* colaProc){
 	while (element != NULL){
 		char* estado = string_new();
 			pcb=(element->data);
-			element=element->next;
-			convertirEstado(pcb->estado, estado);
-			strcpy(infoProceso, "mProc: ");
-			string_append_with_format(&infoProceso, "%d ", pcb->pid);
-			string_append(&infoProceso, pcb->nombre);
-			string_append(&infoProceso, " -> ");
-			string_append_with_format(&infoProceso, "%d", estado);
-			printf("%s",infoProceso);
-			free(estado);
-			pos++;
+				element=element->next;
+				convertirEstado(pcb->estado, estado);
+				strcpy(infoProceso, "mProc: ");
+				string_append_with_format(&infoProceso, "%d ", pcb->pid);
+				string_append(&infoProceso, pcb->nombre);
+				string_append(&infoProceso, " -> ");
+				string_append_with_format(&infoProceso, "%d", estado);
+				printf("%s",infoProceso);
+
+				free(estado);
+				pos++;
+
 		}
+
+
     free(infoProceso);
 }
 

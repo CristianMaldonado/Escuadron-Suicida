@@ -11,7 +11,7 @@
 #include <commons/log.h>
 #include <commons/string.h>
 
-void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int tid) {//eliminar tid
+void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion) {
 	char* logueoContexto = (char*)malloc(50);
 	char* estado;
 	if (contextoDeEjecucion->estado == LISTO) {
@@ -35,13 +35,12 @@ void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int
 	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->pid);
 	string_append(&logueoContexto, "\nInstruccion: ");
 	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->counterProgram);
-	string_append(&logueoContexto, " Quantum: ");
+	string_append(&logueoContexto, " \nQuantum: ");
 	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->quantum);
-	string_append(&logueoContexto, " Estado: ");
+	string_append(&logueoContexto, " \nEstado: ");
 	string_append(&logueoContexto, estado);
 	string_append(&logueoContexto, " \nRuta: ");
 	string_append(&logueoContexto, contextoDeEjecucion->mensaje);
-	string_append_with_format(&logueoContexto, " Recibido por el CPU %d\n", tid);
 
 	log_info(logCpu, logueoContexto);
 	free(estado);
@@ -49,44 +48,7 @@ void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int
 
 }
 
-char* prepararLogueoDeMemoria(protocolo_memoria_cpu* respuestaMemoria){
-
-	char* texto = malloc(sizeof(char) * 15);
-
-	//string_append(&(*texto),"\nmProc: ");
-	strcpy(texto,"\nmProc: ");
-	string_append_with_format(&texto, "%d", respuestaMemoria->pid);
-	string_append(&texto, " - ");
-
-	if (respuestaMemoria->codOperacion == 'i' && respuestaMemoria->codAux != 'a') {
-		string_append(&texto, "Iniciado");
-	}
-	if (respuestaMemoria->codOperacion == 'l') {
-		string_append(&texto, "Pagina: ");
-		string_append_with_format(&texto, "%d", respuestaMemoria->numeroPagina);
-		string_append(&texto, " leida: ");
-		string_append(&texto, respuestaMemoria->mensaje);
-	}
-
-	if (respuestaMemoria->codOperacion == 'e'){
-		string_append(&texto, "Pagina: ");
-		string_append_with_format(&texto, "%d", respuestaMemoria->numeroPagina);
-		string_append(&texto, " escrita: ");
-		string_append(&texto, respuestaMemoria->mensaje);
-	}
-
-	if ((respuestaMemoria->codOperacion == 'i') && (respuestaMemoria->codAux == 'a')) {
-		string_append(&texto, "Fallo al iniciar\n");
-	}
-
-	if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'f')) {
-		string_append(&texto, "Finalizado");
-	}
-	return texto;
-}
-
-/*
-void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria){
+void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida){
 
 	char* logueoMemoria = malloc(sizeof(char) * 10);
 
@@ -121,7 +83,7 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria){
 	log_info(logCpu, logueoMemoria);
 	free(logueoMemoria);
 
-}*/
+}
 
 void loguearPlanificadorIO(protocolo_planificador_cpu* mensajeDePlanificador, int tiempo){
 	char* logueoIO = malloc(sizeof(char) * 10);

@@ -16,7 +16,7 @@ tpcb* armarPCB (char* path,int cant);
 int clasificarComando(char* message);
 void adaptadorPCBaProtocolo(tpcb* pcb,protocolo_planificador_cpu* paquete);
 void procesarComando(int nro_comando, char* message, int* cantProc,t_queue* colaProc);
-char* nombrePrograma(char* path);
+
 int deserializarCPU(protocolo_planificador_cpu *package,int socketCPU);
 
 void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio);
