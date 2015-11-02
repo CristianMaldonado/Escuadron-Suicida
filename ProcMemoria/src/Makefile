@@ -23,4 +23,4 @@ paquetes.o : paquetes.c estructuras.h configuracion.h
 
 clean:
 	rm -f memoria \
-		memoria.o configuracion.o funciones_memoria.o libSocket.o paquetes.o log_memoria.o
+		memoria.o configuracion.o funciones_memoria.o libSocket.o paquetes.o log_memoria.o log.txt
