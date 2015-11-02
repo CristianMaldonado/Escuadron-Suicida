@@ -18,15 +18,12 @@
 bool terminoPlanificador;
 tipoConfiguracionCPU *config;
 
-void *procesarInstruccion(void *argumento) {
+void *procesarInstruccion() {
 
-	protocolo_planificador_cpu* datosParaProcesar;
-	datosParaProcesar = (protocolo_planificador_cpu*) argumento;
-	protocolo_cpu_memoria* mensajeAMemoria = malloc(
-			sizeof(protocolo_cpu_memoria));
+	protocolo_planificador_cpu* datosParaProcesar = malloc(sizeof(protocolo_planificador_cpu));
+	protocolo_cpu_memoria* mensajeAMemoria = malloc(sizeof(protocolo_cpu_memoria));
 	printf("aca estoy\n");
-	protocolo_memoria_cpu* mensajeDeMemoria = malloc(
-			sizeof(protocolo_memoria_cpu));
+	protocolo_memoria_cpu* mensajeDeMemoria = malloc(sizeof(protocolo_memoria_cpu));
 	int tid = process_get_thread_id();
 	int socketPlanifAux;
 	pthread_mutex_lock(&mutexSocket);
@@ -53,14 +50,14 @@ void *procesarInstruccion(void *argumento) {
 	while (1) {
 		//pthread_mutex_lock(&mutexProceso);
 		//sem_wait(&nuevoProceso);
-		status = deserializarPlanificador(argumento, socketPlanifAux);
+		status = deserializarPlanificador(datosParaProcesar, socketPlanifAux);
 		if(status < 0) {
 			pthread_exit(0);
 			sem_post(&ejecutaInstruccion);
 		}
 		//printf("selialice");
 		pthread_mutex_lock(&mutexProceso);
-		logueoRecepcionDePlanif(argumento);
+		logueoRecepcionDePlanif(datosParaProcesar);
 		pthread_mutex_unlock(&mutexProceso);
 		//terminoPlanificador = false;
 		//sem_post(&ejecutaInstruccion);
@@ -190,15 +187,13 @@ int main() {
 	sem_init(&nuevoProceso, 0, 1);
 	pthread_attr_init(&atrib);
 
-	protocolo_planificador_cpu* parametros = malloc(
-			config->cantidadHilos * sizeof(protocolo_planificador_cpu));
 	for (i = 0; i <= config->cantidadHilos; i++) {
 		//vectorHilos[i].tid= process_get_thread_id();
 		printf("le mande al hilo %d", i);
 		// Lo que recibimos del planificador lo enviamos al hilo
 		//pthread_create(&hilo, &atrib, procesarInstruccion,(void*) parametros);
 		vectorHilos[i] = pthread_create(&vectorHilos[i], &atrib,
-				procesarInstruccion, (void*) parametros);
+				procesarInstruccion, NULL);
 
 	}
 
@@ -222,7 +217,6 @@ int main() {
 
 	//pthread_join(hilo,NULL);
 	sem_wait(&ejecutaInstruccion);
-	free(parametros);
 	close(socketMemoria);
 	sem_destroy(&nuevoProceso);
 	sem_destroy(&ejecutaInstruccion);
