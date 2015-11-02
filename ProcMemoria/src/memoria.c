@@ -80,7 +80,6 @@ int main(void) {
 	server_acept(socketServidorCPU, &socketClienteCPU);
 	printf("CPU aceptado...\n");
 
-
 	signal(SIGUSR1, sigHandler);
 	signal(SIGUSR2, sigHandler);
 	signal(SIGPOLL, sigHandler);
@@ -89,17 +88,14 @@ int main(void) {
 	// creamos la representacion memoria
 
 	memoria = crear_memoria(config->cantidadMarcos, config->tamanioMarco);
-
 	lista_tabla_de_paginas = list_create();
 
 	///////////////////////////////////////////////////////////////////////////////////////
-	// creamos la tlb cache_13
-
+	// creamos la tlb cache_13, si es que en el archivo de configuracion este esta activado
 	if(config->habilitadaTLB)
 		tlb = inicializar_tlb(config->entradasTLB);
 
 	///////////////////////////////////////////////////////////////////////////////////////
-
 
 	tprotocolo_desde_cpu_y_hacia_swap paquete_desde_cpu;
 	int salir = 0;
@@ -132,9 +128,7 @@ int main(void) {
 					list_add(lista_tabla_de_paginas, inicializar_tabla_de_paginas(config->maximoMarcosPorProceso, paquete_desde_cpu.pid));
 
 				avisar_a_cpu(paquete_desde_cpu.cod_op, swap_memoria.codAux, swap_memoria.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje, socketClienteCPU);
-
 				free(paquete_desde_cpu.mensaje);
-
 				pthread_mutex_unlock(&mutex);
 			}
 			break;
@@ -172,15 +166,12 @@ int main(void) {
 				if(config->habilitadaTLB)
 					direccion_posta = dame_la_direccion_posta_de_la_pagina_en_la_tlb(&tlb, paquete_desde_cpu.pid, paquete_desde_cpu.paginas);
 
-
 				if(direccion_posta == -1) { // si la pagina no esta en la tlb
-
 
 					tabla_paginas *tabla_de_paginas = dame_la_tabla_de_paginas(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
 
 					// paginas es numero de pagina o cantidad de paginas depende el protocolo, en este caso es numero de pagina
 					int nro_marco = dame_la_direccion_de_la_pagina(tabla_de_paginas, paquete_desde_cpu.paginas);
-
 
 					// es valida o no la direccion
 					if(nro_marco != -1) { // si la pagina esta en memoria
@@ -280,9 +271,10 @@ int main(void) {
 							free(pagina_ocupada);
 						}
 						else { // si hay algun frame libre
-							// asignar un marco libre, bucar en las tablas de paginas de cada proceso y si hay uno libre es porque
-							// no figura en ninguna tabla de pagina de los proceso
-							int nro_frame = dame_un_marco_libre(lista_tabla_de_paginas, config->tamanioMarco);
+
+							/* asignar un marco libre, bucar en las tablas de paginas de cada proceso y si hay uno libre es porque
+							no figura en ninguna tabla de pagina de los proceso*/
+							int nro_frame = dame_un_marco_libre(lista_tabla_de_paginas, config->cantidadMarcos);
 							if(nro_frame != -1) {
 								int i;
 								for(i = 0; i < list_size(tabla_de_paginas->list_pagina_direccion) ; i++) {
@@ -375,7 +367,6 @@ int main(void) {
 	printf("Ando ...\n");
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
-
 	close(socketClienteSWAP);
 	close(socketClienteCPU);
 	close(socketServidorCPU);
