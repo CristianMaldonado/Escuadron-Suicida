@@ -15,6 +15,7 @@ void *selector(void* arg) {
 	int nbytes;
 	int yes = 1;        // para setsockopt() SO_REUSEADDR, más abajo
 	int i, j,status;
+
 	protocolo_planificador_cpu* respuestaDeCPU = malloc(sizeof(protocolo_planificador_cpu));
 
 	tParametroSelector* parametros;
@@ -78,28 +79,31 @@ void *selector(void* arg) {
 					}
 					else {
 						// tenemos datos de algún cliente
-						for (j = 0; j <= fdmax; j++) {//TODO CASE GIGANTE SEGUN LO QUE RESPONDA LA CPU PARA METER EL PROC EN DETERMINADA COLA
-							if (FD_ISSET(j, &master)) {
+						//for (j = 0; j <= fdmax; j++) {//TODO CASE GIGANTE SEGUN LO QUE RESPONDA LA CPU PARA METER EL PROC EN DETERMINADA COLA
+						//	if (FD_ISSET(j, &master)) {
 								//TODO gestionar llegada
 								recv(i,buf,sizeof(buf),0);
-								//status = deserializarCPU(respuestaDeCPU,i);
-								//if(status == 0) error_show("Desconeccion de CPU");
-								/*switch(respuestaDeCPU->tipoProceso){
-								case 'i':{
+							/*	status = deserializarCPU(respuestaDeCPU,i);
+								if(status == 0) error_show("Desconeccion de CPU");
+
+								switch(respuestaDeCPU->tipoOperacion){
+								case 'i':{//METE EN LISTA EJECUTANDO
 
 								}break;
 
-								case 'l':{
-
+								case 'a':{//SI FALLA LIBERA LA CPU MOVER DE COLA EJECUTANDO A COLA DISPONIBLE
+									list_add(parametros->listaCpus,i);
 								}break;
-								case 'f':{
 
+
+								case 'f':{// LIBERAR CPU MOVER DE COLA EJECUTANDO A COLA DISPONIBLE
+									list_add(parametros->listaCpus,i);
 								}break;
 								}*/
 								//ACA TENDRIA QUE IR EL LOGUEO DE FINALIZADO????
 								list_add(parametros->listaCpus,i);
-							}
-						}
+						//	}
+					//	}
 					}
 				} // Esto es ¡TAN FEO!
 			}

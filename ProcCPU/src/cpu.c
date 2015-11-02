@@ -18,16 +18,16 @@
 tipoConfiguracionCPU *config;
 int status = 1;
 
-void *procesarInstruccion(void *argumento) {
+void *procesarInstruccion() {
 
-	protocolo_planificador_cpu* datosParaProcesar;
-	datosParaProcesar = (protocolo_planificador_cpu*) argumento;
+	protocolo_planificador_cpu* datosParaProcesar = malloc(sizeof(protocolo_planificador_cpu));
+	//datosParaProcesar = (protocolo_planificador_cpu*) argumento;
 	protocolo_cpu_memoria* mensajeAMemoria = malloc(sizeof(protocolo_cpu_memoria));
 	protocolo_memoria_cpu* mensajeDeMemoria = malloc(sizeof(protocolo_memoria_cpu));
 	int tid = process_get_thread_id();
 	int socketPlanifAux;
 
-	pthread_mutex_lock(&mutexSocket);
+	pthread_mutex_lock(&mutex);
 
 	printf("Conectando al Planificador (%s : %s)... ", config->ipPlanificador,config->puertoPlanificador);
 	//CONECCION CON PLANIFICADOR
@@ -41,7 +41,7 @@ void *procesarInstruccion(void *argumento) {
 	if (socketMemoria == -1) log_info(logCpu, "CPU %d fallo al conectar con Memoria", tid);
 	else log_info(logCpu, "CPU %d se conecto con Memoria", tid);
 
-	pthread_mutex_unlock(&mutexSocket);
+	pthread_mutex_unlock(&mutex);
 
 	while (1) {
 
@@ -51,9 +51,9 @@ void *procesarInstruccion(void *argumento) {
 			sem_post(&ejecutaInstruccion);//TODO
 		}
 		//pthread_mutex_lock(&mutexProceso);
-		pthread_mutex_lock(&mutexLogueoPlanificador);//TODO rafaga
+		pthread_mutex_lock(&mutex);//TODO rafaga
 		logueoRecepcionDePlanif(datosParaProcesar,tid);
-		pthread_mutex_unlock(&mutexLogueoPlanificador);
+		pthread_mutex_unlock(&mutex);
 
 		FILE* archivo = fopen(datosParaProcesar->mensaje, "r+");
 		if (archivo == NULL) error_show("Error al abrir mCod");
@@ -75,7 +75,10 @@ void *procesarInstruccion(void *argumento) {
 			interpretarInstruccion(instruccionLeida, datosParaProcesar,mensajeAMemoria, socketPlanifAux);//si es IO arma y envia a planificador
 			if (datosParaProcesar->tipoOperacion == 'E') break;
 			puts("voy a enviar a memoria\n");
+
+			pthread_mutex_lock(&mutex);
 			enviarAMemoria(mensajeAMemoria);
+			pthread_mutex_unlock(&mutex);
 
 			printf("pid %d\n", mensajeAMemoria->pid);//
 			printf("tamanio %d\n", mensajeAMemoria->tamanioMensaje);//
@@ -83,34 +86,41 @@ void *procesarInstruccion(void *argumento) {
 
 			deserializarMemoria(mensajeDeMemoria);
 			string_append(&textoALoguear,prepararLogueoDeMemoria(mensajeDeMemoria));
+			//prepararLogueoDeMemoria(mensajeDeMemoria,&textoALoguear);
+			//pthread_mutex_lock(&mutex);//TODO rafaga
+			//loguearEstadoMemoria(mensajeDeMemoria);
+			//pthread_mutex_unlock(&mutex);
 
 			printf("pid %d\n", mensajeDeMemoria->pid);//
 			printf("tamanio %d\n", mensajeDeMemoria->tamanioMensaje);//
 			printf("operacion %c\n", mensajeDeMemoria->codOperacion);//
 			printf("cod aux %c\n", mensajeDeMemoria->codAux);//
 
-			if (mensajeDeMemoria->codAux == 'a' && mensajeDeMemoria->codOperacion == 'i') break;
+			if (mensajeDeMemoria->codAux == 'a' && mensajeDeMemoria->codOperacion == 'i'){
+				actualizarOperacionPaquetePlanificador(datosParaProcesar, 'c', 'a');
+				//enviarAPlanificador();//enviar si fallo preguntar a ariel
+				break;// si falla al iniciar
+			}
 
-			switch (mensajeDeMemoria->codOperacion){
+			switch (mensajeDeMemoria->codOperacion){// arma mensaje a planificador
 
 			 case 'i': {
-				 actualizarOperacionPaquetePlanificador(datosParaProcesar,
-						 (mensajeDeMemoria->codAux == 'a') ? 'f' : 'c', 'i');
+				 actualizarOperacionPaquetePlanificador(datosParaProcesar, 'c', 'i');
 			 }break;
 
-			 case 'l': {
-				 actualizarOperacionPaquetePlanificador(datosParaProcesar,
-						 (mensajeDeMemoria->codAux == 'a')?'f' : 'c', 'l');
+			/* case 'l': {
+				 actualizarOperacionPaquetePlanificador(datosParaProcesar,'l',
+						 (mensajeDeMemoria->codAux == 'a')?'f' : 'c');
 			 }break;
 
 			 case 'e':{
-				 actualizarOperacionPaquetePlanificador(datosParaProcesar,
-						 (mensajeDeMemoria->codAux == 'a')?'f' : 'c', 'e');
-			 }break;
+				 actualizarOperacionPaquetePlanificador(datosParaProcesar,'e',
+						 (mensajeDeMemoria->codAux == 'a')?'f' : 'c');
+			 }break;*/
 
 			 case 'f':{
-				 actualizarOperacionPaquetePlanificador(datosParaProcesar,
-						 (mensajeDeMemoria->codAux == 'a') ? 'f' : 'f', 'i');
+				 actualizarOperacionPaquetePlanificador(datosParaProcesar,'c',
+						 (mensajeDeMemoria->codAux == 'a') ? 'a' : 'f');
 			 }break;
 
 
@@ -120,18 +130,23 @@ void *procesarInstruccion(void *argumento) {
 			sleep(config->retardo);
 			quantum++;
 		}
+
+		pthread_mutex_lock(&mutex);//TODO rafaga
+		log_info(logCpu,textoALoguear);
+		pthread_mutex_unlock(&mutex);
+
 		if (datosParaProcesar->quantum != 0) {
 			actualizarOperacionPaquetePlanificador(datosParaProcesar, 'q',datosParaProcesar->tipoProceso);
+			pthread_mutex_lock(&mutex);//TODO rafaga
 			enviarAPlanificador(datosParaProcesar, socketPlanifAux);
+			pthread_mutex_unlock(&mutex);
 		}
 		free(lineaLeida);
 		fclose(archivo);
-		pthread_mutex_lock(&mutexLogueoMemoria);//TODO rafaga
-		log_info(logCpu,textoALoguear);
-		pthread_mutex_unlock(&mutexLogueoMemoria);
 		//pthread_mutex_unlock(&mutexProceso);
-		free(textoALoguear);
+		//free(textoALoguear);
 	}
+	free(datosParaProcesar);
 	free(mensajeAMemoria);
 	free(mensajeDeMemoria);
 	close(socketPlanifAux);
@@ -151,10 +166,8 @@ int main() {
 	 config->cantidadHilos = 1;
 	 config->retardo = 1;*/
 
-	pthread_mutex_init(&mutexLogueoPlanificador,NULL);
-	pthread_mutex_init(&mutexSocket, NULL);
-	pthread_mutex_init(&mutexLogueoMemoria, NULL);
-	pthread_mutex_init(&mutexProceso, NULL);
+
+	pthread_mutex_init(&mutex, NULL);
 
 	config = leerConfiguracion();
 	int i;
@@ -174,12 +187,11 @@ int main() {
 
 	pthread_attr_init(&atrib);
 
-	protocolo_planificador_cpu* parametros = malloc(config->cantidadHilos * sizeof(protocolo_planificador_cpu));
+	//protocolo_planificador_cpu* parametros = malloc(config->cantidadHilos * sizeof(protocolo_planificador_cpu));
 	for (i = 0; i < config->cantidadHilos; i++) {
 		//vectorHilos[i].tid= process_get_thread_id();
-		// Lo que recibimos del planificador lo enviamos al hilo
 		//pthread_create(&hilo, &atrib, procesarInstruccion,(void*) parametros);
-		vectorHilos[i] = pthread_create(&vectorHilos[i], &atrib,procesarInstruccion, (void*) parametros);
+		vectorHilos[i] = pthread_create(&vectorHilos[i], &atrib,procesarInstruccion, NULL);
 
 	}
 
@@ -196,24 +208,21 @@ int main() {
 	 sem_post(&ejecutaInstruccion);
 
 	 }*/
-	//printf("Finalizo el planificador...\n");
-	/*pthread_join(vectorHilos[0],NULL);
 
-	for (i=1;i < config->cantidadHilos;i++){
-		pthread_join(vectorHilos[i],NULL);
-	}*/
+	for (i = 0; i < config->cantidadHilos; i++) {
+		pthread_join(vectorHilos[i], NULL);
+	}
+
 	sem_wait(&ejecutaInstruccion);
+	printf("Finalizo el planificador...\n");
 
-
-	free(parametros);
+	//free(parametros);
 	close(socketMemoria);
 	sem_destroy(&envioParaMemoria);
 	sem_destroy(&ejecutaInstruccion);
 	sem_destroy(&nuevoProceso);
-	pthread_mutex_destroy(&mutexProceso);
-	pthread_mutex_destroy(&mutexSocket);
-	pthread_mutex_destroy(&mutexLogueoMemoria);
-	pthread_mutex_destroy(&mutexLogueoPlanificador);
+	pthread_mutex_destroy(&mutex);
+
 	pthread_attr_destroy(&atrib);
 	log_info(logCpu, "Cerrada conexion saliente");
 	log_destroy(logCpu);

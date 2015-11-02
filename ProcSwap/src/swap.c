@@ -92,6 +92,7 @@ int main(void) {
 					if (espacio_total_disponible(lista_vacia) >= protocolo_desde_memoria.cantidad_pagina){
 						//compactamos, y retorno el comienzo del espacio vacio
 						log_info(logSwap,"compactacion iniciada /n");
+						sleep(config_swap->retardo);
 						int comienzo = compactar_swap(&swap, &lista_vacia, &lista_ocupado, config_swap->tamanioPagina, config_swap->cantidadPaginas);
 						log_info(logSwap,"compactacion finalizada /n");
 
@@ -174,10 +175,10 @@ int main(void) {
 				fread(pag_data, config_swap->tamanioPagina, 1, swap);
 				pag_data[config_swap->tamanioPagina] = '\0';
 
-				log_escritura(logSwap, protocolo_desde_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, pag_data);
+				log_lectura(logSwap, protocolo_desde_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, pag_data);
 
 				tprotocolo_swap_memoria swap_memoria;
-				armar_estructura_protocolo_a_memoria(&swap_memoria,'i', protocolo_desde_memoria.pid, pag_data);
+				armar_estructura_protocolo_a_memoria(&swap_memoria, 'i', protocolo_desde_memoria.pid, pag_data);
 				void * buffer = serializar_a_memoria(&swap_memoria);
 				send(socket_memoria, buffer, 9 + config_swap->tamanioPagina, 0);
 			}
@@ -185,12 +186,21 @@ int main(void) {
 			break;
 
 			//escribir pagina
-			case 'e':
-				break;
+			case 'e': {
+				int pag_inicio = get_comienzo_espacio_asignado(lista_ocupado, protocolo_desde_memoria.pid);
+				//indica la pagina a leer
+				int pagina_a_escribir = protocolo_desde_memoria.cantidad_pagina;
+
+				//me posiciono sobre la pagina a leer
+				int desplazamiento_en_bytes = (pag_inicio + pagina_a_escribir)*config_swap->tamanioPagina;
+				log_escritura(logSwap, protocolo_desde_memoria.pid, pag_inicio, config_swap->tamanioPagina, pagina_a_escribir,protocolo_desde_memoria.mensaje);
+				fseek(swap, desplazamiento_en_bytes, SEEK_SET);
+				fwrite(protocolo_desde_memoria.mensaje ,protocolo_desde_memoria.tamanio_mensaje, 1, swap);
+			}
+			break;
 		}
 		free(protocolo_desde_memoria.mensaje);
 	}
-
 
 
 	close(socket_memoria);

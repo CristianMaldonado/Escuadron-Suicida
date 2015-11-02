@@ -18,7 +18,7 @@ char* leerInstruccion(int* instructionPointer, char* lineaLeida, FILE* archivo, 
 void enviarAMemoria(protocolo_cpu_memoria* message);
 void armarPaqueteMemoria(protocolo_cpu_memoria* paquete,char tipoProceso, char codOperacion, int pid, int nroPagina, char* mensaje);
 void armarPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoProceso,char codOperacion, int pid, testado estado, int counterProgram ,int quantum, int tamanioMensaje,char* mensaje);
-void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoOperacion,char codOperacion);
+void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoProceso,char tipoOperacion);
 void enviarAPlanificador(protocolo_planificador_cpu* respuestaDeMemo,int socketPlanificador);
 //void crearMockitoPlanif(protocolo_planificador_cpu* package);
 

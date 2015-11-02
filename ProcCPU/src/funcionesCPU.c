@@ -48,9 +48,9 @@ void armarPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoProc
 	strcpy(paquete->mensaje, mensaje);
 }
 
-void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoOperacion,char codOperacion){
-	paquete->tipoOperacion = tipoOperacion;
-	paquete->tipoProceso = codOperacion;
+void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoProceso,char tipoOperacion){
+	paquete->tipoOperacion = tipoOperacion;// iniciar,leer,etc...
+	paquete->tipoProceso = tipoProceso;// c = cpu ...
 	//TODO: Modificar estado (?
 }
 

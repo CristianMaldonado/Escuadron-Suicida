@@ -19,10 +19,8 @@ t_log *logCpu;
 //int socketPlanificador;
 int socketMemoria;
 
-pthread_mutex_t mutexSocket;
-pthread_mutex_t mutexProceso;
-pthread_mutex_t mutexLogueoMemoria;
-pthread_mutex_t mutexLogueoPlanificador;
+pthread_mutex_t mutex;
+
 
 typedef enum {
 	LISTO, IO, EJECUTANDO, FINALIZADO

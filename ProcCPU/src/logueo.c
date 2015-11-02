@@ -53,6 +53,7 @@ char* prepararLogueoDeMemoria(protocolo_memoria_cpu* respuestaMemoria){
 
 	char* texto = malloc(sizeof(char) * 15);
 
+	//string_append(&(*texto),"\nmProc: ");
 	strcpy(texto,"\nmProc: ");
 	string_append_with_format(&texto, "%d", respuestaMemoria->pid);
 	string_append(&texto, " - ");
@@ -81,16 +82,11 @@ char* prepararLogueoDeMemoria(protocolo_memoria_cpu* respuestaMemoria){
 	if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'f')) {
 		string_append(&texto, "Finalizado");
 	}
-
 	return texto;
 }
 
 /*
-void loguearRafaga(char* textoALoguear){
-	log_info(logCpu,textoALoguear);
-}*/
-/*
-void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida){
+void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria){
 
 	char* logueoMemoria = malloc(sizeof(char) * 10);
 

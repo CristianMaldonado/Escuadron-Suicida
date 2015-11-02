@@ -68,7 +68,7 @@ void log_proc_rechazado(t_log *log, int pid){
 	log_info(log,str);
 }
 
-void log_escritura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int pagina_a_leer, char* contenido){
+void log_lectura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int pagina_a_leer, char* contenido) {
 
 	char * str = malloc(20);
 	strcpy(str, "lectura-> pid: ");
@@ -82,6 +82,21 @@ void log_escritura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagi
 	string_append(&str, "\n");
 
 	log_info(log,str);
-
 }
 
+
+void log_escritura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int pagina_a_escribir, char* contenido) {
+
+	char * str = malloc(20);
+	strcpy(str, "escritura-> pid: ");
+	string_append(&str, string_itoa(pid));
+	string_append(&str, ", bytes_inicial: ");
+	string_append(&str, string_itoa((nro_pagina_inicial + pagina_a_escribir)*tamanio_pagina));
+	string_append(&str, ", tamanio_en_bytes_a_escribir: ");
+	string_append(&str, string_itoa(tamanio_pagina));
+	string_append(&str, ", contenido: ");
+	string_append(&str, contenido);
+	string_append(&str, "\n");
+
+	log_info(log,str);
+}
