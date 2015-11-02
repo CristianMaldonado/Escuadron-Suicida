@@ -21,9 +21,11 @@ tipoConfiguracionCPU *config;
 void *procesarInstruccion() {
 
 	protocolo_planificador_cpu* datosParaProcesar = malloc(sizeof(protocolo_planificador_cpu));
-	protocolo_cpu_memoria* mensajeAMemoria = malloc(sizeof(protocolo_cpu_memoria));
+	protocolo_cpu_memoria* mensajeAMemoria = malloc(
+			sizeof(protocolo_cpu_memoria));
 	printf("aca estoy\n");
-	protocolo_memoria_cpu* mensajeDeMemoria = malloc(sizeof(protocolo_memoria_cpu));
+	protocolo_memoria_cpu* mensajeDeMemoria = malloc(
+			sizeof(protocolo_memoria_cpu));
 	int tid = process_get_thread_id();
 	int socketPlanifAux;
 	pthread_mutex_lock(&mutexSocket);
@@ -187,6 +189,7 @@ int main() {
 	sem_init(&nuevoProceso, 0, 1);
 	pthread_attr_init(&atrib);
 
+
 	for (i = 0; i <= config->cantidadHilos; i++) {
 		//vectorHilos[i].tid= process_get_thread_id();
 		printf("le mande al hilo %d", i);
@@ -217,6 +220,7 @@ int main() {
 
 	//pthread_join(hilo,NULL);
 	sem_wait(&ejecutaInstruccion);
+
 	close(socketMemoria);
 	sem_destroy(&nuevoProceso);
 	sem_destroy(&ejecutaInstruccion);

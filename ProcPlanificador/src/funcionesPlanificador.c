@@ -109,6 +109,33 @@ void mostrarEstadoProcesos(t_queue* colaProc){
     free(infoProceso);
 }
 
+void mostrarEstadoProcesosLista(t_list* lista){
+	char* infoProceso = (char*)malloc(50);
+
+	t_link_element* element = lista->head;
+	tpcb* pcb;
+	int pos= 0;
+	while (element != NULL){
+		char* estado = string_new();
+			pcb=(element->data);
+				element=element->next;
+				convertirEstado(pcb->estado, estado);
+				strcpy(infoProceso, "mProc: ");
+				string_append_with_format(&infoProceso, "%d ", pcb->pid);
+				string_append(&infoProceso, pcb->nombre);
+				string_append(&infoProceso, " -> ");
+				string_append_with_format(&infoProceso, "%d", estado);
+				printf("%s",infoProceso);
+
+				free(estado);
+				pos++;
+
+		}
+
+
+    free(infoProceso);
+}
+
 int clasificarComando(char* message) {//OK
 	if (!strcmp(message, "ps\n")) {
 		return 1;
