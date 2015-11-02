@@ -14,7 +14,7 @@
 void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int tid);
 //void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida);
 void loguearPlanificadorIO(protocolo_planificador_cpu* mensajeDePlanificador, int tiempo);
-void prepararLogueoDeMemoria(protocolo_memoria_cpu* respuestaMemoria,char* texto);
+char* prepararLogueoDeMemoria(protocolo_memoria_cpu* respuestaMemoria);
 void loguearRafaga(char* textoALoguear);
 
 #endif

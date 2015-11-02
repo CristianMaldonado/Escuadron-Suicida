@@ -49,9 +49,11 @@ void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int
 
 }
 
-void prepararLogueoDeMemoria(protocolo_memoria_cpu* respuestaMemoria,char* texto){
+char* prepararLogueoDeMemoria(protocolo_memoria_cpu* respuestaMemoria){
 
-	strcpy(texto,"mProc: ");
+	char* texto = malloc(sizeof(char) * 15);
+
+	strcpy(texto,"\nmProc: ");
 	string_append_with_format(&texto, "%d", respuestaMemoria->pid);
 	string_append(&texto, " - ");
 
@@ -79,7 +81,8 @@ void prepararLogueoDeMemoria(protocolo_memoria_cpu* respuestaMemoria,char* texto
 	if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'f')) {
 		string_append(&texto, "Finalizado");
 	}
-	string_append(&texto, "\n");
+
+	return texto;
 }
 
 /*

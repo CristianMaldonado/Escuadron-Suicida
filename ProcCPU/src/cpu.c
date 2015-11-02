@@ -63,7 +63,7 @@ void *procesarInstruccion(void *argumento) {
 		fseek(archivo, 0, SEEK_SET);
 		char* lineaLeida = malloc(tamanio);
 
-		char* textoALoguear = (char*)malloc(sizeof(char) * 30);
+		char* textoALoguear = string_new();
 
 		int quantum = 0;
 
@@ -82,7 +82,7 @@ void *procesarInstruccion(void *argumento) {
 			printf("operacion %c\n", mensajeAMemoria->tipoOperacion);//
 
 			deserializarMemoria(mensajeDeMemoria);
-			prepararLogueoDeMemoria(mensajeDeMemoria,textoALoguear);
+			string_append(&textoALoguear,prepararLogueoDeMemoria(mensajeDeMemoria));
 
 			printf("pid %d\n", mensajeDeMemoria->pid);//
 			printf("tamanio %d\n", mensajeDeMemoria->tamanioMensaje);//
