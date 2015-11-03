@@ -213,8 +213,8 @@ int main(void) {
 						else { // si hay algun frame libre
 							/* asignar un marco libre, bucar en las tablas de paginas de cada proceso y si hay uno libre es porque
 							no figura en ninguna tabla de pagina de los proceso*/
-							int nro_frame = dame_un_marco_libre(lista_tabla_de_paginas, config->cantidad_marcos);
-							if(nro_frame != -1) {
+							int nro_marco = dame_un_marco_libre(lista_tabla_de_paginas, config->cantidad_marcos);
+							if(nro_marco != -1) {
 								int i;
 								for(i = 0; i < list_size(tabla_de_paginas->list_pagina_direccion) ; i++) {
 									pagina_direccion * tabla = list_get(tabla_de_paginas->list_pagina_direccion, i);
@@ -222,7 +222,7 @@ int main(void) {
 										tabla->en_uso = true;
 										tabla->fue_modificado = false;
 										tabla->nro_pagina = paquete_desde_cpu.paginas;
-										tabla->nro_marco = nro_frame;
+										tabla->nro_marco = nro_marco;
 
 										char fifo = 'n';
 										if(config->habilitadaTLB)
@@ -235,14 +235,14 @@ int main(void) {
 										recibir_paquete_desde_swap(socketClienteSWAP, &swap_memoria);
 
 										//pasar la pagina desde el swap a la memoria
-										memcpy(memoria + nro_frame * config->tamanio_marco, swap_memoria.mensaje, swap_memoria.tamanio);
+										memcpy(memoria + nro_marco * config->tamanio_marco, swap_memoria.mensaje, swap_memoria.tamanio);
 
 										char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
 										int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, tabla->nro_marco * config->tamanio_marco);
 
 										if(paquete_desde_cpu.cod_op == 'l') { //avisar a la cpu
 											log_lectura_escritura('l', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco);
-											char * mensaje = dame_mensaje_de_memoria(&memoria, nro_frame, config->tamanio_marco);
+											char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanio_marco);
 
 											avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
 											free(mensaje);
