@@ -15,7 +15,7 @@ void log_inicializar(t_log *log, int pid, int paginas_asignadas) {
 	log_info(log,str);
 }
 
-void log_lectura_escritura(char operacion, char * resultado, t_log *log, int pid, int nro_pagina, int numero_entrada_en_tlb, bool acierto_tlb, int nro_marco_resultante) {
+void log_lectura_escritura(char operacion, char * resultado, t_log *log, int pid, int nro_pagina, int numero_entrada_en_tlb, bool acierto_tlb, int nro_marco_resultante, char * mensaje) {
 	char * str = malloc(30);
 	strcpy(str, operacion == 'e' ? "escritura-> pid: " : "lectura-> pid: ");
 	string_append(&str, string_itoa(pid));
@@ -25,6 +25,8 @@ void log_lectura_escritura(char operacion, char * resultado, t_log *log, int pid
 	string_append(&str, acierto_tlb ? string_itoa(numero_entrada_en_tlb) : "-");
 	string_append(&str, ", numero de pagina: ");
 	string_append(&str, string_itoa(nro_pagina));
+	string_append(&str, ", mensaje: ");
+	string_append(&str, string_itoa(mensaje));
 	string_append(&str, ", numero de marco: ");
 	string_append(&str, string_itoa(nro_marco_resultante));
 	string_append(&str, ", resultado del algoritmo: ");
