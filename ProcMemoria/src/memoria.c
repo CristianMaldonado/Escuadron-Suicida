@@ -217,16 +217,16 @@ int main(void) {
 							if(nro_marco != -1) {
 								int i;
 								for(i = 0; i < list_size(tabla_de_paginas->list_pagina_direccion) ; i++) {
-									pagina_direccion * tabla = list_get(tabla_de_paginas->list_pagina_direccion, i);
-									if(!tabla->en_uso) {
-										tabla->en_uso = true;
-										tabla->fue_modificado = false;
-										tabla->nro_pagina = paquete_desde_cpu.paginas;
-										tabla->nro_marco = nro_marco;
+									pagina_direccion * pagina = list_get(tabla_de_paginas->list_pagina_direccion, i);
+									if(!pagina->en_uso) {
+										pagina->en_uso = true;
+										pagina->fue_modificado = false;
+										pagina->nro_pagina = paquete_desde_cpu.paginas;
+										pagina->nro_marco = nro_marco;
 
 										char fifo = 'n';
 										if(config->habilitadaTLB)
-											fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, tabla->nro_marco * config->tamanio_marco, paquete_desde_cpu.paginas);
+											fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, pagina->nro_marco * config->tamanio_marco, paquete_desde_cpu.paginas);
 
 										// copiar el contenido del marco de la swap al marco de memoria y traerse la pagina nueva desde swap
 										avisar_a_swap('l', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteSWAP);
@@ -238,7 +238,7 @@ int main(void) {
 										memcpy(memoria + nro_marco * config->tamanio_marco, swap_memoria.mensaje, swap_memoria.tamanio);
 
 										char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
-										int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, tabla->nro_marco * config->tamanio_marco);
+										int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, pagina->nro_marco * config->tamanio_marco);
 
 										if(paquete_desde_cpu.cod_op == 'l') { //avisar a la cpu
 											log_lectura_escritura('l', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco);
@@ -250,7 +250,7 @@ int main(void) {
 											log_lectura_escritura('e', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco);
 											memcpy(memoria + nro_marco * config->tamanio_marco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
 
-											tabla->fue_modificado = true;
+											pagina->fue_modificado = true;
 											avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
 										}
 										free(paquete_desde_cpu.mensaje);
