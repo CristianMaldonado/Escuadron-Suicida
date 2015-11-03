@@ -12,6 +12,7 @@ void reinicar_archivo_swap(FILE **swap, t_list **lista_ocupada);
 int lista_vacia_compactada(t_list **lista_vacia, FILE **swap, int tamanio_pagina ,int total_de_paginas);
 int compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,int tamanio_pagina, int total_de_paginas);
 void arreglame_la_lista_vacia_che(t_list ** lista_vacia);
+void asignar_espacio(int pid, int comienzo, int cantidad_pagina, t_list **lista_ocupado, t_log **log_swap, int tamanio_pagina);
 
 
 #endif /* SRC_MANEJO_LISTAS_ARCHIVO_SWAP_H_ */

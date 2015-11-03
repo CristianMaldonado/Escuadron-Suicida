@@ -4,6 +4,8 @@
 #include "estructuras.h"
 #include "paquetes.h"
 #include <string.h>
+#include <commons/log.h>
+#include "config.h"
 
 
 void reinicar_archivo_swap(FILE **swap, t_list **lista_ocupada) {
@@ -140,4 +142,15 @@ void arreglame_la_lista_vacia_che(t_list ** lista_vacia) {
 		list_add(list_aux, elem_bloque_vacio);
 	}
 	*lista_vacia = list_aux;
+}
+
+
+void asignar_espacio(int pid, int comienzo, int cantidad_pagina, t_list **lista_ocupado, t_log **log_swap, int tamanio_pagina) {
+	//asignar el espacio solicitado
+	tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
+	ocupado->pid = pid;
+	ocupado->comienzo = comienzo;
+	ocupado->paginas_ocupadas = cantidad_pagina;
+	list_add(*lista_ocupado, ocupado);
+	log_inicializar(*log_swap, pid, ocupado->comienzo, tamanio_pagina, cantidad_pagina);
 }

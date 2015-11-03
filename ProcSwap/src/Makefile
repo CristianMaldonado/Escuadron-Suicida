@@ -3,7 +3,7 @@
 swap: swap.o config.o libSocket.o manejo_listas_archivo_swap.o paquetes.o
 	gcc -o swap swap.o config.o libSocket.o manejo_listas_archivo_swap.o paquetes.o -lcommons
 
-manejo_listas_archivo_swap.o: manejo_listas_archivo_swap.c estructuras.h paquetes.h
+manejo_listas_archivo_swap.o: manejo_listas_archivo_swap.c estructuras.h paquetes.h config.h
 	gcc -c manejo_listas_archivo_swap.c -lcommons
 
 swap.o: swap.c libSocket.h estructuras.h manejo_listas_archivo_swap.h config.h paquetes.h

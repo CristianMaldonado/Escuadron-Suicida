@@ -44,19 +44,12 @@ int main(void) {
 
 		switch(protocolo_desde_memoria.codigo_op){
 			case 'i': {
-				int comienzo = 4, hay_espacio;
+				int comienzo = -1, hay_espacio;
 				char cod_aux = 'i';
 				hay_espacio = dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo);
 
-				if (hay_espacio) {
-					//asignar el espacio solicitado
-					tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
-					ocupado->pid = protocolo_desde_memoria.pid;
-					ocupado->comienzo = comienzo;
-					ocupado->paginas_ocupadas = protocolo_desde_memoria.cantidad_pagina;
-					list_add(lista_ocupado, ocupado);
-					log_inicializar(logSwap,protocolo_desde_memoria.pid,ocupado->comienzo,config_swap->tamanioPagina,protocolo_desde_memoria.cantidad_pagina);
-				}
+				if (hay_espacio)
+					asignar_espacio(protocolo_desde_memoria.pid, comienzo, protocolo_desde_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
 				else {
 					if (espacio_total_disponible(lista_vacia) >= protocolo_desde_memoria.cantidad_pagina){
 						//compactamos, y retorno el comienzo del espacio vacio
@@ -65,14 +58,8 @@ int main(void) {
 						int comienzo = compactar_swap(&swap, &lista_vacia, &lista_ocupado, config_swap->tamanioPagina, config_swap->cantidadPaginas);
 						log_info(logSwap,"compactacion finalizada /n");
 
-						//ocupo espacio
-						tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
-						ocupado->pid = protocolo_desde_memoria.pid;
-						ocupado->comienzo = comienzo;
-						ocupado->paginas_ocupadas = protocolo_desde_memoria.cantidad_pagina;
-						list_add(lista_ocupado, ocupado);
-
-						log_inicializar(logSwap,protocolo_desde_memoria.pid,ocupado->comienzo,config_swap->tamanioPagina,protocolo_desde_memoria.cantidad_pagina);
+						//asignar el espacio solicitado
+						asignar_espacio(protocolo_desde_memoria.pid, comienzo, protocolo_desde_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
 
 						// actualizar la lista de vacios, con los espacios vacios que resultaron de compactar menos los solicitados
 						tlista_vacio *aux = list_get(lista_vacia, 0);
