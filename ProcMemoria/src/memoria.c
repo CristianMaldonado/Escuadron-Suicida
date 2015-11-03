@@ -89,8 +89,8 @@ int main(void) {
 				pthread_mutex_lock(&mutex);
 				void* buffer = serializar_a_swap(&paquete_desde_cpu);
 				send(socketClienteSWAP, buffer, strlen(paquete_desde_cpu.mensaje) + 13, 0);
-
 				free(buffer);
+
 				log_inicializar(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas);
 
 				tprotocolo_swap_memoria swap_memoria;

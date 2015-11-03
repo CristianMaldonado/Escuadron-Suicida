@@ -1,10 +1,3 @@
-/*
- * paquetes.c
- *
- *  Created on: 25/9/2015
- *      Author: utnso
- */
-
 #include "estructuras.h"
 #include <stdlib.h>
 #include <string.h>

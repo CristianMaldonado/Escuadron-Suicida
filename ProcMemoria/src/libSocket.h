@@ -1,10 +1,3 @@
-/*
- * libSocket.h
- *
- *  Created on: 1/10/2015
- *      Author: utnso
- */
-
 #ifndef SRC_LIBSOCKET_H_
 #define SRC_LIBSOCKET_H_
 

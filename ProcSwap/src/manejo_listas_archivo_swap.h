@@ -1,10 +1,3 @@
-/*
- * estructuras_swap.h
- *
- *  Created on: 28/9/2015
- *      Author: utnso
- */
-
 #ifndef SRC_MANEJO_LISTAS_ARCHIVO_SWAP_H_
 #define SRC_MANEJO_LISTAS_ARCHIVO_SWAP_H_
 

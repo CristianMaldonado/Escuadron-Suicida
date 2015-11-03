@@ -1,10 +1,3 @@
-/*
- * config.c
- *
- *  Created on: 12/9/2015
- *      Author: utnso
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "libSocket.h"
@@ -14,8 +7,6 @@
 #include "paquetes.h"
 #include <commons/string.h>
 #include <string.h>
-
-
 
 
 tconfig_swap* leerConfiguracion() {
@@ -33,7 +24,6 @@ tconfig_swap* leerConfiguracion() {
 
 
 void log_inicializar(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int paginas_asignadas) {
-
 	char * str = malloc(20);
 	strcpy(str, "inicializar-> pid: ");
 	string_append(&str, string_itoa(pid));
@@ -42,34 +32,28 @@ void log_inicializar(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pa
 	string_append(&str, ", tamanio_en_bytes: ");
 	string_append(&str, string_itoa(paginas_asignadas*tamanio_pagina));
 	string_append(&str, "\n");
-
 	log_info(log,str);
 }
 
 void log_finalizar(t_log *log, int pid, int tamanio_pagina, int paginas_asignadas) {
-
 	char * str = malloc(20);;
 	strcpy(str, "finalizado-> pid: ");
 	string_append(&str, string_itoa(pid));
 	string_append(&str, ", tamanio_en_bytes_liberados: ");
 	string_append(&str, string_itoa(paginas_asignadas*tamanio_pagina));
 	string_append(&str, "\n");
-
 	log_info(log,str);
 }
 
 void log_proc_rechazado(t_log *log, int pid){
-
 	char * str = malloc(30);
 	strcpy(str, "proceso rechazado-> pid: ");
 	string_append(&str, string_itoa(pid));
 	string_append(&str, "\n");
-
 	log_info(log,str);
 }
 
 void log_lectura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int pagina_a_leer, char* contenido) {
-
 	char * str = malloc(20);
 	strcpy(str, "lectura-> pid: ");
 	string_append(&str, string_itoa(pid));
@@ -80,13 +64,11 @@ void log_lectura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina
 	string_append(&str, ", contenido: ");
 	string_append(&str, contenido);
 	string_append(&str, "\n");
-
 	log_info(log,str);
 }
 
 
 void log_escritura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int pagina_a_escribir, char* contenido) {
-
 	char * str = malloc(20);
 	strcpy(str, "escritura-> pid: ");
 	string_append(&str, string_itoa(pid));
@@ -97,6 +79,5 @@ void log_escritura(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagi
 	string_append(&str, ", contenido: ");
 	string_append(&str, contenido);
 	string_append(&str, "\n");
-
 	log_info(log,str);
 }

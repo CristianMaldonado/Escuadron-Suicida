@@ -1,10 +1,3 @@
-/*
- * estructuras.h
- *
- *  Created on: 12/9/2015
- *      Author: utnso
- */
-
 #ifndef SRC_ESTRUCTURAS_H_
 #define SRC_ESTRUCTURAS_H_
 

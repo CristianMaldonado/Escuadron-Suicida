@@ -1,10 +1,3 @@
-/*
- * config.c
- *
- *  Created on: 12/9/2015
- *      Author: utnso
- */
-
 #include "libSocket.h"
 #include <commons/config.h>
 #include <commons/log.h>

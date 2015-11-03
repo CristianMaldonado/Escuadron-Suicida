@@ -1,10 +1,3 @@
-/*
- * paquetes.c
- *
- *  Created on: 25/9/2015
- *      Author: utnso
- */
-
 #include <stdio.h>
 #include "estructuras.h"
 #include "config.h"
@@ -45,7 +38,6 @@ bool recibir_paquete_desde_memoria(int *socket_memoria, tprotocolo_memoria_swap 
 }
 
 void* serializar_a_memoria(tprotocolo_swap_memoria *protocolo) {
-
 	void * chorro = malloc(9 + protocolo->tamanio);
 	memcpy(chorro, &(protocolo->codAux),1);
 	memcpy(chorro+1, &(protocolo->pid), 4);
@@ -61,8 +53,3 @@ void armar_estructura_protocolo_a_memoria(tprotocolo_swap_memoria *protocolo,cha
 	strcpy(protocolo->mensaje, mensaje);
 	protocolo->tamanio = strlen(mensaje);
 }
-
-
-
-
-

@@ -1,9 +1,3 @@
-/*
- * libSocket.c
- *
- *  Created on: 1/10/2015
- *      Author: utnso
- */
 #include<sys/types.h>
 #include<sys/socket.h>
 #include<stdio.h>

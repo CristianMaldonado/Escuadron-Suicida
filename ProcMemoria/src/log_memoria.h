@@ -1,10 +1,3 @@
-/*
- * log_memoria.h
- *
- *  Created on: 31/10/2015
- *      Author: utnso
- */
-
 #ifndef SRC_LOG_MEMORIA_H_
 #define SRC_LOG_MEMORIA_H_
 
