@@ -186,11 +186,11 @@ int deserializarCPU(protocolo_planificador_cpu *package,int socketCPU) {
 	int status;
 	char* buffer = malloc(sizeof(package->tipoProceso)+ sizeof(package->tipoOperacion)+ sizeof(testado)+ sizeof(package->pid)+
 			sizeof(package->counterProgram)+ sizeof(package->quantum)+ sizeof(package->tamanioMensaje));
-	int offset = 0;
+	int offset = 1;
 
-	status = recv(socketCPU, buffer,sizeof(package->tipoOperacion) + sizeof(package->tipoProceso), 0);
-	memcpy(&(package->tipoProceso), buffer, sizeof(package->tipoProceso));
-	offset += sizeof(package->tipoProceso);
+	status = recv(socketCPU, buffer,sizeof(package->tipoOperacion) /*+ sizeof(package->tipoProceso)*/, 0);
+	//memcpy(&(package->tipoProceso), buffer, sizeof(package->tipoProceso));
+	//offset += sizeof(package->tipoProceso);
 	memcpy(&(package->tipoOperacion), buffer + offset, sizeof(package->tipoOperacion));
 	offset += sizeof(package->tipoOperacion);
 

@@ -24,13 +24,14 @@
 
 
 sem_t hayProgramas;
+sem_t hayCPU;
 
 t_queue* colaProcesos;
 t_queue* colaIO;
 t_list* listaEjecutando;
 t_list* listaCpuLibres;
 
-
+pthread_mutex_t mutexListaCpus;
 t_log* logPlanificador;
 
 typedef struct{

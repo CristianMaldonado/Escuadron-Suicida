@@ -33,9 +33,10 @@ void *enviar(void *arg){
 	parametros = (tParametroEnviar*) arg;
 
 	int tamanio = 0;
-	int socketCPU;
+	int * socketCPU;
 	puts("estas en el hilo bien por vos");
 	while(1){
+		sem_wait(&hayCPU);
 		sem_wait(&hayProgramas);
 		puts("pasaste el semaforo");
 		pcb=queue_pop(parametros->procesos);
@@ -49,13 +50,14 @@ void *enviar(void *arg){
 		message = serializarPaqueteCPU(package, &tamanio);
 		//message[strlen((message))] = '\0';
 		socketCPU = list_remove(parametros->listaCpus, 0);
-		int a = send(socketCPU,message,tamanio,0);
-		if(a == -1) printf("fallo envio %d\n", socketCPU);
+		int a = send(*socketCPU,message,tamanio,0);
+		if(a == -1) printf("fallo envio %d\n", *socketCPU);
 		else printf("%d\n",a);
 		/*char algooo[PACKAGESIZE]; test al pedo
 		recv(parametros->socket,algooo,PACKAGESIZE,0);
 		printf("%s",algooo);*/
 		printf("Envie paquete");
+		free(socketCPU);
 		free(package);
 		free(message);
 		//list_add(&listaEjecutando,pcb);
@@ -73,6 +75,7 @@ int main(){
 	pthread_t enviarAlCpu,selectorCpu;
 	pthread_attr_t attr;
 	sem_init(&hayProgramas,0,0);
+	sem_init(&hayCPU,0,0);
 
 	//creacion de la instancia de log
 	logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);

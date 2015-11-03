@@ -52,7 +52,12 @@ void *selector(void* arg) {
 						perror("accept");
 					} else {
 						FD_SET(newfd, &master); // añadir al conjunto maestro
-						list_add(listaCpuLibres,newfd);
+						pthread_mutex_lock(&mutexListaCpus);
+						int* puntero = malloc(sizeof(int));
+						*puntero = newfd;
+						list_add(listaCpuLibres,puntero);
+						pthread_mutex_unlock(&mutexListaCpus);
+						sem_post(&hayCPU);
 						if (newfd > fdmax) {    // actualizar el máximo
 							fdmax = newfd;
 						}
@@ -62,9 +67,9 @@ void *selector(void* arg) {
 					}
 				} else {
 					// gestionar datos de un cliente
-					nbytes = deserializarCPU(respuestaDeCPU,i);
-					printf("nbytes: %d", nbytes);
-					if (nbytes /*= recv(i, buf, sizeof(buf), 0)*/ <= 0) {
+					//nbytes = deserializarCPU(respuestaDeCPU,i);
+					//printf("nbytes: %d", nbytes);
+					if ((nbytes = recv(i, buf, 1, 0)) <= 0) {
 						// error o conexión cerrada por el cliente
 					//nbytes = deserializarCPU(respuestaDeCPU,i);
 					//if (nbytes <= 0){
@@ -74,32 +79,43 @@ void *selector(void* arg) {
 						} else {
 							perror("Desconexion CPU");
 						}
-						//close(i); // bye!
-						//FD_CLR(i, &master); // eliminar del conjunto maestro
+						close(i); // bye!
+						FD_CLR(i, &master); // eliminar del conjunto maestro
 					}
 					else {
 						// tenemos datos de algún cliente
 						//for (j = 0; j <= fdmax; j++) {
 						//	if (FD_ISSET(j, &master)) {
 								//TODO gestionar llegada
-                            //int status = 1;
-							//status = deserializarCPU(respuestaDeCPU,i);
+                            int status = 1;
+							status = deserializarCPU(respuestaDeCPU,i);
 							//if(status == 0) error_show("Desconexion de CPU");
-							/*switch(respuestaDeCPU->tipoOperacion){
+							 switch(respuestaDeCPU->tipoOperacion){
 
 								case 'i':{
 								}break;
 
 								case 'a':{//SI FALLA LIBERA LA CPU MOVER DE COLA EJECUTANDO A COLA DISPONIBLE
-										//list_add(listaCpuLibres,i);
+									pthread_mutex_lock(&mutexListaCpus);
+									int* puntero = malloc(sizeof(int));
+									*puntero = i;
+									list_add(listaCpuLibres,puntero);
+									pthread_mutex_unlock(&mutexListaCpus);
+									sem_post(&hayCPU);
 								}break;
 
 								case 'f':{// LIBERAR CPU MOVER DE COLA EJECUTANDO A COLA DISPONIBLE
-										//list_add(listaCpuLibres,i);
+									pthread_mutex_lock(&mutexListaCpus);
+									int* puntero = malloc(sizeof(int));
+									*puntero = i;
+										list_add(listaCpuLibres,puntero);
+										pthread_mutex_unlock(&mutexListaCpus);
+										sem_post(&hayCPU);
 								}break;
-							}*/
-
-								list_add(listaCpuLibres,i);
+							}
+							  /* pthread_mutex_lock(&mutexListaCpus);
+							   list_add(listaCpuLibres,i);
+							   pthread_mutex_unlock(&mutexListaCpus);*/
 							//}
 						//}
 					}
