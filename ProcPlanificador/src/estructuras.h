@@ -30,6 +30,9 @@ t_queue* colaIO;
 t_list* listaEjecutando;
 t_list* listaCpuLibres;
 
+
+t_log* logPlanificador;
+
 typedef struct{
 	t_list* listaCpus;
 	t_queue* procesos;

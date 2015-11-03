@@ -75,7 +75,7 @@ int main(){
 	sem_init(&hayProgramas,0,0);
 
 	//creacion de la instancia de log
-	t_log *logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
+	logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
 	//logPlanificador->pid = 1;
 
 	tconfig_planif* configPlanificador = malloc(sizeof(tconfig_planif));

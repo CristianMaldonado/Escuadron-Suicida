@@ -76,6 +76,23 @@ void *selector(void* arg) {
 						//for (j = 0; j <= fdmax; j++) {
 						//	if (FD_ISSET(j, &master)) {
 								//TODO gestionar llegada
+
+						/*	status = deserializarCPU(respuestaDeCPU,i);
+							if(status == 0) error_show("Desconexion de CPU");
+							switch(respuestaDeCPU->tipoOperacion){
+
+								case 'i':{//METE EN LISTA EJECUTANDO
+								}break;
+
+								case 'a':{//SI FALLA LIBERA LA CPU MOVER DE COLA EJECUTANDO A COLA DISPONIBLE
+										list_add(parametros->listaCpus,i);
+								}break;
+
+								case 'f':{// LIBERAR CPU MOVER DE COLA EJECUTANDO A COLA DISPONIBLE
+										list_add(parametros->listaCpus,i);
+								}break;
+							}*/
+
 								list_add(parametros->listaCpus,i);
 							//}
 						//}
