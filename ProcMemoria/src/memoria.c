@@ -55,7 +55,6 @@ void sig_handler(int numSignal){
 
 int main(void) {
 	system("clear");
-
 	config = leerConfiguracion();
 	logMem = log_create("log.txt", "memoria.c", false, LOG_LEVEL_INFO);
 
@@ -64,7 +63,6 @@ int main(void) {
 	//Definimos datos Cliente listener
 	int socketServidorCPU, socketClienteCPU;
 
-	printf("Conectando al SWAP (%s : %s)... ", config->ipSwap, config->puertoSwap);
 	client_init(&socketClienteSWAP, config->ipSwap, config->puertoSwap);
 	//Definimos datos Server
 	server_init(&socketServidorCPU, config->puertoEscucha);
@@ -84,7 +82,7 @@ int main(void) {
 
 	tprotocolo_desde_cpu_y_hacia_swap paquete_desde_cpu;
 
-	while(recibir_paquete_desde_cpu(&socketClienteCPU, &paquete_desde_cpu)){
+	while(recibir_paquete_desde_cpu(&socketClienteCPU, &paquete_desde_cpu)) {
 
 		switch (paquete_desde_cpu.cod_op) {
 			case 'i': {
@@ -233,8 +231,7 @@ int main(void) {
 										if(config->habilitadaTLB)
 											fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, tabla->nro_marco * config->tamanio_marco, paquete_desde_cpu.paginas);
 
-										// copiar el contenido del marco de la swap al marco de memoria
-										// traerse la pagina nueva desde swap
+										// copiar el contenido del marco de la swap al marco de memoria y traerse la pagina nueva desde swap
 										avisar_a_swap('l', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteSWAP);
 
 										tprotocolo_swap_memoria swap_memoria;
