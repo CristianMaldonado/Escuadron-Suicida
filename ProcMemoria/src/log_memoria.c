@@ -26,7 +26,7 @@ void log_lectura_escritura(char operacion, char * resultado, t_log *log, int pid
 	string_append(&str, ", numero de pagina: ");
 	string_append(&str, string_itoa(nro_pagina));
 	string_append(&str, ", mensaje: ");
-	string_append(&str, string_itoa(mensaje));
+	string_append(&str, mensaje);
 	string_append(&str, ", numero de marco: ");
 	string_append(&str, string_itoa(nro_marco_resultante));
 	string_append(&str, ", resultado del algoritmo: ");

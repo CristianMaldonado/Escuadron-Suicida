@@ -31,8 +31,11 @@ void eliminar_tabla_de_proceso(int pid, t_list ** lista_tabla_de_paginas) {
 	int count = list_size(*lista_tabla_de_paginas);
 	for(i = 0 ; i < count ; i++) {
 		tabla_paginas *tabla = list_get(*lista_tabla_de_paginas, i);
-		if(tabla->pid == pid)
+		if(tabla->pid == pid) {
+			list_destroy_and_destroy_elements(tabla->list_pagina_direccion, free);
 			free(list_remove(*lista_tabla_de_paginas, i));
+			break;
+		}
 	}
 }
 
