@@ -1,16 +1,139 @@
 #include "estructuras.h"
 #include <commons/string.h>
 #include <semaphore.h>
+#include <stdio.h>
+
+
+int maxLineas(char* path){
+	FILE* archivo = fopen(path, "r+");
+	int cont = 1;
+	int i;
+	while (!feof(archivo)) {
+		for(i=0; fgetc(archivo) != '\n' && !feof(archivo);i++);
+		cont++;
+	}
+	fclose(archivo);
+
+	return cont;
+}
+
+char* nombrePrograma(char* path){
+	int i= 0;
+	char** vector = string_split(path,"/");
+
+	while(vector[i] != NULL){
+		i++;
+	}
+
+	return vector[i-1];
+}
+
 
 tpcb* armarPCB(char* path, int cant) {//OK
 	tpcb* pcb = malloc(sizeof(tpcb));
-	pcb->ruta = (char*) malloc(strlen(path) + 1);
+	pcb->ruta = (char*) malloc(strlen(path)+1);
 	strcpy(pcb->ruta, path);
+	path[strlen(path)-1] = '\0';
 	pcb->pid = cant;
 	pcb->nombre = string_new();
 	pcb->estado = LISTO;
 	pcb->siguiente = 1;
+	pcb->maximo= maxLineas(path);
 	return pcb;
+}
+
+void finalizarPID(char* pidBuscado,t_queue* colaProc){
+	t_list* lista= (colaProc)->elements;
+	t_link_element* element = lista->head;
+	tpcb* pcb;
+	int position = 0;
+	while (element != NULL){
+		pcb=(element->data);
+		if((pcb->pid)!=pidBuscado){
+			element=element->next;
+			position++;
+		}
+		else{
+			exit(1);
+		}
+	}
+	pcb->siguiente=pcb->maximo;
+}
+
+void convertirEstado(testado estadoEnum, char* estado){
+
+if (estadoEnum == LISTO) {
+	estado = malloc(7);
+	strcpy(estado, "LISTO");
+}
+if (estadoEnum == IO) {
+	estado = malloc(7);
+	strcpy(estado, "IO");
+}
+if (estadoEnum == EJECUTANDO) {
+	estado = malloc(12);
+	strcpy(estado, "EJECUTANDO");
+}
+if (estadoEnum == FINALIZADO) {
+	estado = malloc(12);
+	strcpy(estado, "FINALIZADO");
+}
+
+ }
+
+void mostrarEstadoProcesos(t_queue* colaProc){
+	char* infoProceso = (char*)malloc(50);
+
+	t_list* lista= (colaProc)->elements;
+	t_link_element* element = lista->head;
+	tpcb* pcb;
+	int pos= 0;
+	while (element != NULL){
+		char* estado = string_new();
+			pcb=(element->data);
+				element=element->next;
+				convertirEstado(pcb->estado, estado);
+				strcpy(infoProceso, "mProc: ");
+				string_append_with_format(&infoProceso, "%d ", pcb->pid);
+				string_append(&infoProceso, pcb->nombre);
+				string_append(&infoProceso, " -> ");
+				string_append_with_format(&infoProceso, "%d", estado);
+				printf("%s",infoProceso);
+
+				free(estado);
+				pos++;
+
+		}
+
+
+    free(infoProceso);
+}
+
+void mostrarEstadoProcesosLista(t_list* lista){
+	char* infoProceso = (char*)malloc(50);
+
+	t_link_element* element = lista->head;
+	tpcb* pcb;
+	int pos= 0;
+	while (element != NULL){
+		char* estado = string_new();
+			pcb=(element->data);
+				element=element->next;
+				convertirEstado(pcb->estado, estado);
+				strcpy(infoProceso, "mProc: ");
+				string_append_with_format(&infoProceso, "%d ", pcb->pid);
+				string_append(&infoProceso, pcb->nombre);
+				string_append(&infoProceso, " -> ");
+				string_append_with_format(&infoProceso, "%d", estado);
+				printf("%s",infoProceso);
+
+				free(estado);
+				pos++;
+
+		}
+
+
+    free(infoProceso);
 }
 
 int clasificarComando(char* message) {//OK
@@ -33,23 +156,24 @@ int clasificarComando(char* message) {//OK
 	}
 }
 
-void procesarComando(int nro_comando, char* message, int cantProc,t_queue* colaProc) {//OK
+void procesarComando(int nro_comando, char* message, int* cantProc,t_queue* colaProc) {//OK
 	tpcb* pcb;
 	switch (nro_comando) {
 	case 1:
 		printf("Entro por ps\n");
+		mostrarEstadoProcesos(colaProc);
 		break;
 	case 2:
 		printf("Entro por cpu\n");
 		break;
 	case 3:
-		pcb = armarPCB(&message[7], cantProc);//TODO cambiar como el interpretar instruccion
+		pcb = armarPCB(&message[7], *cantProc);//TODO cambiar como el interpretar instruccion
 		queue_push(colaProc, pcb);
-		cantProc++;
+		(*cantProc) = (*cantProc)+ 1;
 		sem_post(&hayProgramas);
 		break;
 	case 4:
-		printf("Entro por finalizar\n");
+		finalizarPID(&message[10],colaProc);
 		break;
 	default:
 		printf("Comando ingresado incorrecto\n");
@@ -62,15 +186,15 @@ int deserializarCPU(protocolo_planificador_cpu *package,int socketCPU) {
 	int status;
 	char* buffer = malloc(sizeof(package->tipoProceso)+ sizeof(package->tipoOperacion)+ sizeof(testado)+ sizeof(package->pid)+
 			sizeof(package->counterProgram)+ sizeof(package->quantum)+ sizeof(package->tamanioMensaje));
-	int offset = 0;
+	int offset = 1;
 
-	status = recv(socketCPU, buffer,sizeof(package->tipoOperacion) + sizeof(package->tipoProceso), 0);
-	memcpy(&(package->tipoProceso), buffer, sizeof(package->tipoProceso));
-	offset += sizeof(package->tipoProceso);
+	status = recv(socketCPU, buffer,sizeof(package->tipoOperacion) /*+ sizeof(package->tipoProceso)*/, 0);
+	//memcpy(&(package->tipoProceso), buffer, sizeof(package->tipoProceso));
+	//offset += sizeof(package->tipoProceso);
 	memcpy(&(package->tipoOperacion), buffer + offset, sizeof(package->tipoOperacion));
 	offset += sizeof(package->tipoOperacion);
 
-	if (!status) return 0;
+	if (status<=0) return status;
 
 	status = recv(socketCPU, buffer,sizeof(package->estado) + sizeof(package->pid)
 			+ sizeof(package->counterProgram + sizeof(package->quantum) + sizeof(package->tamanioMensaje)),0);
@@ -85,13 +209,13 @@ int deserializarCPU(protocolo_planificador_cpu *package,int socketCPU) {
 	memcpy(&(package->tamanioMensaje), buffer + offset, sizeof(package->tamanioMensaje));
 	offset += sizeof(package->tamanioMensaje);
 
-	if (!status) return 0;
+	if (status<=0) return status;
 
 	package->mensaje = malloc((package->tamanioMensaje) +1);
 	status = recv(socketCPU, buffer, package->tamanioMensaje,0);
 	memcpy(&(package->mensaje), buffer + offset, package->tamanioMensaje);
 	package->mensaje[package->tamanioMensaje+1]= '\0';
-	if(!status) return 0;
+	if(status<=0) return status;
 
 	free(buffer);
 
@@ -157,4 +281,5 @@ void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio){ /
 	return paqueteSerializado;
 
 }
+
 

@@ -8,8 +8,11 @@
 #include <stdlib.h>
 #include <commons/log.h>
 #include "config.h"
+#include "selector.h"
 
 #define PACKAGESIZE 30
+
+//t_list* listaEjecutando=list_create();
 
 
 void definirMensaje(tpcb* pcb,char* message){
@@ -30,8 +33,10 @@ void *enviar(void *arg){
 	parametros = (tParametroEnviar*) arg;
 
 	int tamanio = 0;
+	int * socketCPU;
 	puts("estas en el hilo bien por vos");
 	while(1){
+		sem_wait(&hayCPU);
 		sem_wait(&hayProgramas);
 		puts("pasaste el semaforo");
 		pcb=queue_pop(parametros->procesos);
@@ -44,15 +49,18 @@ void *enviar(void *arg){
 		void* message=malloc(sizeof(protocolo_planificador_cpu) + strlen(pcb->ruta));
 		message = serializarPaqueteCPU(package, &tamanio);
 		//message[strlen((message))] = '\0';
-		int a = send(parametros->socket,message,tamanio,0);
-		if(a == -1) puts("fallo envio");
+		socketCPU = list_remove(parametros->listaCpus, 0);
+		int a = send(*socketCPU,message,tamanio,0);
+		if(a == -1) printf("fallo envio %d\n", *socketCPU);
 		else printf("%d\n",a);
 		/*char algooo[PACKAGESIZE]; test al pedo
 		recv(parametros->socket,algooo,PACKAGESIZE,0);
 		printf("%s",algooo);*/
 		printf("Envie paquete");
+		free(socketCPU);
 		free(package);
 		free(message);
+		//list_add(&listaEjecutando,pcb);
 		free(pcb);
 	}
 }
@@ -60,22 +68,27 @@ void *enviar(void *arg){
 int main(){
 	system("clear");
 	int cantProc=1;
-	t_queue* colaProcesos;
-	pthread_t enviarAlCpu;
+
+	listaEjecutando= list_create();
+	listaCpuLibres= list_create();
+
+	pthread_t enviarAlCpu,selectorCpu;
 	pthread_attr_t attr;
 	sem_init(&hayProgramas,0,0);
+	sem_init(&hayCPU,0,0);
 
 	//creacion de la instancia de log
-	t_log *logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
+	logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
 	//logPlanificador->pid = 1;
 
-	/*tconfig_planif* configPlanificador = malloc(sizeof(tconfig_planif));
+	tconfig_planif* configPlanificador = malloc(sizeof(tconfig_planif));
 	configPlanificador->puertoEscucha = "4143";
-	configPlanificador->quantum = 5;
-	configPlanificador->algoritmo = "FIFO";*/
+	configPlanificador->quantum = 0;
+	configPlanificador->algoritmo = "FIFO";
+
 
 	//leemos el archivo de configuracion
-	tconfig_planif *configPlanificador = leerConfiguracion();
+	//tconfig_planif *configPlanificador = leerConfiguracion();
 
 	//Inicia el socket para escuchar
 	int serverSocket;
@@ -86,14 +99,26 @@ int main(){
 	//log_info(logPlanificador, "planificador iniciado");
 
 	//Inicia el socket para atender al CPU
-	int socketCPU;
+
+	//list_add(listaCPU,serverSocket);
+
+	/*int socketCPU;
 	server_acept(serverSocket, &socketCPU);
-	printf("CPU aceptado...\n");
+	printf("CPU aceptado...\n");*/
+
+	tParametroSelector sel;
+	sel.socket = serverSocket;
+	sel.listaCpus = listaCpuLibres;
+
+	pthread_attr_init(&attr);
+	pthread_create( &selectorCpu, &attr, selector,(void*) &sel);
+
+	//selector(serverSocket, listaCpuLibres);
 
 	colaProcesos=queue_create();
 
 	tParametroEnviar envio;
-	envio.socket=socketCPU;
+	envio.listaCpus=listaCpuLibres;
 	envio.procesos=colaProcesos;
 
 	pthread_attr_init(&attr);
@@ -108,8 +133,8 @@ int main(){
 		fgets(message, PACKAGESIZE, stdin);
 
 		nro_comando = clasificarComando(&message[0]);
-
-		procesarComando(nro_comando,&message[0],cantProc,colaProcesos);
+        //TODO: VER SI EL PROCESAR COMANDO TIENE QUE RECIBIR TODAS LAS LISTAS Y COLAS, O HACERLAS GLOBALES PARA EL PS
+		procesarComando(nro_comando,&message[0],&cantProc,colaProcesos);
 
 		nro_comando=0;
 
@@ -118,7 +143,7 @@ int main(){
 	}
 
 	close(serverSocket);
-	close(socketCPU);
+	//close(socketCPU);
 	queue_destroy(colaProcesos);
 	return 0;
 }
