@@ -92,7 +92,6 @@ int main(void) {
 				free(buffer);
 
 				log_inicializar(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas);
-
 				tprotocolo_swap_memoria swap_memoria;
 				recibir_paquete_desde_swap(socketClienteSWAP, &swap_memoria);
 
@@ -101,6 +100,7 @@ int main(void) {
 
 				avisar_a_cpu(paquete_desde_cpu.cod_op, swap_memoria.codAux, swap_memoria.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje, socketClienteCPU);
 				free(paquete_desde_cpu.mensaje);
+				free(swap_memoria.mensaje);
 				pthread_mutex_unlock(&mutex);
 			}
 			break;
@@ -108,7 +108,6 @@ int main(void) {
 			case 'f': {
 				pthread_mutex_lock(&mutex);
 				void* buffer = serializar_a_swap(&paquete_desde_cpu);
-
 				send(socketClienteSWAP, buffer, strlen(paquete_desde_cpu.mensaje) + 13, 0);
 				free(buffer);
 
@@ -116,7 +115,7 @@ int main(void) {
 				if(config->habilitadaTLB)
 					borrame_las_entradas_del_proceso(paquete_desde_cpu.pid, &tlb);
 
-				log_info(logMem, "ando");
+				log_info(logMem, "proceso finalizado");
 				avisar_a_cpu(paquete_desde_cpu.cod_op, 'f', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteCPU);
 				pthread_mutex_unlock(&mutex);
 			}
@@ -297,7 +296,6 @@ int main(void) {
 		}
 	}
 
-	// finalizar memoria ///////////////////////////////////////////////////////////////////////////////////////////
 	close(socketClienteSWAP);
 	close(socketClienteCPU);
 	close(socketServidorCPU);
