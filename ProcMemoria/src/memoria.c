@@ -116,7 +116,7 @@ int main(void) {
 					borrame_las_entradas_del_proceso(paquete_desde_cpu.pid, &tlb);
 
 				log_info(logMem, "proceso finalizado");
-				avisar_a_cpu(paquete_desde_cpu.cod_op, 'f', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteCPU);
+				avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteCPU);
 				pthread_mutex_unlock(&mutex);
 			}
 			break;
@@ -125,23 +125,21 @@ int main(void) {
 			case 'l': {
 				pthread_mutex_lock(&mutex);
 				sleep(config->retardoMemoria);
+				// si la tlb esta activada
 				int direccion_posta = -1;
 				if(config->habilitadaTLB)
 					direccion_posta = dame_la_direccion_posta_de_la_pagina_en_la_tlb(&tlb, paquete_desde_cpu.pid, paquete_desde_cpu.paginas);
 
 				if(direccion_posta == -1) { // si la pagina no esta en la tlb
 					tabla_paginas *tabla_de_paginas = dame_la_tabla_de_paginas(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
-					// paginas es numero de pagina o cantidad de paginas depende el protocolo, en este caso es numero de pagina
-
 					int nro_marco = dame_la_direccion_de_la_pagina(tabla_de_paginas, paquete_desde_cpu.paginas);
-					// es valida o no la direccion
 
 					if(nro_marco != -1) { // si la pagina esta en memoria
 						int nro_tlb = -1;
 						char fifo = 'n'; // n = no esta habilitada la tlb
 						if(config->habilitadaTLB) {
 							fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, nro_marco * config->tamanio_marco, paquete_desde_cpu.paginas);
-							nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, direccion_posta);
+							nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, nro_marco * config->tamanio_marco);
 						}
 
 						log_acceso_memoria(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_marco);
@@ -272,9 +270,8 @@ int main(void) {
 
 					log_acceso_memoria(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_marco);
 					if(paquete_desde_cpu.cod_op == 'l') { // leer
-
-						char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanio_marco);
 						log_lectura_escritura('l', "-", logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, true, nro_marco);
+						char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanio_marco);
 
 						avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
 						free(mensaje);
