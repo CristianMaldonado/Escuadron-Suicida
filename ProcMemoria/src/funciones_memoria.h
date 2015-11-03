@@ -13,6 +13,7 @@ bool estan_los_frames_ocupados(t_list *tabla_paginas);
 int dame_un_marco_libre(t_list *lista_tabla_de_paginas, int cantidad_marcos);
 char * dame_mensaje_de_memoria(char **memoria, int nro_marco, int tamanio_marco);
 void avisar_a_cpu(char cod_op, char cod_aux, int pid, int paginas, char *mensaje, int socket_cli_cpu);
+void avisar_a_swap(char cod_op, int pid, int paginas, char *mensaje, int socket_ser_swap);
 t_list * inicializar_tlb(int nro_entradas);
 int dame_la_direccion_posta_de_la_pagina_en_la_tlb(t_list ** tlb, int pid, int nro_pagina);
 char actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pagina);

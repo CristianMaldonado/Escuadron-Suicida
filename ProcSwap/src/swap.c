@@ -69,7 +69,6 @@ int main(void) {
 		}
 
 		switch(protocolo_desde_memoria.codigo_op){
-
 			//inicializar probado
 			case 'i': {
 
@@ -126,7 +125,7 @@ int main(void) {
 				}
 
 				tprotocolo_swap_memoria swap_memoria;
-				armar_estructura_protocolo_a_memoria(&swap_memoria,codaux, protocolo_desde_memoria.pid, "-");
+				armar_estructura_protocolo_a_memoria(&swap_memoria, codaux, protocolo_desde_memoria.pid, "-");
 				void * buffer = serializar_a_memoria(&swap_memoria);
 				send(socket_memoria, buffer, 9 + strlen("-"), 0);
 			}

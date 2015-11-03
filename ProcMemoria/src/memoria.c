@@ -23,14 +23,11 @@ tconfig_memoria * config;
 t_log * logMem;
 char * memoria;
 int socketClienteSWAP;
-
 pthread_mutex_t mutex;
-
 
 void sigHandler(int numSignal){
 
 	switch(numSignal){
-
 		//borrar tlb
 		case SIGUSR1:
 			pthread_mutex_lock(&mutex);
@@ -38,7 +35,6 @@ void sigHandler(int numSignal){
 				limpiar_la_tlb(&tlb);
 			pthread_mutex_unlock(&mutex);
 		break;
-
 		//borrar memoria
 		case SIGUSR2:
 			pthread_mutex_unlock(&mutex);
@@ -47,7 +43,6 @@ void sigHandler(int numSignal){
 				limpiar_memoria(&lista_tabla_de_paginas,memoria,config->tamanio_marco, socketClienteSWAP);
 			pthread_mutex_unlock(&mutex);
 		break;
-
 		//volcar, en la consola es SIGIO (kill -l SIGIO <pid>)
 		case SIGPOLL:
 			pthread_mutex_lock(&mutex);
@@ -71,41 +66,29 @@ int main(void) {
 
 	printf("Conectando al SWAP (%s : %s)... ", config->ipSwap, config->puertoSwap);
 	client_init(&socketClienteSWAP, config->ipSwap, config->puertoSwap);
-	printf("OK\n");
-
 	//Definimos datos Server
 	server_init(&socketServidorCPU, config->puertoEscucha);
 	printf("Memoria lista...\n");
-
 	server_acept(socketServidorCPU, &socketClienteCPU);
 	printf("CPU aceptado...\n");
 
 	signal(SIGUSR1, sigHandler);
 	signal(SIGUSR2, sigHandler);
 	signal(SIGPOLL, sigHandler);
-
-	///////////////////////////////////////////////////////////////////////////////////////
-	// creamos la representacion memoria
-
+	//creamos la representacion memoria///////////////////////////////////////////////////////////////////////////////////////
 	memoria = crear_memoria(config->cantidad_marcos, config->tamanio_marco);
 	lista_tabla_de_paginas = list_create();
-
-	///////////////////////////////////////////////////////////////////////////////////////
-	// creamos la tlb cache_13, si es que en el archivo de configuracion este esta activado
+	// creamos la tlb cache_13, si es que en el archivo de configuracion este esta activado///////////////////////////////////
 	if(config->habilitadaTLB)
 		tlb = inicializar_tlb(config->entradasTLB);
-
 	///////////////////////////////////////////////////////////////////////////////////////
-
 	tprotocolo_desde_cpu_y_hacia_swap paquete_desde_cpu;
 	int salir = 0;
 	while(!salir){
-
 		if(recibir_paquete_desde_cpu(&socketClienteCPU, &paquete_desde_cpu))
 		// para probar si recibe
 			printf("%s\n", paquete_desde_cpu.mensaje);
-		else{
-			// si no recibe termina el swap
+		else{ // si no recibe termina el swap
 			salir = 1;
 			continue;
 		}
@@ -135,7 +118,6 @@ int main(void) {
 
 			case 'f': {
 				pthread_mutex_lock(&mutex);
-
 				void* buffer = serializar_a_swap(&paquete_desde_cpu);
 				send(socketClienteSWAP, buffer, strlen(paquete_desde_cpu.mensaje) + 13, 0);
 				free(buffer);
@@ -146,20 +128,13 @@ int main(void) {
 					borrame_las_entradas_del_proceso(paquete_desde_cpu.pid, &tlb);
 
 				log_info(logMem, "ando");
-
-				tprotocolo_memoria_cpu paquete_memoria_cpu;
-				armar_estructura_protocolo_a_cpu(&paquete_memoria_cpu, paquete_desde_cpu.cod_op, 'f', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje);
-				buffer = serializar_a_cpu(&paquete_memoria_cpu);
-				send(socketClienteCPU, buffer, strlen(paquete_desde_cpu.mensaje) + 15, 0);
-
-				free(buffer);
+				avisar_a_cpu(paquete_desde_cpu.cod_op, 'f', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteCPU);
 				pthread_mutex_unlock(&mutex);
 			}
 			break;
 
 			case 'e':
 			case 'l': {
-
 				pthread_mutex_lock(&mutex);
 				sleep(config->retardoMemoria);
 				int direccion_posta = -1;
@@ -226,25 +201,13 @@ int main(void) {
 								fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, pagina_nueva->nro_marco * config->tamanio_marco, paquete_desde_cpu.paginas);
 
 							// la pagina ocupada la paso a la swap si esta modificada
-
-							tprotocolo_desde_cpu_y_hacia_swap paquete_a_swap;
-
 							if (pagina_ocupada->fue_modificado) {
 								char * mensaje = dame_mensaje_de_memoria(&memoria, pagina_ocupada->nro_marco, config->tamanio_marco);
-								armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, 'e', paquete_desde_cpu.pid, pagina_ocupada->nro_pagina, mensaje);
-								void* buffer = serializar_a_swap(&paquete_a_swap);
-								send(socketClienteSWAP, buffer, strlen(mensaje) + 13, 0);
-								free(buffer);
+								avisar_a_swap('e', paquete_desde_cpu.pid, pagina_ocupada->nro_pagina, mensaje, socketClienteSWAP);
 								free(mensaje);
 							}
-
-							///////////////////////////////////////////////////////
-							// traerse la pagina nueva desde swap
-							armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, 'l', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "vacio");
-							void * buffer = serializar_a_swap(&paquete_desde_cpu);
-							send(socketClienteSWAP, buffer, strlen(paquete_desde_cpu.mensaje) + 13, 0);
-							free(buffer);
-
+							// traerse la pagina nueva desde swap///////////////////////////////////////////////////////
+							avisar_a_swap('l', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "vacio", socketClienteSWAP);
 							tprotocolo_swap_memoria swap_memoria;
 							recibir_paquete_desde_swap(socketClienteSWAP, &swap_memoria);
 
@@ -252,17 +215,14 @@ int main(void) {
 							memcpy(memoria + pagina_nueva->nro_marco * config->tamanio_marco, swap_memoria.mensaje, swap_memoria.tamanio);
 
 							//avisar a la cpu
-
 							char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
 							int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, pagina_nueva->nro_marco * config->tamanio_marco);
 
 							if(paquete_desde_cpu.cod_op == 'l') {
 								log_lectura_escritura('l', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco);
-
 								avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, swap_memoria.mensaje, socketClienteCPU);
 							} else {
 								log_lectura_escritura('e', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco);
-
 								memcpy(memoria + nro_marco * config->tamanio_marco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
 								pagina_nueva->fue_modificado = true;
 								avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
@@ -291,11 +251,7 @@ int main(void) {
 
 										// copiar el contenido del marco de la swap al marco de memoria
 										// traerse la pagina nueva desde swap
-										tprotocolo_desde_cpu_y_hacia_swap paquete_a_swap;
-										armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, 'l', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje);
-										void * buffer = serializar_a_swap(&paquete_desde_cpu);
-										send(socketClienteSWAP, buffer, strlen(paquete_desde_cpu.mensaje) + 13, 0);
-										free(buffer);
+										avisar_a_swap('l', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteSWAP);
 
 										tprotocolo_swap_memoria swap_memoria;
 										recibir_paquete_desde_swap(socketClienteSWAP, &swap_memoria);
@@ -364,14 +320,11 @@ int main(void) {
 			break;
 		}
 	}
-	printf("Ando ...\n");
 
-	/////////////////////////////////////////////////////////////////////////////////////////////
+	// finalizar memoria ///////////////////////////////////////////////////////////////////////////////////////////
 	close(socketClienteSWAP);
 	close(socketClienteCPU);
 	close(socketServidorCPU);
-
 	pthread_mutex_destroy(&mutex);
-
 	return 0;
 }

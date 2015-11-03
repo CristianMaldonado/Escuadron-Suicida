@@ -119,6 +119,14 @@ void avisar_a_cpu(char cod_op, char cod_aux, int pid, int paginas, char *mensaje
 	free(buffer);
 }
 
+void avisar_a_swap(char cod_op, int pid, int paginas, char *mensaje, int socket_ser_swap) {
+	tprotocolo_desde_cpu_y_hacia_swap paquete_a_swap;
+	armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, cod_op, pid, paginas, mensaje);
+	void * buffer = serializar_a_swap(&paquete_a_swap);
+	send(socket_ser_swap, buffer, strlen(paquete_a_swap.mensaje) + 13, 0);
+	free(buffer);
+}
+
 t_list * inicializar_tlb(int nro_entradas) {
 	t_list * tlb = list_create();
 	int i;
