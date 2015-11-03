@@ -83,7 +83,7 @@ int main(void) {
 	tprotocolo_desde_cpu_y_hacia_swap paquete_desde_cpu;
 
 	while(recibir_paquete_desde_cpu(&socketClienteCPU, &paquete_desde_cpu)) {
-
+		printf("%c\n", paquete_desde_cpu.cod_op);
 		switch (paquete_desde_cpu.cod_op) {
 			case 'i': {
 				pthread_mutex_lock(&mutex);

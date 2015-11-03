@@ -41,7 +41,7 @@ int main(void) {
 
 	tprotocolo_memoria_swap protocolo_desde_memoria;
 	while(recibir_paquete_desde_memoria(&socket_memoria, &protocolo_desde_memoria)) {
-
+		printf("%c\n", protocolo_desde_memoria.codigo_op);
 		switch(protocolo_desde_memoria.codigo_op){
 			case 'i': {
 				int comienzo = -1, hay_espacio;
