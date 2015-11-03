@@ -194,7 +194,7 @@ int deserializarCPU(protocolo_planificador_cpu *package,int socketCPU) {
 	memcpy(&(package->tipoOperacion), buffer + offset, sizeof(package->tipoOperacion));
 	offset += sizeof(package->tipoOperacion);
 
-	if (!status) return 0;
+	if (status<=0) return status;
 
 	status = recv(socketCPU, buffer,sizeof(package->estado) + sizeof(package->pid)
 			+ sizeof(package->counterProgram + sizeof(package->quantum) + sizeof(package->tamanioMensaje)),0);
@@ -209,13 +209,13 @@ int deserializarCPU(protocolo_planificador_cpu *package,int socketCPU) {
 	memcpy(&(package->tamanioMensaje), buffer + offset, sizeof(package->tamanioMensaje));
 	offset += sizeof(package->tamanioMensaje);
 
-	if (!status) return 0;
+	if (status<=0) return status;
 
 	package->mensaje = malloc((package->tamanioMensaje) +1);
 	status = recv(socketCPU, buffer, package->tamanioMensaje,0);
 	memcpy(&(package->mensaje), buffer + offset, package->tamanioMensaje);
 	package->mensaje[package->tamanioMensaje+1]= '\0';
-	if(!status) return 0;
+	if(status<=0) return status;
 
 	free(buffer);
 

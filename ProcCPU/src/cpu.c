@@ -97,31 +97,30 @@ void *procesarInstruccion() {
 			if (mensajeDeMemoria->codAux == 'a'
 					&& mensajeDeMemoria->codOperacion == 'i')
 				break;
-			/* switch (mensajeDeMemoria->codOperacion){
+			switch (mensajeDeMemoria->codOperacion){// arma mensaje a planificador
 
-			 case 'i': {
-			 armarPaquetePlanificador(datosParaProcesar, (mensajeDeMemoria->codAux == 'a')?'f' : 'c', 'i',
-			 mensajeAMemoria->pid,
-			 datosParaProcesar->counterProgram,datosParaProcesar->quantum,
-			 datosParaProcesar->tamanioMensaje, datosParaProcesar->mensaje);
-			 }break;
+						 case 'f': {
+							 actualizarOperacionPaquetePlanificador(datosParaProcesar, 'f');
+						 }break;
 
-			 case 'l','e': {
-			 armarPaquetePlanificador(datosParaProcesar, (mensajeDeMemoria->codAux == 'a')?'f' : 'c', 'l',
-			 mensajeAMemoria->pid, datosParaProcesar->estado,
-			 datosParaProcesar->counterProgram,datosParaProcesar->quantum,
-			 datosParaProcesar->tamanioMensaje,
-			 datosParaProcesar->mensaje);
-			 }break;
-			 case 'f':{
-			 armarPaquetePlanificador(datosParaProcesar, (mensajeDeMemoria->codAux == 'a')?'f' : 'f', 'i',
-			 datosParaProcesar->pid, datosParaProcesar->estado,
-			 datosParaProcesar->counterProgram,datosParaProcesar->quantum,
-			 datosParaProcesar->tamanioMensaje,datosParaProcesar->mensaje);
-			 }break;
+						/* case 'l': {
+							 actualizarOperacionPaquetePlanificador(datosParaProcesar,'l',
+									 (mensajeDeMemoria->codAux == 'a')?'f' : 'c');
+						 }break;
+						 case 'e':{
+							 actualizarOperacionPaquetePlanificador(datosParaProcesar,'e',
+									 (mensajeDeMemoria->codAux == 'a')?'f' : 'c');
+						 }break;*/
+
+						 case 'i':{
+							 actualizarOperacionPaquetePlanificador(datosParaProcesar,
+									 (mensajeDeMemoria->codAux == 'a') ? 'a' : 'i');
+						 }break;
 
 
-			 }*/
+						 }
+
+						enviarAPlanificador(datosParaProcesar,socketPlanifAux);
 			//enviarAPlanificador(datosParaProcesar);
 			pthread_mutex_lock(&mutexProceso);
 			loguearEstadoMemoria(mensajeDeMemoria, instruccionLeida);
@@ -140,6 +139,7 @@ void *procesarInstruccion() {
 	free(mensajeAMemoria);
 	free(mensajeDeMemoria);
 	close(socketPlanifAux);
+
 }
 
 int main() {

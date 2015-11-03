@@ -50,7 +50,7 @@ void *enviar(void *arg){
 		//message[strlen((message))] = '\0';
 		socketCPU = list_remove(parametros->listaCpus, 0);
 		int a = send(socketCPU,message,tamanio,0);
-		if(a == -1) puts("fallo envio");
+		if(a == -1) printf("fallo envio %d\n", socketCPU);
 		else printf("%d\n",a);
 		/*char algooo[PACKAGESIZE]; test al pedo
 		recv(parametros->socket,algooo,PACKAGESIZE,0);

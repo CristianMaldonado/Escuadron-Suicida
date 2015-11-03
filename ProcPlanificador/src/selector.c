@@ -14,6 +14,9 @@ void *selector(void* arg) {
 	int yes = 1;        // para setsockopt() SO_REUSEADDR, más abajo
 	int i, j;
 
+	protocolo_planificador_cpu* respuestaDeCPU = malloc(sizeof(protocolo_planificador_cpu));
+
+
 	tParametroSelector* parametros;
     parametros = (tParametroSelector*) arg;
 	FD_ZERO(&master);    // borra los conjuntos maestro y temporal
@@ -49,7 +52,7 @@ void *selector(void* arg) {
 						perror("accept");
 					} else {
 						FD_SET(newfd, &master); // añadir al conjunto maestro
-						list_add(parametros->listaCpus,newfd);
+						list_add(listaCpuLibres,newfd);
 						if (newfd > fdmax) {    // actualizar el máximo
 							fdmax = newfd;
 						}
@@ -59,41 +62,44 @@ void *selector(void* arg) {
 					}
 				} else {
 					// gestionar datos de un cliente
-
-					if ((nbytes = recv(i, buf, sizeof(buf), 0)) <= 0) {
+					nbytes = deserializarCPU(respuestaDeCPU,i);
+					printf("nbytes: %d", nbytes);
+					if (nbytes /*= recv(i, buf, sizeof(buf), 0)*/ <= 0) {
 						// error o conexión cerrada por el cliente
+					//nbytes = deserializarCPU(respuestaDeCPU,i);
+					//if (nbytes <= 0){
 						if (nbytes == 0) {
 							// conexión cerrada
 							printf("selectserver: socket %d hung up\n", i);
 						} else {
-							perror("recv");
+							perror("Desconexion CPU");
 						}
-						close(i); // bye!
-						FD_CLR(i, &master); // eliminar del conjunto maestro
+						//close(i); // bye!
+						//FD_CLR(i, &master); // eliminar del conjunto maestro
 					}
 					else {
 						// tenemos datos de algún cliente
 						//for (j = 0; j <= fdmax; j++) {
 						//	if (FD_ISSET(j, &master)) {
 								//TODO gestionar llegada
+                            //int status = 1;
+							//status = deserializarCPU(respuestaDeCPU,i);
+							//if(status == 0) error_show("Desconexion de CPU");
+							/*switch(respuestaDeCPU->tipoOperacion){
 
-						/*	status = deserializarCPU(respuestaDeCPU,i);
-							if(status == 0) error_show("Desconexion de CPU");
-							switch(respuestaDeCPU->tipoOperacion){
-
-								case 'i':{//METE EN LISTA EJECUTANDO
+								case 'i':{
 								}break;
 
 								case 'a':{//SI FALLA LIBERA LA CPU MOVER DE COLA EJECUTANDO A COLA DISPONIBLE
-										list_add(parametros->listaCpus,i);
+										//list_add(listaCpuLibres,i);
 								}break;
 
 								case 'f':{// LIBERAR CPU MOVER DE COLA EJECUTANDO A COLA DISPONIBLE
-										list_add(parametros->listaCpus,i);
+										//list_add(listaCpuLibres,i);
 								}break;
 							}*/
 
-								list_add(parametros->listaCpus,i);
+								list_add(listaCpuLibres,i);
 							//}
 						//}
 					}
