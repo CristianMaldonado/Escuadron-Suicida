@@ -15,6 +15,8 @@ sem_t nuevoProceso;
 t_log *logCpu;
 //int socketPlanificador;
 int socketMemoria;
+//
+pthread_mutex_t mutex;
 
 pthread_mutex_t mutexSocket;
 pthread_mutex_t mutexProceso;
@@ -46,7 +48,6 @@ typedef struct {
 
 
 typedef struct {
-	char tipoProceso;
 	char tipoOperacion;
 	//char codAux;
 	int pid;

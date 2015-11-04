@@ -181,45 +181,22 @@ void procesarComando(int nro_comando, char* message, int* cantProc,t_queue* cola
 	}
 }
 
-
-int deserializarCPU(protocolo_planificador_cpu *package,int socketCPU) {
-	int status;
-	char* buffer = malloc(sizeof(package->tipoProceso)+ sizeof(package->tipoOperacion)+ sizeof(testado)+ sizeof(package->pid)+
-			sizeof(package->counterProgram)+ sizeof(package->quantum)+ sizeof(package->tamanioMensaje));
-	int offset = 1;
-
-	status = recv(socketCPU, buffer,sizeof(package->tipoOperacion) /*+ sizeof(package->tipoProceso)*/, 0);
-	//memcpy(&(package->tipoProceso), buffer, sizeof(package->tipoProceso));
-	//offset += sizeof(package->tipoProceso);
-	memcpy(&(package->tipoOperacion), buffer + offset, sizeof(package->tipoOperacion));
-	offset += sizeof(package->tipoOperacion);
-
-	if (status<=0) return status;
-
-	status = recv(socketCPU, buffer,sizeof(package->estado) + sizeof(package->pid)
-			+ sizeof(package->counterProgram + sizeof(package->quantum) + sizeof(package->tamanioMensaje)),0);
-	memcpy(&(package->estado), buffer + offset, sizeof(package->estado));
-	offset += sizeof(package->estado);
-	memcpy(&(package->pid), buffer + offset, sizeof(package->pid));
-	offset += sizeof(package->pid);
-	memcpy(&(package->counterProgram), buffer + offset, sizeof(package->counterProgram));
-	offset += sizeof(package->counterProgram);
-	memcpy(&(package->quantum), buffer + offset, sizeof(package->quantum));
-	offset += sizeof(package->quantum);
-	memcpy(&(package->tamanioMensaje), buffer + offset, sizeof(package->tamanioMensaje));
-	offset += sizeof(package->tamanioMensaje);
-
-	if (status<=0) return status;
-
-	package->mensaje = malloc((package->tamanioMensaje) +1);
-	status = recv(socketCPU, buffer, package->tamanioMensaje,0);
-	memcpy(&(package->mensaje), buffer + offset, package->tamanioMensaje);
-	package->mensaje[package->tamanioMensaje+1]= '\0';
-	if(status<=0) return status;
-
+int deserializarCPU(protocolo_planificador_cpu * package, int socketCPU) {
+	void* buffer = malloc(sizeof(protocolo_planificador_cpu)-4);
+	if (recv(socketCPU, buffer, sizeof(protocolo_planificador_cpu)-4, 0) <= 0) return -1;
+	memcpy(&(package->tipoProceso), buffer, 1);
+	memcpy(&(package->tipoOperacion), buffer + 1, 1);
+	memcpy(&(package->estado), buffer + 2 ,4);
+	memcpy(&(package->pid), buffer + 6 ,4);
+	memcpy(&(package->counterProgram), buffer + 10 ,4);
+	memcpy(&(package->quantum), buffer + 14, 4);
+	memcpy(&(package->tamanioMensaje), buffer + 18, 4);
+	// ahora el mensaje posta
+	package->mensaje = (char*)malloc(package->tamanioMensaje + 1);
+	if(recv(socketCPU, package->mensaje, package->tamanioMensaje, 0) <= 0) return -1;
+	package->mensaje[package->tamanioMensaje] = '\0';
 	free(buffer);
-
-	return status;
+	return 1;
 }
 
 void adaptadorPCBaProtocolo(tpcb* pcb,protocolo_planificador_cpu* paquete){//OK

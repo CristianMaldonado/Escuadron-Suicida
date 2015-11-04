@@ -32,7 +32,7 @@ void eliminarCpusDesconectadas(int * socketCpu, int * numeroCpus, int maxCant){
 void agregarNuevaCpu(int nuevaCpu, int * socketCpu, int * numeroCpus){
 
 	/*agrego al final la nueva cpu*/
-	socketCpu[*numeroCpus - 1] = nuevaCpu;
+	socketCpu[*numeroCpus] = nuevaCpu;
 	int aux = *numeroCpus;
 	aux++;
 	*numeroCpus = aux;
@@ -55,7 +55,7 @@ void * selector(void * arg){
 	fd_set descriptores;
 	int numeroCpus = 0;
 	//TODO hay que setear fdmaxcant con la cantidad de cpu que se van a conectar, falta en arg
-	int fdmaxCant = 4;
+	int fdmaxCant = 5;
 	int i;
 
 	int servidor = ((tParametroSelector*)arg)->socket;
@@ -78,10 +78,9 @@ void * selector(void * arg){
 		/*busco el descriptor mas grande*/
 		int maxfdset = 0;
 
-		if (numeroCpus < 1){
-
+		if (numeroCpus > 1){
 			maxfdset = socketCpu[0];
-			for (i = 0; i < fdmaxCant; i++)
+			for (i = 0; i < numeroCpus; i++)
 				if (socketCpu[i] > maxfdset)
 					maxfdset = socketCpu[i];
 		}
@@ -90,7 +89,8 @@ void * selector(void * arg){
 			maxfdset = servidor;
 
 		/*espero hasta que ocurra un evento*/
-		select (maxfdset + 1, &descriptores, NULL, NULL, NULL);
+		if (select (maxfdset + 1, &descriptores, NULL, NULL, NULL) == -1)
+			break;
 
 		/*compruebo las cpus*/
 		for (i = 0; i < numeroCpus; i++){
@@ -120,6 +120,7 @@ void * selector(void * arg){
 								int* puntero = malloc(sizeof(int));
 								*puntero = socketCpu[i];
 								list_add(listaCpuLibres, puntero);
+								printf("Cpu libres: %d\n", list_size(listaCpuLibres));
 								pthread_mutex_unlock(&mutexListaCpus);
 
 								sem_post(&hayCPU);
@@ -155,7 +156,7 @@ void * selector(void * arg){
 
 				sem_post(&hayCPU);
 
-				printf("Nueva CPU conectada\n");
+				printf("Nueva CPU conectada: %d\n", nuevaCpu);
 			}
 		}
 	}

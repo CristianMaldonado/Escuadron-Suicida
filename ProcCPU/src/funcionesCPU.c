@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 #include "logueo.h"
 #include "serializacion.h"
+#include <pthread.h>
 
 /*void crearMockitoPlanif(protocolo_planificador_cpu* package){
 
@@ -32,7 +33,9 @@
 void enviarAMemoria(protocolo_cpu_memoria* message) {
 	int tamanio;
 	void* empaquetado = serializarPaqueteMemoria(message,&tamanio);
+	pthread_mutex_lock(&mutex);
 	send(socketMemoria, empaquetado, tamanio,0);
+	pthread_mutex_unlock(&mutex);
 	free(empaquetado); //free(1)
 }
 
@@ -53,17 +56,16 @@ void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete,
 	//TODO: Modificar estado (?
 }
 
-
 void enviarAPlanificador(protocolo_planificador_cpu* respuestaDeMemo,int socketPlanificador){
 
 	int tamanio;
 	void* empaquetado = serializarPaquetePlanificador(respuestaDeMemo,&tamanio);
-	send(socketPlanificador, empaquetado, tamanio, 0);
+	int aa = send(socketPlanificador, empaquetado, tamanio, 0);
+	printf("send enviar plani: %d\n", aa);
 	free(empaquetado);
 }
 //MODIFICAR ARMAR PAQUETE PARAMETROS
-void armarPaqueteMemoria(protocolo_cpu_memoria* paquete, char tipoProceso,char codOperacion, int pid, int nroPagina, char* mensaje) {
-	paquete->tipoProceso = tipoProceso;
+void armarPaqueteMemoria(protocolo_cpu_memoria* paquete,char codOperacion, int pid, int nroPagina, char* mensaje) {
 	paquete->tipoOperacion = codOperacion;
 	paquete->pid = pid;
 	paquete->nroPagina = nroPagina;
@@ -79,16 +81,17 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 
 		if (string_starts_with(instruccion, "iniciar")) {
 			int numero = atoi(lineaFiltrada[1]);
-			armarPaqueteMemoria(mensajeParaArmar, 'c', 'i',mensajeDePlanificador->pid,numero , "-");
+			armarPaqueteMemoria(mensajeParaArmar, 'i',mensajeDePlanificador->pid,numero , "-");
 		}
 		if (string_starts_with(instruccion, "leer")) {
 			int numero = atoi(lineaFiltrada[1]);
-			armarPaqueteMemoria(mensajeParaArmar, 'c', 'l',mensajeDePlanificador->pid, numero, "-");
+			armarPaqueteMemoria(mensajeParaArmar, 'l',mensajeDePlanificador->pid, numero, "-");
 		}
 		if(string_starts_with(instruccion,"escribir")) {
 			int numero = atoi(lineaFiltrada[1]);
-			armarPaqueteMemoria(mensajeParaArmar, 'c', 'e',mensajeDePlanificador->pid, numero, lineaFiltrada[2]);
+			armarPaqueteMemoria(mensajeParaArmar, 'e',mensajeDePlanificador->pid, numero, lineaFiltrada[2]);
 		} //TODO cheackpoint 3 supongo
+
 		if(string_starts_with(instruccion,"entrada-salida")) {
 			int tiempo = atoi(lineaFiltrada[1]);
 			//armarPaquetePlanificador(mensajeDePlanificador, 'c','E', mensajeDePlanificador->pid, mensajeDePlanificador->estado,
@@ -99,10 +102,10 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 		}
 
 		if (string_starts_with(instruccion, "finalizar;")) {
-				armarPaqueteMemoria(mensajeParaArmar, 'c', 'f', mensajeDePlanificador->pid, 0, "-");
-				armarPaquetePlanificador(mensajeDePlanificador, 'c','F', mensajeDePlanificador->pid, mensajeDePlanificador->estado,
-									mensajeDePlanificador->counterProgram,mensajeDePlanificador->quantum, mensajeDePlanificador->tamanioMensaje, mensajeDePlanificador->mensaje);
-				enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
+				armarPaqueteMemoria(mensajeParaArmar, 'f', mensajeDePlanificador->pid, 0, "-");
+				//armarPaquetePlanificador(mensajeDePlanificador, 'c','f', mensajeDePlanificador->pid, mensajeDePlanificador->estado,
+				//mensajeDePlanificador->counterProgram,mensajeDePlanificador->quantum, mensajeDePlanificador->tamanioMensaje, mensajeDePlanificador->mensaje);
+				//enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
 
 		}
 		free(linea);

@@ -18,22 +18,19 @@
 bool terminoPlanificador;
 tipoConfiguracionCPU *config;
 
-void *procesarInstruccion() {
+void * procesarInstruccion() {
 
 	protocolo_planificador_cpu* datosParaProcesar = malloc(sizeof(protocolo_planificador_cpu));
-	protocolo_cpu_memoria* mensajeAMemoria = malloc(
-			sizeof(protocolo_cpu_memoria));
+	protocolo_cpu_memoria* mensajeAMemoria = malloc( sizeof(protocolo_cpu_memoria));
 	printf("aca estoy\n");
-	protocolo_memoria_cpu* mensajeDeMemoria = malloc(
-			sizeof(protocolo_memoria_cpu));
+	protocolo_memoria_cpu* mensajeDeMemoria = malloc(sizeof(protocolo_memoria_cpu));
 	int tid = process_get_thread_id();
 	int socketPlanifAux;
 	pthread_mutex_lock(&mutexSocket);
 	printf("Conectando al Planificador (%s : %s)... ", config->ipPlanificador,
 			config->puertoPlanificador);
 	//for(i=0;i<=config->cantidadHilos;i++){
-	client_init(&socketPlanifAux, config->ipPlanificador,
-			config->puertoPlanificador);
+	client_init(&socketPlanifAux, config->ipPlanificador, config->puertoPlanificador);
 	printf("OK\n");
 
 	if (socketPlanifAux == -1)
@@ -86,14 +83,17 @@ void *procesarInstruccion() {
 			if (datosParaProcesar->tipoOperacion == 'E') break;
 
 			enviarAMemoria(mensajeAMemoria);
-			printf("pid %d\n", mensajeAMemoria->pid);
-			printf("tamanio %d\n", mensajeAMemoria->tamanioMensaje);
-			printf("operacion %c\n", mensajeAMemoria->tipoOperacion);
-			deserializarMemoria(mensajeDeMemoria);
-			printf("pid %d\n", mensajeDeMemoria->pid);
-			printf("tamanio %d\n", mensajeDeMemoria->tamanioMensaje);
-			printf("operacion %c\n", mensajeDeMemoria->codOperacion);
-			printf("cod aux %c\n", mensajeDeMemoria->codAux);
+			//printf("pid a men %d\n", mensajeAMemoria->pid);
+			//printf("tamanio a men%d\n", mensajeAMemoria->tamanioMensaje);
+			//printf("operacion amen %c\n", mensajeAMemoria->tipoOperacion);
+
+
+			deserializarMemoria(mensajeDeMemoria, socketMemoria);
+			//printf("pid de men%d\n", mensajeDeMemoria->pid);
+			//printf("tamanio de men%d\n", mensajeDeMemoria->tamanioMensaje);
+			printf("operacion de men %c\n", mensajeDeMemoria->codOperacion);
+			printf("cod aux de men %c\n", mensajeDeMemoria->codAux);
+
 			if (mensajeDeMemoria->codAux == 'a'
 					&& mensajeDeMemoria->codOperacion == 'i')
 				break;
@@ -101,6 +101,7 @@ void *procesarInstruccion() {
 
 						 case 'f': {
 							 actualizarOperacionPaquetePlanificador(datosParaProcesar, 'f');
+							 enviarAPlanificador(datosParaProcesar,socketPlanifAux);
 						 }break;
 
 						/* case 'l': {
@@ -113,14 +114,13 @@ void *procesarInstruccion() {
 						 }break;*/
 
 						 case 'i':{
-							 actualizarOperacionPaquetePlanificador(datosParaProcesar,
-									 (mensajeDeMemoria->codAux == 'a') ? 'a' : 'i');
+							 actualizarOperacionPaquetePlanificador(datosParaProcesar, (mensajeDeMemoria->codAux == 'a') ? 'a' : 'i');
+							 enviarAPlanificador(datosParaProcesar,socketPlanifAux);
 						 }break;
 
 
-						 }
+			}
 
-						enviarAPlanificador(datosParaProcesar,socketPlanifAux);
 			//enviarAPlanificador(datosParaProcesar);
 			pthread_mutex_lock(&mutexProceso);
 			loguearEstadoMemoria(mensajeDeMemoria, instruccionLeida);
@@ -144,6 +144,7 @@ void *procesarInstruccion() {
 
 int main() {
 	system("clear");
+	pthread_mutex_init(&mutex, NULL);
 
 	// creacion de la instancia de log
 	logCpu = log_create("../src/log.txt", "cpu.c", false, LOG_LEVEL_INFO);
@@ -189,8 +190,7 @@ int main() {
 	sem_init(&nuevoProceso, 0, 1);
 	pthread_attr_init(&atrib);
 
-
-	for (i = 0; i <= config->cantidadHilos; i++) {
+	for (i = 0; i < config->cantidadHilos; i++) {
 		//vectorHilos[i].tid= process_get_thread_id();
 		printf("le mande al hilo %d", i);
 		// Lo que recibimos del planificador lo enviamos al hilo

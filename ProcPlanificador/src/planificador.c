@@ -84,7 +84,7 @@ int main(){
 	tconfig_planif* configPlanificador = malloc(sizeof(tconfig_planif));
 	configPlanificador->puertoEscucha = "4143";
 	configPlanificador->quantum = 0;
-	configPlanificador->algoritmo = "FIFO";
+	//configPlanificador->algoritmo = "FIFO";
 
 
 	//leemos el archivo de configuracion

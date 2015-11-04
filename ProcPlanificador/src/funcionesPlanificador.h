@@ -23,7 +23,7 @@ int deserializarCPU(protocolo_planificador_cpu *package,int socketCPU);
 
 void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio);
 
-int maxLineas(FILE* archivo);
+int maxLineas(char * archivo);
 char* nombrePrograma(char* path);
 void finalizarPID(char* pidBuscado,t_queue* colaProc);
 

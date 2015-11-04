@@ -10,49 +10,19 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 
-void* serializarPaquetePlanificador(protocolo_planificador_cpu* paquete, int* tamanio){ //malloc(1)
-	//SERIALIZA SOLO CORRER
-	size_t messageLength = strlen(paquete->mensaje);
 
-	void* paqueteSerializado = malloc(sizeof(protocolo_planificador_cpu) + messageLength);
-	int offset = 0;
-	int size_to_send;
-
-	size_to_send = sizeof(paquete->tipoProceso);
-	memcpy(paqueteSerializado + offset, &(paquete->tipoProceso),size_to_send);
-	offset += size_to_send;
-
-	size_to_send = sizeof(paquete->tipoOperacion);
-	memcpy(paqueteSerializado + offset, &(paquete->tipoOperacion),size_to_send);
-	offset += size_to_send;
-
-	size_to_send = sizeof(paquete->estado);
-	memcpy(paqueteSerializado + offset, &(paquete->estado), size_to_send);
-	offset += size_to_send;
-
-	size_to_send = sizeof(paquete->pid);
-	memcpy(paqueteSerializado + offset, &(paquete->pid), size_to_send);
-	offset += size_to_send;
-
-	size_to_send = sizeof(paquete->counterProgram);
-	memcpy(paqueteSerializado + offset, &(paquete->counterProgram),size_to_send);
-	offset += size_to_send;
-
-	size_to_send = sizeof(paquete->quantum);
-	memcpy(paqueteSerializado + offset, &(paquete->quantum), size_to_send);
-	offset += size_to_send;
-
-	size_to_send = sizeof(paquete->tamanioMensaje);
-	memcpy(paqueteSerializado + offset, &messageLength, size_to_send);
-	offset += size_to_send;
-
-	size_to_send = messageLength;
-	memcpy(paqueteSerializado + offset, paquete->mensaje, size_to_send);
-	offset += size_to_send;
-
-	*tamanio = offset;
-	return paqueteSerializado;
-
+void * serializarPaquetePlanificador(protocolo_planificador_cpu * protocolo, int * tamanio) {
+	void * chorro = malloc(22 + protocolo->tamanioMensaje);
+	memcpy(chorro, &(protocolo->tipoProceso), 1);
+	memcpy(chorro + 1, &(protocolo->tipoOperacion), 1);
+	memcpy(chorro + 2, &(protocolo->estado), 4);
+	memcpy(chorro + 6, &(protocolo->pid), 4);
+	memcpy(chorro + 10, &(protocolo->counterProgram), 4);
+	memcpy(chorro + 14, &(protocolo->quantum), 4);
+	memcpy(chorro + 18, &(protocolo->tamanioMensaje), 4);
+	memcpy(chorro + 22, protocolo->mensaje, protocolo->tamanioMensaje);
+	*tamanio = 22 + protocolo->tamanioMensaje;
+	return chorro;
 }
 
 void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete, int* tamanio) {
@@ -83,15 +53,6 @@ void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete, int* tamanio) {
 	size_to_send = messageLength;
 	memcpy(paqueteSerializado + offset, paquete->mensaje, size_to_send);
 	offset += size_to_send;
-
-	/*size_to_send = sizeof(paquete->tamanioMensaje);
-	memcpy(paqueteSerializado + offset, &(paquete->tamanioMensaje),
-			size_to_send);
-	offset += size_to_send;
-
-	size_to_send = paquete->tamanioMensaje;
-	memcpy(paqueteSerializado + offset, &(paquete->mensaje), size_to_send);
-	offset += size_to_send;*/
 
 	*tamanio = offset;
 	return paqueteSerializado;
@@ -140,13 +101,31 @@ int deserializarPlanificador(protocolo_planificador_cpu *package,int socketPlani
 
 }
 
+int deserializarMemoria(protocolo_memoria_cpu * package, int socket_memoria) {
+	void* buffer = malloc(sizeof(protocolo_memoria_cpu)-4);
+	if (recv(socket_memoria, buffer, sizeof(protocolo_memoria_cpu)-4, 0) <= 0) return false;
+	memcpy(&(package->tipoProceso), buffer , 1);
+	memcpy(&(package->codOperacion), buffer + 1 , 1);
+	memcpy(&(package->codAux), buffer + 2 , 1);
+	memcpy(&(package->pid), buffer + 3 , 4);
+	memcpy(&(package->numeroPagina), buffer + 7 , 4);
+	memcpy(&(package->tamanioMensaje), buffer + 11 , 4);
+	// ahora el mensaje posta
+	package->mensaje = (char*)malloc(package->tamanioMensaje + 1);
+	if(recv(socket_memoria, package->mensaje, package->tamanioMensaje, 0) <= 0) return false;
+	package->mensaje[package->tamanioMensaje] = '\0';
+	free(buffer);
+	return 1;
+}
+
+/*
 int deserializarMemoria(protocolo_memoria_cpu* package){
 	int status;
 		void* buffer = malloc(sizeof(protocolo_memoria_cpu)-4);  //TODO: RESERVAR MEMORIA
 		int offset = 0;
 
 		status = recv(socketMemoria, buffer,sizeof(protocolo_memoria_cpu) -4, 0);
-		if(!status) return 0;
+		if(status <=0) return 0;
 
 		memcpy(&(package->tipoProceso), buffer, sizeof(package->tipoProceso));
 		offset += sizeof(package->tipoProceso);
@@ -166,23 +145,16 @@ int deserializarMemoria(protocolo_memoria_cpu* package){
 		memcpy(&(package->tamanioMensaje), buffer + offset,sizeof(package->tamanioMensaje));
 		offset += sizeof(package->tamanioMensaje);
 
-		package->mensaje = (char*)malloc((package->tamanioMensaje) +1);
+		printf ("desde memoria tamanio mensjae: %d\n", package->tamanioMensaje);
+		package->mensaje = (char*)malloc((package->tamanioMensaje) + 1);
 
-		status = recv(socketMemoria, package->mensaje, package->tamanioMensaje,0);
+		status = recv(socketMemoria, package->mensaje, package->tamanioMensaje, 0);
+		if(status <=0) return 0;
 
 		package->mensaje[package->tamanioMensaje]= '\0';
-		/*
-		memcpy(&(package->tamanioMensaje), buffer + offset,
-				sizeof(package->tamanioMensaje));
-		offset += sizeof(package->tamanioMensaje);
-
-		if (!status) return 0;
-		package->mensaje = malloc((package->tamanioMensaje) +1);
-			status = recv(socketMemoria, buffer, package->tamanioMensaje,0);
-			memcpy(&(package->mensaje), buffer + offset, package->tamanioMensaje);
-			package->mensaje[package->tamanioMensaje+1]= '\0';*/
 
 		free(buffer);
 
 		return status;
 }
+*/
