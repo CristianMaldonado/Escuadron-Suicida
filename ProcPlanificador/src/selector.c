@@ -4,15 +4,15 @@
 #include <commons/collections/list.h>
 #include <pthread.h>
 
-void eliminarCpusDesconectadas(int * socketCpu, int * numeroCpus, int maxCant){
+void eliminarCpusDesconectadas(int ** socketCpu, int * numeroCpus){
 
-	int i;
 	t_list * auxList = list_create();
+	int i;
 
-	for (i = 0; i < maxCant; i++){
-		if (socketCpu[i] != -1){
+	for (i = 0; i < *numeroCpus; i++){
+		if ((*socketCpu)[i] != -1){
 			int * aux = malloc(sizeof(int));
-			*aux = socketCpu[i];
+			*aux = (*socketCpu)[i];
 			list_add(auxList, aux);
 		}
 	}
@@ -20,52 +20,43 @@ void eliminarCpusDesconectadas(int * socketCpu, int * numeroCpus, int maxCant){
 	/*actualizo cantidad de cpu conectadas*/
 	*numeroCpus = list_size(auxList);
 
+	/*cambio el tamano para solo contener las cpu conectadas*/
+	if (*socketCpu){
+		free(*socketCpu);
+		(*socketCpu) = malloc(sizeof(int)*(*numeroCpus));
+	}
+
 	for (i = 0; i < *numeroCpus; i++){
 		int * aux = list_remove(auxList, 0);
-		socketCpu[i] = *aux;
+		(*socketCpu)[i] = *aux;
 		free(aux);
 	}
 
 	list_destroy(auxList);
 }
 
-void agregarNuevaCpu(int nuevaCpu, int * socketCpu, int * numeroCpus){
-
+void agregarNuevaCpu(int nuevaCpu, int ** socketCpu, int * numeroCpus){
+	/*agrando vector para colocar el nuevo socket*/
+	(*socketCpu) = realloc((*socketCpu), sizeof(int)*((*numeroCpus) + 1));
 	/*agrego al final la nueva cpu*/
-	socketCpu[*numeroCpus] = nuevaCpu;
-	int aux = *numeroCpus;
-	aux++;
-	*numeroCpus = aux;
-}
-
-int * initSocket(int cant){
-
-	int * aux = malloc(sizeof(int)*cant);
-
-	/*inicializo con -1*/
-	int i;
-	for (i = 0; i < cant; i++)
-		aux[i] = -1;
-
-	return aux;
+	(*socketCpu)[*numeroCpus] = nuevaCpu;
+	/*actualizo cantidad*/
+	*numeroCpus = (*numeroCpus) + 1;
 }
 
 void * selector(void * arg) {
 
 	fd_set descriptores;
 	int numeroCpus = 0;
-	//TODO hay que setear fdmaxcant con la cantidad de cpu que se van a conectar, falta en arg
-	int fdmaxCant = 5;
+	int * socketCpu = 0;
 	int i;
 
 	int servidor = ((tParametroSelector*)arg)->socket;
 
-	int * socketCpu = initSocket(fdmaxCant);
-
 	while(1){
 
 		/*elimino las cpu con -1*/
-		eliminarCpusDesconectadas(socketCpu, &numeroCpus, fdmaxCant);
+		eliminarCpusDesconectadas(&socketCpu, &numeroCpus);
 
 		FD_ZERO(&descriptores);
 
@@ -101,13 +92,15 @@ void * selector(void * arg) {
 				protocolo_planificador_cpu respuestaDeCPU;
 				if(deserializarCPU(&respuestaDeCPU, socketCpu[i])){
 
-					printf("llego al select.c: %c:\n", respuestaDeCPU.tipoOperacion);
+					printf("Llego al planificador: %c de el socket:%d\n", respuestaDeCPU.tipoOperacion, socketCpu[i]);
 					switch(respuestaDeCPU.tipoOperacion){
 
 						case 'a':{
-								pthread_mutex_lock(&mutexListaCpus);
 								int* puntero = malloc(sizeof(int));
 								*puntero = socketCpu[i];
+
+								pthread_mutex_lock(&mutexListaCpus);
+								/*agreo la cpu a lista disponible*/
 								list_add(listaCpuLibres,puntero);
 								pthread_mutex_unlock(&mutexListaCpus);
 
@@ -116,11 +109,12 @@ void * selector(void * arg) {
 						break;
 
 						case 'f':{
-								pthread_mutex_lock(&mutexListaCpus);
 								int* puntero = malloc(sizeof(int));
 								*puntero = socketCpu[i];
+
+								pthread_mutex_lock(&mutexListaCpus);
+								/*agreo la cpu a lista disponible*/
 								list_add(listaCpuLibres, puntero);
-								printf("Cpu libres: %d\n", list_size(listaCpuLibres));
 								pthread_mutex_unlock(&mutexListaCpus);
 
 								sem_post(&hayCPU);
@@ -145,11 +139,13 @@ void * selector(void * arg) {
 			server_acept(servidor, &nuevaCpu);
 			if (nuevaCpu != -1){
 
-				agregarNuevaCpu(nuevaCpu, socketCpu, &numeroCpus);
+				/*se agrega el nuevo socket*/
+				agregarNuevaCpu(nuevaCpu, &socketCpu, &numeroCpus);
 
-				pthread_mutex_lock(&mutexListaCpus);
 				int * puntero = malloc(sizeof(int));
 				*puntero = nuevaCpu;
+
+				pthread_mutex_lock(&mutexListaCpus);
 				/*agreo la cpu a lista disponible*/
 				list_add(listaCpuLibres, puntero);
 				pthread_mutex_unlock(&mutexListaCpus);
