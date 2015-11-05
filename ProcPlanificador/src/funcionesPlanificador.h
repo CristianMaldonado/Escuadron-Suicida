@@ -15,7 +15,7 @@ tpcb* armarPCB (char* path,int cant);
 int clasificarComando(char* message);
 void adaptadorPCBaProtocolo(tpcb* pcb,protocolo_planificador_cpu* paquete);
 void procesarComando(int nro_comando, char* message, int* cantProc,t_queue* colaProc);
-void convertirEstado(testado estadoEnum, char* estado);
+void convertirEstado(testado estadoEnum, char** estado);
 void mostrarEstadoProcesos(t_queue* colaProc);
 void mostrarEstadoProcesosLista(t_list* lista);
 int deserializarCPU(protocolo_planificador_cpu *package,int socketCPU);

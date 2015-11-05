@@ -94,9 +94,7 @@ void * procesarInstruccion() {
 			printf("operacion de men %c\n", mensajeDeMemoria->codOperacion);
 			printf("cod aux de men %c\n", mensajeDeMemoria->codAux);
 
-			if (mensajeDeMemoria->codAux == 'a'
-					&& mensajeDeMemoria->codOperacion == 'i')
-				break;
+
 			switch (mensajeDeMemoria->codOperacion){// arma mensaje a planificador
 
 						 case 'f': {
@@ -120,6 +118,9 @@ void * procesarInstruccion() {
 
 
 			}
+
+			if (mensajeDeMemoria->codAux == 'a' && mensajeDeMemoria->codOperacion == 'i')
+				break;
 
 			//enviarAPlanificador(datosParaProcesar);
 			pthread_mutex_lock(&mutexProceso);

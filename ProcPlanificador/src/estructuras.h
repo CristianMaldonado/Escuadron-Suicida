@@ -34,6 +34,7 @@ t_list* listaCpuLibres;
 pthread_mutex_t mutexListaCpus;
 t_log* logPlanificador;
 
+
 typedef struct{
 	t_list* listaCpus;
 	t_queue* procesos;
@@ -48,6 +49,9 @@ typedef struct {
 	char algoritmo;
 	int quantum;
 }tconfig_planif;
+
+tconfig_planif* configPlanificador;
+
 
 typedef enum {
 	LISTO, IO, EJECUTANDO, FINALIZADO

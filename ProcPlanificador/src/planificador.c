@@ -16,6 +16,7 @@
 #define PACKAGESIZE 30
 
 //t_list* listaEjecutando=list_create();
+bool llegoExit;
 
 
 void definirMensaje(tpcb* pcb,char* message){
@@ -41,6 +42,7 @@ void *enviar(void *arg){
 	while(1){
 		sem_wait(&hayCPU);
 		sem_wait(&hayProgramas);
+		if(llegoExit) pthread_exit(0);
 		puts("pasaste el semaforo");
 		pcb=queue_pop(parametros->procesos);
 		printf("saque pcb\n");
@@ -84,14 +86,14 @@ int main(){
 	logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
 	//logPlanificador->pid = 1;
 
-	tconfig_planif* configPlanificador = malloc(sizeof(tconfig_planif));
+	/*tconfig_planif* configPlanificador = malloc(sizeof(tconfig_planif));
 	configPlanificador->puertoEscucha = "4143";
 	configPlanificador->quantum = 0;
-	//configPlanificador->algoritmo = "FIFO";
+	configPlanificador->algoritmo = "FIFO";*/
 
 
 	//leemos el archivo de configuracion
-	//tconfig_planif *configPlanificador = leerConfiguracion();
+	configPlanificador = leerConfiguracion();
 
 	//Inicia el socket para escuchar
 	int serverSocket;
@@ -123,7 +125,7 @@ int main(){
 	tParametroEnviar envio;
 	envio.listaCpus=listaCpuLibres;
 	envio.procesos=colaProcesos;
-
+	llegoExit = false;
 	pthread_attr_init(&attr);
 	pthread_create( &enviarAlCpu, &attr, enviar,(void*) &envio);
 
@@ -138,12 +140,18 @@ int main(){
 		nro_comando = clasificarComando(&message[0]);
         //TODO: VER SI EL PROCESAR COMANDO TIENE QUE RECIBIR TODAS LAS LISTAS Y COLAS, O HACERLAS GLOBALES PARA EL PS
 		procesarComando(nro_comando,&message[0],&cantProc,colaProcesos);
-
+		llegoExit = false;
 		nro_comando=0;
 
-		if (!strcmp(message,"exit\n")) enviar2 = 0;
+		if (!strcmp(message,"exit\n")) {
+		llegoExit = true;
+		sem_post(&hayProgramas);
+		enviar2 = 0;
+	}
 
 	}
+
+	pthread_join(enviarAlCpu,NULL);
 
 	close(serverSocket);
 	//close(socketCPU);

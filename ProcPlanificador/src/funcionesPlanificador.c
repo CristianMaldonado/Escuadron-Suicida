@@ -60,23 +60,23 @@ tpcb* armarPCB(char* path, int cant) {//OK
 	pcb->siguiente=pcb->maximo;
 }
 */
-void convertirEstado(testado estadoEnum, char* estado){
+void convertirEstado(testado estadoEnum, char** estado){
 
 if (estadoEnum == LISTO) {
-	estado = malloc(7);
-	strcpy(estado, "LISTO");
+	*estado = malloc(7);
+	strcpy(*estado, "LISTO");
 }
 if (estadoEnum == IO) {
-	estado = malloc(7);
-	strcpy(estado, "IO");
+	*estado = malloc(7);
+	strcpy(*estado, "IO");
 }
 if (estadoEnum == EJECUTANDO) {
-	estado = malloc(12);
-	strcpy(estado, "EJECUTANDO");
+	*estado = malloc(12);
+	strcpy(*estado, "EJECUTANDO");
 }
 if (estadoEnum == FINALIZADO) {
-	estado = malloc(12);
-	strcpy(estado, "FINALIZADO");
+	*estado = malloc(12);
+	strcpy(*estado, "FINALIZADO");
 }
 
  }
@@ -84,15 +84,16 @@ if (estadoEnum == FINALIZADO) {
 void mostrarEstadoProcesos(t_queue* colaProc){
 	char* infoProceso = (char*)malloc(50);
 
-	t_list* lista= (colaProc)->elements;
+	t_list* lista= colaProcesos->elements;
 	t_link_element* element = lista->head;
-	tpcb* pcb;
+
 	int pos= 0;
 	while (element != NULL){
+		tpcb* pcb = malloc(sizeof(tpcb));
 		char* estado = string_new();
 			pcb=(element->data);
 				element=element->next;
-				convertirEstado(pcb->estado, estado);
+				convertirEstado(pcb->estado, &estado);
 				strcpy(infoProceso, "mProc: ");
 				string_append_with_format(&infoProceso, "%d ", pcb->pid);
 				string_append(&infoProceso, pcb->nombre);
@@ -101,6 +102,7 @@ void mostrarEstadoProcesos(t_queue* colaProc){
 				printf("%s",infoProceso);
 
 				free(estado);
+				free(pcb);
 				pos++;
 
 		}
@@ -119,7 +121,7 @@ void mostrarEstadoProcesosLista(t_list* lista){
 		char* estado = string_new();
 			pcb=(element->data);
 				element=element->next;
-				convertirEstado(pcb->estado, estado);
+				convertirEstado(pcb->estado, &estado);
 				strcpy(infoProceso, "mProc: ");
 				string_append_with_format(&infoProceso, "%d ", pcb->pid);
 				string_append(&infoProceso, pcb->nombre);
@@ -161,7 +163,9 @@ void procesarComando(int nro_comando, char* message, int* cantProc,t_queue* cola
 	switch (nro_comando) {
 	case 1:
 		printf("Entro por ps\n");
-		mostrarEstadoProcesos(colaProc);
+		mostrarEstadoProcesos(colaProcesos);
+		mostrarEstadoProcesos(colaIO);
+		mostrarEstadoProcesosLista(listaEjecutando);
 		break;
 	case 2:
 		printf("Entro por cpu\n");
@@ -205,7 +209,10 @@ void adaptadorPCBaProtocolo(tpcb* pcb,protocolo_planificador_cpu* paquete){//OK
 	paquete->pid = pcb->pid;
 	paquete->estado = pcb->estado;
 	paquete->counterProgram = pcb->siguiente;
+	if((configPlanificador->algoritmo) == 'F')
 	paquete->quantum = 0;
+	else
+		paquete->quantum = configPlanificador->quantum;
 	paquete->tamanioMensaje = strlen(pcb->ruta)+1;
 	paquete->mensaje =malloc(strlen(pcb->ruta)+1);
 	strcpy(paquete->mensaje, pcb->ruta);
