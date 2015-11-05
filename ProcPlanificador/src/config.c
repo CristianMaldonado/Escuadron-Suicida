@@ -7,8 +7,6 @@
 
 #include <stdlib.h>
 #include "estructuras.h"
-#include "config.h"
-
 #include <commons/config.h>
 
 tconfig_planif *leerConfiguracion(){

@@ -49,6 +49,7 @@ void finalizarPID(char* pidBuscado,t_queue* colaProc){
 	int position = 0;
 	while (element != NULL){
 		pcb=(element->data);
+		//TODO : estan comparando un entero con un char*
 		if((pcb->pid)!=pidBuscado){
 			element=element->next;
 			position++;

@@ -9,6 +9,7 @@
 #include <commons/log.h>
 #include "config.h"
 #include "selector.h"
+#include <pthread.h>
 
 #define PACKAGESIZE 30
 

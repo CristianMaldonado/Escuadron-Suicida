@@ -1,8 +1,8 @@
-#include "selector.h"
 #include "estructuras.h"
 #include "funcionesPlanificador.h"
 #include "libSocket.h"
 #include <commons/collections/list.h>
+#include <pthread.h>
 
 void eliminarCpusDesconectadas(int * socketCpu, int * numeroCpus, int maxCant){
 
@@ -50,7 +50,7 @@ int * initSocket(int cant){
 	return aux;
 }
 
-void * selector(void * arg){
+void * selector(void * arg) {
 
 	fd_set descriptores;
 	int numeroCpus = 0;

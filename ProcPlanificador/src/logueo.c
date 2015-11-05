@@ -5,9 +5,9 @@
  *      Author: utnso
  */
 
-
-#include "logueo.h"
 #include "funcionesPlanificador.h"
+#include <commons/string.h>
+#include <commons/log.h>
 
 void logueoProcesos(int pid, char* nombre){//faltaria cuando finaliza, mas facil hacemos otra funcion xD
 	nombre[strlen(nombre)-1] = '\0';
