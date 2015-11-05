@@ -5,10 +5,12 @@
 #include <semaphore.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <commons/log.h>
 #include "config.h"
 #include "selector.h"
+#include <commons/collections/queue.h>
 #include <pthread.h>
 
 #define PACKAGESIZE 30

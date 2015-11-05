@@ -28,7 +28,6 @@ char* nombrePrograma(char* path){
 	return vector[i-1];
 }
 
-
 tpcb* armarPCB(char* path, int cant) {//OK
 	tpcb* pcb = malloc(sizeof(tpcb));
 	pcb->ruta = (char*) malloc(strlen(path)+1);
@@ -42,7 +41,7 @@ tpcb* armarPCB(char* path, int cant) {//OK
 	return pcb;
 }
 
-void finalizarPID(char* pidBuscado,t_queue* colaProc){
+/*void finalizarPID(char* pidBuscado,t_queue* colaProc){
 	t_list* lista= (colaProc)->elements;
 	t_link_element* element = lista->head;
 	tpcb* pcb;
@@ -50,7 +49,7 @@ void finalizarPID(char* pidBuscado,t_queue* colaProc){
 	while (element != NULL){
 		pcb=(element->data);
 		//TODO : estan comparando un entero con un char*
-		if((pcb->pid)!=pidBuscado){
+		//if((pcb->pid)!=pidBuscado) {
 			element=element->next;
 			position++;
 		}
@@ -60,7 +59,7 @@ void finalizarPID(char* pidBuscado,t_queue* colaProc){
 	}
 	pcb->siguiente=pcb->maximo;
 }
-
+*/
 void convertirEstado(testado estadoEnum, char* estado){
 
 if (estadoEnum == LISTO) {
@@ -174,7 +173,7 @@ void procesarComando(int nro_comando, char* message, int* cantProc,t_queue* cola
 		sem_post(&hayProgramas);
 		break;
 	case 4:
-		finalizarPID(&message[10],colaProc);
+	//	finalizarPID(&message[10],colaProc);
 		break;
 	default:
 		printf("Comando ingresado incorrecto\n");
@@ -211,7 +210,6 @@ void adaptadorPCBaProtocolo(tpcb* pcb,protocolo_planificador_cpu* paquete){//OK
 	paquete->mensaje =malloc(strlen(pcb->ruta)+1);
 	strcpy(paquete->mensaje, pcb->ruta);
 }
-
 
 void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio){ //malloc(1)
 	//SERIALIZA SOLO CORRER
