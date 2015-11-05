@@ -5,7 +5,6 @@
  *      Author: utnso
  */
 
-#include "funcionesCPU.h"
 #include <commons/error.h>
 #include "estructuras.h"
 #include <stdlib.h>

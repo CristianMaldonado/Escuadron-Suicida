@@ -5,7 +5,7 @@
  *      Author: utnso
  */
 
-#include "serializacion.h"
+#include "estructuras.h"
 #include <string.h>
 #include <stdlib.h>
 #include <sys/socket.h>

@@ -5,7 +5,7 @@
  *      Author: utnso
  */
 
-#include "logueo.h"
+#include "estructuras.h"
 #include <stdlib.h>
 #include <string.h>
 #include <commons/log.h>
