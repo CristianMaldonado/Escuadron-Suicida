@@ -22,78 +22,61 @@ void * procesarInstruccion() {
 
 	protocolo_planificador_cpu* datosParaProcesar = malloc(sizeof(protocolo_planificador_cpu));
 	protocolo_cpu_memoria* mensajeAMemoria = malloc( sizeof(protocolo_cpu_memoria));
-	printf("aca estoy\n");
 	protocolo_memoria_cpu* mensajeDeMemoria = malloc(sizeof(protocolo_memoria_cpu));
 	int tid = process_get_thread_id();
 	int socketPlanifAux;
 	pthread_mutex_lock(&mutexSocket);
-	printf("Conectando al Planificador (%s : %s)... ", config->ipPlanificador,
-			config->puertoPlanificador);
-	//for(i=0;i<=config->cantidadHilos;i++){
+
+	printf("Conectando al Planificador (%s : %s)... ", config->ipPlanificador,config->puertoPlanificador);
 	client_init(&socketPlanifAux, config->ipPlanificador, config->puertoPlanificador);
 	printf("OK\n");
 
-	if (socketPlanifAux == -1)
-		log_info(logCpu, "Fallo al conectar con Planificador");
-	else
-		log_info(logCpu, "Conectado al Planificador");
-	pthread_mutex_unlock(&mutexSocket);
+	if (socketPlanifAux == -1) log_info(logCpu, "Fallo al conectar con Planificador");
+	else log_info(logCpu, "Conectado al Planificador");
+
 	//LOGUEO DE CONEXION CON MEMORIA
 
-	if (socketMemoria == -1) {
-		log_info(logCpu, "CPU %d fallo al conectar con Memoria", tid);
-	} else {
-		log_info(logCpu, "CPU %d se conecto con Memoria", tid);
-	}
+	if (socketMemoria == -1) log_info(logCpu, "CPU %d fallo al conectar con Memoria", tid);
+		else log_info(logCpu, "CPU %d se conecto con Memoria", tid);
+
+	pthread_mutex_unlock(&mutexSocket);
 	int status;
 	while (1) {
-		//pthread_mutex_lock(&mutexProceso);
-		//sem_wait(&nuevoProceso);
+
 		status = deserializarPlanificador(datosParaProcesar, socketPlanifAux);
 		if(status < 0) {
 			pthread_exit(0);
-			sem_post(&ejecutaInstruccion);
+			sem_post(&ejecutaInstruccion);//TODO
 		}
-		//printf("selialice");
-		pthread_mutex_lock(&mutexProceso);
-		logueoRecepcionDePlanif(datosParaProcesar);
-		pthread_mutex_unlock(&mutexProceso);
-		//terminoPlanificador = false;
-		//sem_post(&ejecutaInstruccion);
-
-		//sem_wait(&ejecutaInstruccion); //TODO
+		pthread_mutex_lock(&mutexLogueo);
+		logueoRecepcionDePlanif(datosParaProcesar,tid);
+		pthread_mutex_unlock(&mutexLogueo);
 
 		FILE* archivo = fopen(datosParaProcesar->mensaje, "r+");
 
 		if (archivo == NULL)
 			error_show("Error al abrir mCod");
 
-		fseek(archivo, 0, SEEK_END);
+		fseek(archivo, 0, SEEK_END);//TODO funcion calcularTamanio
 		int tamanio = ftell(archivo);
 		fseek(archivo, 0, SEEK_SET);
 		char* lineaLeida = malloc(tamanio);
 		int quantum = 0;
 
-		while ((!feof(archivo) && (quantum <= datosParaProcesar->quantum || datosParaProcesar->quantum == 0))) { //TODO: Agregar lo del quatum
+		while ((!feof(archivo) && (quantum <= datosParaProcesar->quantum || datosParaProcesar->quantum == 0))) {
 			//calcularTamanioDeLinea(archivo,&tamanio);
 			char* instruccionLeida = leerInstruccion(&(datosParaProcesar->counterProgram), lineaLeida, archivo,tamanio);
 
 			printf("linea %s\n", instruccionLeida);
 			interpretarInstruccion(instruccionLeida, datosParaProcesar,mensajeAMemoria, socketPlanifAux); //arma el paquete para memoria y lo carga en mensajeAMemoria
-			if (datosParaProcesar->tipoOperacion == 'E') break;
+			if (datosParaProcesar->tipoOperacion == 'e') break;
 
 			enviarAMemoria(mensajeAMemoria);
-			//printf("pid a men %d\n", mensajeAMemoria->pid);
-			//printf("tamanio a men%d\n", mensajeAMemoria->tamanioMensaje);
-			//printf("operacion amen %c\n", mensajeAMemoria->tipoOperacion);
-
 
 			deserializarMemoria(mensajeDeMemoria, socketMemoria);
-			//printf("pid de men%d\n", mensajeDeMemoria->pid);
-			//printf("tamanio de men%d\n", mensajeDeMemoria->tamanioMensaje);
+
 			printf("operacion de men %c\n", mensajeDeMemoria->codOperacion);
 			printf("cod aux de men %c\n", mensajeDeMemoria->codAux);
-
 
 			switch (mensajeDeMemoria->codOperacion){// arma mensaje a planificador
 
@@ -101,15 +84,6 @@ void * procesarInstruccion() {
 							 actualizarOperacionPaquetePlanificador(datosParaProcesar, 'f');
 							 enviarAPlanificador(datosParaProcesar,socketPlanifAux);
 						 }break;
-
-						/* case 'l': {
-							 actualizarOperacionPaquetePlanificador(datosParaProcesar,'l',
-									 (mensajeDeMemoria->codAux == 'a')?'f' : 'c');
-						 }break;
-						 case 'e':{
-							 actualizarOperacionPaquetePlanificador(datosParaProcesar,'e',
-									 (mensajeDeMemoria->codAux == 'a')?'f' : 'c');
-						 }break;*/
 
 						 case 'i':{
 							 actualizarOperacionPaquetePlanificador(datosParaProcesar, (mensajeDeMemoria->codAux == 'a') ? 'a' : 'i');
@@ -119,14 +93,12 @@ void * procesarInstruccion() {
 
 			}
 
-			if (mensajeDeMemoria->codAux == 'a' && mensajeDeMemoria->codOperacion == 'i')
-				break;
-
+			if (mensajeDeMemoria->codAux == 'a'	&& mensajeDeMemoria->codOperacion == 'i') break;
 			//enviarAPlanificador(datosParaProcesar);
-			pthread_mutex_lock(&mutexProceso);
-			loguearEstadoMemoria(mensajeDeMemoria, instruccionLeida);
-			pthread_mutex_unlock(&mutexProceso);
-			sleep(config->retardo); //ver si hay q sincronizar el config (?
+			//pthread_mutex_lock(&mutexProceso);
+			//loguearEstadoMemoria(mensajeDeMemoria, instruccionLeida);
+			//pthread_mutex_unlock(&mutexProceso);
+			sleep(config->retardo);
 			quantum++;
 		}
 		if (datosParaProcesar->quantum != 0) {
@@ -135,7 +107,6 @@ void * procesarInstruccion() {
 		}
 		free(lineaLeida);
 		fclose(archivo);
-		//pthread_mutex_unlock(&mutexProceso);
 	}
 	free(mensajeAMemoria);
 	free(mensajeDeMemoria);
@@ -145,7 +116,6 @@ void * procesarInstruccion() {
 
 int main() {
 	system("clear");
-	pthread_mutex_init(&mutex, NULL);
 
 	// creacion de la instancia de log
 	logCpu = log_create("../src/log.txt", "cpu.c", false, LOG_LEVEL_INFO);
@@ -158,52 +128,26 @@ int main() {
 	 config->cantidadHilos = 4;
 	 config->retardo = 2;*/
 
-	pthread_mutex_init(&mutexSocket, NULL);
-
 	config = leerConfiguracion();
 	int i;
-	//Inicia el Socket para conectarse con el Planificador/
-	/*printf("Conectando al Planificador (%s : %s)... ", config->ipPlanificador,
-	 config->puertoPlanificador);
-	 //for(i=0;i<=config->cantidadHilos;i++){
-	 client_init(&socketPlanificador, config->ipPlanificador,
-	 config->puertoPlanificador);
-	 printf("OK\n");
-	 //vectorHilos[i].socket = socketPlanificador;
-
-	 //loguea conexion con Planificador
-	 if(socketPlanificador == -1)
-	 log_info(logCpu, "Fallo al conectar con Planificador");
-	 else log_info(logCpu, "Conectado al Planificador");*/
 
 	//Inicia el Socket para conectarse con la Memoria
-	printf("Conectando a la Memoria (%s : %s)... ", config->ipMemoria,
-			config->puertoMemoria);
+	printf("Conectando a la Memoria (%s : %s)... ", config->ipMemoria,config->puertoMemoria);
 	client_init(&socketMemoria, config->ipMemoria, config->puertoMemoria);
 	printf("OK\n");
 
 	pthread_t vectorHilos[config->cantidadHilos];
-
-	printf("cree el vector \n");
-	//Hilo
 	pthread_attr_t atrib;
+	pthread_mutex_init(&mutexSocket, NULL);
+	pthread_mutex_init(&mutexLogueo, NULL);
+	pthread_mutex_init(&mutex, NULL);
 	sem_init(&ejecutaInstruccion, 0, 0);
-	sem_init(&nuevoProceso, 0, 1);
+
 	pthread_attr_init(&atrib);
 
 	for (i = 0; i < config->cantidadHilos; i++) {
-		//vectorHilos[i].tid= process_get_thread_id();
-		printf("le mande al hilo %d", i);
-		// Lo que recibimos del planificador lo enviamos al hilo
-		//pthread_create(&hilo, &atrib, procesarInstruccion,(void*) parametros);
-		vectorHilos[i] = pthread_create(&vectorHilos[i], &atrib,
-				procesarInstruccion, NULL);
-
+		vectorHilos[i] = pthread_create(&vectorHilos[i], &atrib, procesarInstruccion, NULL);
 	}
-
-	printf("sali del for");
-	//TODO: AVISAR A PLANIFICADOR CANTIDAD DE HILOS DISPONIBLES
-	//TODO: DEFINIR ESTRUCTURA SOCKET-HILO
 
 	/*	int status = 1;
 
@@ -216,15 +160,15 @@ int main() {
 
 	 }*/
 
-	//printf("Finalizo el planificador...\n");
-	//terminoPlanificador = true;
-
-	//pthread_join(hilo,NULL);
 	sem_wait(&ejecutaInstruccion);
 
+	printf("Finalizo el planificador...\n");
 	close(socketMemoria);
-	sem_destroy(&nuevoProceso);
+
 	sem_destroy(&ejecutaInstruccion);
+	pthread_mutex_destroy(&mutexSocket);
+	pthread_mutex_destroy(&mutexLogueo);
+	pthread_mutex_destroy(&mutex);
 	log_info(logCpu, "Cerrada conexion saliente");
 	log_destroy(logCpu);
 	return 0;

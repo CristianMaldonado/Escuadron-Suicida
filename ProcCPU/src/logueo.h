@@ -11,7 +11,7 @@
 #include <commons/string.h>
 #include "estructuras.h"
 
-void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion);
+void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int tid);
 void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida);
 void loguearPlanificadorIO(protocolo_planificador_cpu* mensajeDePlanificador, int tiempo);
 
