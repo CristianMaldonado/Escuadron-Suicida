@@ -41,111 +41,84 @@ tpcb* armarPCB(char* path, int cant) {//OK
 	return pcb;
 }
 
-/*void finalizarPID(char* pidBuscado,t_queue* colaProc){
-	t_list* lista= (colaProc)->elements;
-	t_link_element* element = lista->head;
-	tpcb* pcb;
-	int position = 0;
-	while (element != NULL){
-		pcb=(element->data);
-		//TODO : estan comparando un entero con un char*
-		//if((pcb->pid)!=pidBuscado) {
-			element=element->next;
-			position++;
-		}
-		else{
-			exit(1);
-		}
-	}
-	pcb->siguiente=pcb->maximo;
-}
-*/
-void convertirEstado(testado estadoEnum, char* estado){
+void convertirEstado(testado estadoEnum, char** estado){
 
 if (estadoEnum == LISTO) {
-	estado = malloc(7);
-	strcpy(estado, "LISTO");
-}
-if (estadoEnum == IO) {
-	estado = malloc(7);
-	strcpy(estado, "IO");
-}
-if (estadoEnum == EJECUTANDO) {
-	estado = malloc(12);
-	strcpy(estado, "EJECUTANDO");
-}
-if (estadoEnum == FINALIZADO) {
-	estado = malloc(12);
-	strcpy(estado, "FINALIZADO");
-}
+	string_append(estado, "LISTO");
+	}
+	if (estadoEnum == IO) {
+		string_append(estado, "IO");
+	}
+	if (estadoEnum == EJECUTANDO) {
+		string_append(estado, "EJECUTANDO");
+	}
+	if (estadoEnum == FINALIZADO) {
+		string_append(estado, "FINALIZADO");
+	}
 
- }
+}
 
 void mostrarEstadoProcesos(t_queue* colaProc){
 	char* infoProceso = (char*)malloc(50);
-
-	t_list* lista= (colaProc)->elements;
-	t_link_element* element = lista->head;
+	t_list* lista = colaProc->elements;
 	tpcb* pcb;
-	int pos= 0;
-	while (element != NULL){
+	int i;
+	for(i = 0;i < list_size(lista); i++){
 		char* estado = string_new();
-			pcb=(element->data);
-				element=element->next;
-				convertirEstado(pcb->estado, estado);
-				strcpy(infoProceso, "mProc: ");
-				string_append_with_format(&infoProceso, "%d ", pcb->pid);
-				string_append(&infoProceso, pcb->nombre);
-				string_append(&infoProceso, " -> ");
-				string_append_with_format(&infoProceso, "%d", estado);
-				printf("%s",infoProceso);
-
-				free(estado);
-				pos++;
-
-		}
-
-
+		pcb=list_get(lista,i);
+		convertirEstado(pcb->estado, &estado);
+		strcpy(infoProceso, "mProc: ");
+		string_append_with_format(&infoProceso, "%d ", pcb->pid);
+		string_append(&infoProceso, pcb->nombre);
+		string_append(&infoProceso, " -> ");
+		string_append(&infoProceso,estado);
+		printf("%s\n",infoProceso);
+		free(estado);
+	}
     free(infoProceso);
+    free(lista);
 }
 
 void mostrarEstadoProcesosLista(t_list* lista){
 	char* infoProceso = (char*)malloc(50);
-
-	t_link_element* element = lista->head;
 	tpcb* pcb;
-	int pos= 0;
-	while (element != NULL){
+	int i;
+	for(i = 0;i < list_size(lista); i++){
 		char* estado = string_new();
-			pcb=(element->data);
-				element=element->next;
-				convertirEstado(pcb->estado, estado);
-				strcpy(infoProceso, "mProc: ");
-				string_append_with_format(&infoProceso, "%d ", pcb->pid);
-				string_append(&infoProceso, pcb->nombre);
-				string_append(&infoProceso, " -> ");
-				string_append_with_format(&infoProceso, "%d", estado);
-				printf("%s",infoProceso);
-
-				free(estado);
-				pos++;
-
-		}
-
-
+		pcb=list_get(lista,i);
+		convertirEstado(pcb->estado, &estado);
+		strcpy(infoProceso, "mProc: ");
+		string_append_with_format(&infoProceso, "%d ", pcb->pid);
+		string_append(&infoProceso, pcb->nombre);
+		string_append(&infoProceso, " -> ");
+		string_append(&infoProceso,estado);
+		printf("%s",infoProceso);
+		free(estado);
+	}
     free(infoProceso);
 }
 
-int buscoPCB(int pidBuscado){//SI NO ESTA ME DA EL TAMANIO DE LA LISTA -> SUPONGO QUE SI SE MANDO A CPU EL PCB ESTA EN LA LISTA
-	t_link_element* element = listaAuxiliar->head;
+int buscoPCB(int pidBuscado,t_list* lista){//SI NO ESTA ME DA EL TAMANIO DE LA LISTA -> SUPONGO QUE SI SE MANDO A CPU EL PCB ESTA EN LA LISTA
 	tpcb* pcb;
-	pcb=(element->data);
 	int posicion = 0;
-	while (element != NULL && pcb->pid != pidBuscado){
-		element=element->next;
+	int i;
+	for(i = 0; i < list_size(lista); i++){
+		pcb = list_get(lista,i);
+		if(pcb->pid == pidBuscado) break;
 		posicion++;
-		}
+	}
 	return posicion;
+}
+
+void finalizarPID(char* pidBuscado){
+	//t_list* lista= colaProcesos->elements;
+	t_list* lista= listaEjecutando;// TODO ALGO PERO FALLA ACA POR LAS COLAS
+	tpcb* pcb;
+	int pid = atoi(pidBuscado);
+	int posicion = buscoPCB(pid,lista);
+	pcb = list_get(lista,posicion);
+	printf("%p",pcb);
+	pcb->siguiente = pcb->maximo;
 }
 
 int clasificarComando(char* message) {//OK
@@ -173,21 +146,23 @@ void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 	switch (nro_comando) {
 	case 1:
 		printf("Entro por ps\n");
-		mostrarEstadoProcesos(colaProcesos);
+		//mostrarEstadoProcesos(colaProcesos);
+		//mostrarEstadoProcesosLista(listaEjecutando);
+		//mostrarEstadoProcesos(colaIO);
 		break;
 	case 2:
 		printf("Entro por cpu\n");
 		break;
 	case 3:
 		pcb = armarPCB(&message[7], *cantProc);//TODO cambiar como el interpretar instruccion
-		pthread_mutex_lock(&mutexColaProcesos);
-		queue_push(colaProcesos, pcb);
-		pthread_mutex_unlock(&mutexColaProcesos);
+		pthread_mutex_lock(&mutexProcesoListo);
+		queue_push(colaListos, pcb);
+		pthread_mutex_unlock(&mutexProcesoListo);
 		(*cantProc) = (*cantProc)+ 1;
 		sem_post(&hayProgramas);
 		break;
 	case 4:
-	//	finalizarPID(&message[10],colaProc);
+		finalizarPID(&message[10]);
 		break;
 	default:
 		printf("Comando ingresado incorrecto\n");

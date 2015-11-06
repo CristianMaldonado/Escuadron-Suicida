@@ -41,6 +41,12 @@ void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete,
 	//TODO: Modificar estado (?
 }
 
+void actualizarOperacionPaquetePlanificadorIO(protocolo_planificador_cpu* paquete, char tipoOperacion,int IO){
+	paquete->tipoOperacion = tipoOperacion;
+	paquete->mensaje = malloc(4);
+	strcpy(paquete->mensaje,string_itoa(IO));
+}
+
 void enviarAPlanificador(protocolo_planificador_cpu* respuestaDeMemo,int socketPlanificador){
 
 	int tamanio;
@@ -79,7 +85,7 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 
 		if(string_starts_with(instruccion,"entrada-salida")) {
 			int tiempo = atoi(lineaFiltrada[1]);
-			actualizarOperacionPaquetePlanificador(mensajeDePlanificador,'e');
+			actualizarOperacionPaquetePlanificadorIO(mensajeDePlanificador,'e',tiempo);
             enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
             loguearPlanificadorIO(mensajeDePlanificador, tiempo);
 		}

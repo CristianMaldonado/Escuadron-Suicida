@@ -25,17 +25,20 @@
 
 sem_t hayProgramas;
 sem_t hayCPU;
+sem_t hayIO;
 
-t_queue* colaProcesos;
+t_queue* colaListos;
 t_queue* colaIO;
 
 t_list* listaEjecutando;
 t_list* listaCpuLibres;
-t_list* listaAuxiliar;
+t_list* listaInicializando;
 
 pthread_mutex_t mutexListaCpus;
-pthread_mutex_t mutexColaProcesos;
+pthread_mutex_t mutexProcesoListo;
 pthread_mutex_t mutexListaEjecutando;
+pthread_mutex_t mutexIO;
+pthread_mutex_t mutexInicializando;
 
 t_log* logPlanificador;
 
@@ -63,6 +66,11 @@ typedef struct {
 	int siguiente;
 	int maximo;
 }tpcb;
+
+typedef struct{
+	tpcb* pcb;
+	int tiempo;
+}tprocIO;
 
 typedef struct {
 	char tipoProceso;

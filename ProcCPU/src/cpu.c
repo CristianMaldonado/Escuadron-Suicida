@@ -69,7 +69,7 @@ void * procesarInstruccion() {
 
 			printf("linea %s\n", instruccionLeida);
 			interpretarInstruccion(instruccionLeida, datosParaProcesar,mensajeAMemoria, socketPlanifAux); //arma el paquete para memoria y lo carga en mensajeAMemoria
-			if (datosParaProcesar->tipoOperacion == 'E') break;
+			if (datosParaProcesar->tipoOperacion == 'e') break;
 
 			enviarAMemoria(mensajeAMemoria);
 

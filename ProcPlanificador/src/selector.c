@@ -3,6 +3,7 @@
 #include "libSocket.h"
 #include <commons/collections/list.h>
 #include <pthread.h>
+#include <commons/string.h>
 
 void eliminarCpusDesconectadas(int ** socketCpu, int * numeroCpus){
 
@@ -95,33 +96,62 @@ void * selector(void * arg) {
 					printf("Llego al planificador: %c de el socket:%d\n", respuestaDeCPU.tipoOperacion, socketCpu[i]);
 					switch(respuestaDeCPU.tipoOperacion){
 
-						case 'i':{
-							tpcb* pcb;
-							pthread_mutex_lock(&mutexListaEjecutando);
-							//pcb = list_remove(listaAuxiliar,buscoPCB(respuestaDeCPU.pid));//SUPONGO QUE SI EXISTE EL PCB ESTA EN LA LISTA
-							//list_add(listaEjecutando,pcb);
-							pthread_mutex_unlock(&mutexListaEjecutando);
-						}break;
-
-						case 'a':{
+					case 'e':{
+							tprocIO* aux = malloc(sizeof(tprocIO));
 							int* puntero = malloc(sizeof(int));
 							*puntero = socketCpu[i];
 							pthread_mutex_lock(&mutexListaCpus);
 							/*agreo la cpu a lista disponible*/
 							list_add(listaCpuLibres,puntero);
-							//list_remove(listaAuxiliar,buscoPCB(respuestaDeCPU.pid));//lo tiro a la mierda
 							pthread_mutex_unlock(&mutexListaCpus);
+
+
+							pthread_mutex_lock(&mutexListaEjecutando);
+							aux->pcb = list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando));
+							pthread_mutex_unlock(&mutexListaEjecutando);
+							aux->pcb->siguiente = respuestaDeCPU.counterProgram;
+							aux->tiempo = atoi(respuestaDeCPU.mensaje);
+							pthread_mutex_lock(&mutexIO);
+							queue_push(colaIO,aux);
+							pthread_mutex_unlock(&mutexIO);
+							sem_post(&hayIO);
+							sem_post(&hayCPU);
+					}break;
+						case 'i':{
+							tpcb* pcb;
+							pthread_mutex_lock(&mutexInicializando);
+							pcb = list_remove(listaInicializando,buscoPCB(respuestaDeCPU.pid,listaInicializando));//SUPONGO QUE SI EXISTE EL PCB ESTA EN LA LISTA
+							pthread_mutex_unlock(&mutexInicializando);
+							pthread_mutex_lock(&mutexListaEjecutando);
+							list_add(listaEjecutando,pcb);
+							pthread_mutex_unlock(&mutexListaEjecutando);
+
+						}break;
+
+						case 'a':{
+							int* puntero = malloc(sizeof(int));
+							*puntero = socketCpu[i];
+							printf("Fallo al inicializar el proceso %d\n",respuestaDeCPU.pid);
+							pthread_mutex_lock(&mutexListaCpus);
+							/*agreo la cpu a lista disponible*/
+							list_add(listaCpuLibres,puntero);
+							pthread_mutex_unlock(&mutexListaCpus);
+							pthread_mutex_lock(&mutexInicializando);
+							free(list_remove(listaInicializando,buscoPCB(respuestaDeCPU.pid,listaInicializando)));//lo tiro a la mierda
+							pthread_mutex_unlock(&mutexInicializando);
 							sem_post(&hayCPU);
 						}
 						break;
 
 						case 'q':{
 							tpcb* pcb;
-							pthread_mutex_lock(&mutexListaEjecutando);//este mutex?? o el de la cola??
-							pcb = list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid));
-							queue_push(colaProcesos,pcb);
+							pthread_mutex_lock(&mutexListaEjecutando);
+							pcb = list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando));
 							pthread_mutex_unlock(&mutexListaEjecutando);
-							sem_post(&hayProgramas);
+							pthread_mutex_lock(&mutexProcesoListo);
+							queue_push(colaListos,pcb);
+							pthread_mutex_unlock(&mutexProcesoListo);
+							sem_post(&hayCPU);
 						}break;
 
 						case 'f':{
@@ -130,8 +160,10 @@ void * selector(void * arg) {
 							pthread_mutex_lock(&mutexListaCpus);
 							/*agreo la cpu a lista disponible*/
 							list_add(listaCpuLibres, puntero);
-							//list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid));//termino lo tiro
 							pthread_mutex_unlock(&mutexListaCpus);
+							pthread_mutex_lock(&mutexListaEjecutando);
+							free(list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando)));//termino lo tiro
+							pthread_mutex_unlock(&mutexListaEjecutando);
 							sem_post(&hayCPU);
 						}
 						break;
@@ -171,6 +203,7 @@ void * selector(void * arg) {
 			}
 		}
 	}
+	return 0;
 }
 
 
