@@ -25,13 +25,13 @@ void* consumidor(){
 		sem_wait(&hayIO);
 		pthread_mutex_lock(&mutexIO);
 		pcb = queue_pop(colaIO);
-		printf("Saque proceso %d de la colaIO\n",pcb->pcb->pid);
 		pthread_mutex_unlock(&mutexIO);
 		sleep(pcb->tiempo);
 		pthread_mutex_lock(&mutexProcesoListo);
 		queue_push(colaListos,pcb->pcb);
 		pthread_mutex_unlock(&mutexProcesoListo);
 		sem_post(&hayProgramas);
+		printf("pid-> %d salio de io\n",pcb->pcb->pid);
 		free(pcb);
 	}
 }
@@ -58,7 +58,7 @@ void *enviar(){
 	while(1){
 		sem_wait(&hayCPU);
 		sem_wait(&hayProgramas);
-		if(llegoexit) pthread_exit(0);
+		if(llegoexit) break;
 		pthread_mutex_lock(&mutexProcesoListo);
 		pcb=queue_pop(colaListos);
 		pthread_mutex_unlock(&mutexProcesoListo);
@@ -72,7 +72,6 @@ void *enviar(){
 			pthread_mutex_unlock(&mutexListaEjecutando);
 		}
 		adaptadorPCBaProtocolo(pcb,package);
-		printf("estoy por serializqar\n");
 		void* message=malloc(sizeof(protocolo_planificador_cpu) + strlen(pcb->ruta));
 
 		message = serializarPaqueteCPU(package, &tamanio);
@@ -87,6 +86,7 @@ void *enviar(){
 	}
 	free(package);
 	free(pcb);
+	return 0;
 }
 
 int main(){
@@ -141,16 +141,17 @@ int main(){
 	while(enviar2){
 		fgets(message, PACKAGESIZE, stdin);
 
-		nro_comando = clasificarComando(&message[0]);
-		procesarComando(nro_comando,&message[0],&cantProc);
-
 		if (!strcmp(message,"exit\n")) {
 			enviar2 = 0;
 			llegoexit = true;
 			sem_post(&hayCPU);
 			sem_post(&hayProgramas);
 		}
-
+		else
+		{
+			nro_comando = clasificarComando(&message[0]);
+			procesarComando(nro_comando,&message[0],&cantProc);
+		}
 	}
 	pthread_join(enviarAlCpu,NULL);
 	close(serverSocket);

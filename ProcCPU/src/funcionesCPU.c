@@ -51,8 +51,7 @@ void enviarAPlanificador(protocolo_planificador_cpu* respuestaDeMemo,int socketP
 
 	int tamanio;
 	void* empaquetado = serializarPaquetePlanificador(respuestaDeMemo,&tamanio);
-	int aa = send(socketPlanificador, empaquetado, tamanio, 0);
-	printf("send enviar plani: %d\n", aa);
+	send(socketPlanificador, empaquetado, tamanio, 0);
 	free(empaquetado);
 }
 //MODIFICAR ARMAR PAQUETE PARAMETROS

@@ -93,30 +93,31 @@ void * selector(void * arg) {
 				protocolo_planificador_cpu respuestaDeCPU;
 				if(deserializarCPU(&respuestaDeCPU, socketCpu[i])){
 
-					printf("Llego al planificador: %c de el socket:%d\n", respuestaDeCPU.tipoOperacion, socketCpu[i]);
+					//printf("Llego al planificador: %c de el socket:%d\n", respuestaDeCPU.tipoOperacion, socketCpu[i]);
 					switch(respuestaDeCPU.tipoOperacion){
 
-					case 'e':{
-							tprocIO* aux = malloc(sizeof(tprocIO));
-							int* puntero = malloc(sizeof(int));
-							*puntero = socketCpu[i];
-							pthread_mutex_lock(&mutexListaCpus);
-							/*agreo la cpu a lista disponible*/
-							list_add(listaCpuLibres,puntero);
-							pthread_mutex_unlock(&mutexListaCpus);
+						case 'e':{
+								tprocIO* aux = malloc(sizeof(tprocIO));
+								int* puntero = malloc(sizeof(int));
+								*puntero = socketCpu[i];
+								pthread_mutex_lock(&mutexListaCpus);
+								/*agreo la cpu a lista disponible*/
+								list_add(listaCpuLibres,puntero);
+								pthread_mutex_unlock(&mutexListaCpus);
+								pthread_mutex_lock(&mutexListaEjecutando);
+								aux->pcb = list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando));
+								pthread_mutex_unlock(&mutexListaEjecutando);
+								aux->pcb->siguiente = respuestaDeCPU.counterProgram;
+								aux->tiempo = atoi(respuestaDeCPU.mensaje);
+								pthread_mutex_lock(&mutexIO);
+								queue_push(colaIO,aux);
+								pthread_mutex_unlock(&mutexIO);
+								sem_post(&hayIO);
+								sem_post(&hayCPU);
+								printf("pid-> %d entro a io\n", respuestaDeCPU.pid);
+						}
+						break;
 
-
-							pthread_mutex_lock(&mutexListaEjecutando);
-							aux->pcb = list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando));
-							pthread_mutex_unlock(&mutexListaEjecutando);
-							aux->pcb->siguiente = respuestaDeCPU.counterProgram;
-							aux->tiempo = atoi(respuestaDeCPU.mensaje);
-							pthread_mutex_lock(&mutexIO);
-							queue_push(colaIO,aux);
-							pthread_mutex_unlock(&mutexIO);
-							sem_post(&hayIO);
-							sem_post(&hayCPU);
-					}break;
 						case 'i':{
 							tpcb* pcb;
 							pthread_mutex_lock(&mutexInicializando);
@@ -125,8 +126,10 @@ void * selector(void * arg) {
 							pthread_mutex_lock(&mutexListaEjecutando);
 							list_add(listaEjecutando,pcb);
 							pthread_mutex_unlock(&mutexListaEjecutando);
+							printf("pid-> %d inicio correctamente\n", respuestaDeCPU.pid);
 
-						}break;
+						}
+						break;
 
 						case 'a':{
 							int* puntero = malloc(sizeof(int));
@@ -140,6 +143,7 @@ void * selector(void * arg) {
 							free(list_remove(listaInicializando,buscoPCB(respuestaDeCPU.pid,listaInicializando)));//lo tiro a la mierda
 							pthread_mutex_unlock(&mutexInicializando);
 							sem_post(&hayCPU);
+							printf("pid-> %d fallo\n", respuestaDeCPU.pid);
 						}
 						break;
 
@@ -148,11 +152,21 @@ void * selector(void * arg) {
 							pthread_mutex_lock(&mutexListaEjecutando);
 							pcb = list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando));
 							pthread_mutex_unlock(&mutexListaEjecutando);
+							pcb->siguiente = respuestaDeCPU.counterProgram;
 							pthread_mutex_lock(&mutexProcesoListo);
 							queue_push(colaListos,pcb);
 							pthread_mutex_unlock(&mutexProcesoListo);
+							int* puntero = malloc(sizeof(int));
+							*puntero = socketCpu[i];
+							pthread_mutex_lock(&mutexListaCpus);
+							/*agreo la cpu a lista disponible*/
+							list_add(listaCpuLibres, puntero);
+							pthread_mutex_unlock(&mutexListaCpus);
+							sem_post(&hayProgramas);
 							sem_post(&hayCPU);
-						}break;
+							printf("pid-> %d volvio por quantum\n", respuestaDeCPU.pid);
+						}
+						break;
 
 						case 'f':{
 							int* puntero = malloc(sizeof(int));
@@ -165,6 +179,7 @@ void * selector(void * arg) {
 							free(list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando)));//termino lo tiro
 							pthread_mutex_unlock(&mutexListaEjecutando);
 							sem_post(&hayCPU);
+							printf("pid-> %d finalizo\n", respuestaDeCPU.pid);
 						}
 						break;
 					}

@@ -6,6 +6,9 @@
 
 int maxLineas(char* path){
 	FILE* archivo = fopen(path, "r+");
+	/*desde armarPCB me fijo si es distinto de -1*/
+	if (!archivo) return -1;
+
 	int cont = 1;
 	int i;
 	while (!feof(archivo)) {
@@ -28,7 +31,7 @@ char* nombrePrograma(char* path){
 	return vector[i-1];
 }
 
-tpcb* armarPCB(char* path, int cant) {//OK
+tpcb * armarPCB(char* path, int cant) {
 	tpcb* pcb = malloc(sizeof(tpcb));
 	pcb->ruta = (char*) malloc(strlen(path)+1);
 	strcpy(pcb->ruta, path);
@@ -37,7 +40,11 @@ tpcb* armarPCB(char* path, int cant) {//OK
 	pcb->nombre = string_new();
 	pcb->estado = LISTO;
 	pcb->siguiente = 1;
-	pcb->maximo= maxLineas(path);
+	pcb->maximo = maxLineas(path);
+	if(pcb->maximo == -1){
+		free(pcb);
+		return 0;
+	}
 	return pcb;
 }
 
@@ -155,11 +162,15 @@ void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 		break;
 	case 3:
 		pcb = armarPCB(&message[7], *cantProc);//TODO cambiar como el interpretar instruccion
-		pthread_mutex_lock(&mutexProcesoListo);
-		queue_push(colaListos, pcb);
-		pthread_mutex_unlock(&mutexProcesoListo);
-		(*cantProc) = (*cantProc)+ 1;
-		sem_post(&hayProgramas);
+		if (pcb){
+			pthread_mutex_lock(&mutexProcesoListo);
+			queue_push(colaListos, pcb);
+			pthread_mutex_unlock(&mutexProcesoListo);
+			(*cantProc) = (*cantProc)+ 1;
+			sem_post(&hayProgramas);
+		}
+		else
+			printf("No se encontro %s\n", &message[7]);
 		break;
 	case 4:
 		finalizarPID(&message[10]);
@@ -212,40 +223,30 @@ void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio){ /
 	size_to_send = sizeof(paquete->tipoProceso);
 	memcpy(paqueteSerializado + offset, &(paquete->tipoProceso),size_to_send);
 	offset += size_to_send;
-    printf("%c\n", paquete->tipoProceso);
 	size_to_send = sizeof(paquete->tipoOperacion);
 	memcpy(paqueteSerializado + offset, &(paquete->tipoOperacion),size_to_send);
 	offset += size_to_send;
-	printf("%c\n", paquete->tipoOperacion);
 	size_to_send = sizeof(paquete->estado);
 	memcpy(paqueteSerializado + offset, &(paquete->estado), size_to_send);
 	offset += size_to_send;
-	printf("%d\n", paquete->estado);
 	size_to_send = sizeof(paquete->pid);
 	memcpy(paqueteSerializado + offset, &(paquete->pid), size_to_send);
 	offset += size_to_send;
-	printf("%d\n", paquete->pid);
 	size_to_send = sizeof(paquete->counterProgram);
 	memcpy(paqueteSerializado + offset, &(paquete->counterProgram),size_to_send);
 	offset += size_to_send;
-	printf("%d\n", paquete->counterProgram);
 	size_to_send = sizeof(paquete->quantum);
 	memcpy(paqueteSerializado + offset, &(paquete->quantum), size_to_send);
 	offset += size_to_send;
-	printf("%d\n", paquete->quantum);
 	size_to_send = sizeof(paquete->tamanioMensaje);
 	memcpy(paqueteSerializado + offset, &messageLength, size_to_send);
 	offset += size_to_send;
-	printf("%d\n", paquete->tamanioMensaje);
 	size_to_send = messageLength;
 	memcpy(paqueteSerializado + offset, paquete->mensaje, size_to_send);
 	offset += size_to_send;
-	printf("%s\n", paquete->mensaje);
-
-
 	*tamanio = offset;
-	return paqueteSerializado;
 
+	return paqueteSerializado;
 }
 
 
