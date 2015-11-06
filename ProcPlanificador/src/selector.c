@@ -93,9 +93,7 @@ void * selector(void * arg) {
 				protocolo_planificador_cpu respuestaDeCPU;
 				if(deserializarCPU(&respuestaDeCPU, socketCpu[i])){
 
-					//printf("Llego al planificador: %c de el socket:%d\n", respuestaDeCPU.tipoOperacion, socketCpu[i]);
 					switch(respuestaDeCPU.tipoOperacion){
-
 						case 'e':{
 								tprocIO* aux = malloc(sizeof(tprocIO));
 								int* puntero = malloc(sizeof(int));

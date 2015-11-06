@@ -114,12 +114,4 @@ char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo, i
 
 }
 
-/*void calcularTamanioDeLinea(FILE* archivo,int* tamanio){
-	int i;
-
-	for(i=0;(getc(archivo) != '\n') && (!feof(archivo));i++);
-
-	tamanio = &i;
-}*/
-
 
