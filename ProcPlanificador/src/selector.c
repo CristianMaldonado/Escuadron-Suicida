@@ -95,29 +95,44 @@ void * selector(void * arg) {
 					printf("Llego al planificador: %c de el socket:%d\n", respuestaDeCPU.tipoOperacion, socketCpu[i]);
 					switch(respuestaDeCPU.tipoOperacion){
 
+						case 'i':{
+							tpcb* pcb;
+							pthread_mutex_lock(&mutexListaEjecutando);
+							//pcb = list_remove(listaAuxiliar,buscoPCB(respuestaDeCPU.pid));//SUPONGO QUE SI EXISTE EL PCB ESTA EN LA LISTA
+							//list_add(listaEjecutando,pcb);
+							pthread_mutex_unlock(&mutexListaEjecutando);
+						}break;
+
 						case 'a':{
-								int* puntero = malloc(sizeof(int));
-								*puntero = socketCpu[i];
-
-								pthread_mutex_lock(&mutexListaCpus);
-								/*agreo la cpu a lista disponible*/
-								list_add(listaCpuLibres,puntero);
-								pthread_mutex_unlock(&mutexListaCpus);
-
-								sem_post(&hayCPU);
+							int* puntero = malloc(sizeof(int));
+							*puntero = socketCpu[i];
+							pthread_mutex_lock(&mutexListaCpus);
+							/*agreo la cpu a lista disponible*/
+							list_add(listaCpuLibres,puntero);
+							//list_remove(listaAuxiliar,buscoPCB(respuestaDeCPU.pid));//lo tiro a la mierda
+							pthread_mutex_unlock(&mutexListaCpus);
+							sem_post(&hayCPU);
 						}
 						break;
 
+						case 'q':{
+							tpcb* pcb;
+							pthread_mutex_lock(&mutexListaEjecutando);//este mutex?? o el de la cola??
+							pcb = list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid));
+							queue_push(colaProcesos,pcb);
+							pthread_mutex_unlock(&mutexListaEjecutando);
+							sem_post(&hayProgramas);
+						}break;
+
 						case 'f':{
-								int* puntero = malloc(sizeof(int));
-								*puntero = socketCpu[i];
-
-								pthread_mutex_lock(&mutexListaCpus);
-								/*agreo la cpu a lista disponible*/
-								list_add(listaCpuLibres, puntero);
-								pthread_mutex_unlock(&mutexListaCpus);
-
-								sem_post(&hayCPU);
+							int* puntero = malloc(sizeof(int));
+							*puntero = socketCpu[i];
+							pthread_mutex_lock(&mutexListaCpus);
+							/*agreo la cpu a lista disponible*/
+							list_add(listaCpuLibres, puntero);
+							//list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid));//termino lo tiro
+							pthread_mutex_unlock(&mutexListaCpus);
+							sem_post(&hayCPU);
 						}
 						break;
 					}

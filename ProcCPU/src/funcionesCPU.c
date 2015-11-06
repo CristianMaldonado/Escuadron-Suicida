@@ -15,20 +15,6 @@
 #include "serializacion.h"
 #include <pthread.h>
 
-/*void crearMockitoPlanif(protocolo_planificador_cpu* package){
-
-	package->tipoProceso = 'P';
-	package->tipoOperacion = 'l';
-	package->estado = EJECUTANDO;
-	package->pid = 1;
-	package->counterProgram = 2;
-	package->quantum = 0;
-	package->mensaje = malloc(strlen("programa.txt")+1);
-	strcpy(package->mensaje,"programa.txt");
-	package->tamanioMensaje = strlen(package->mensaje)+1;
-
-}*/
-
 void enviarAMemoria(protocolo_cpu_memoria* message) {
 	int tamanio;
 	void* empaquetado = serializarPaqueteMemoria(message,&tamanio);
@@ -89,23 +75,17 @@ void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 		if(string_starts_with(instruccion,"escribir")) {
 			int numero = atoi(lineaFiltrada[1]);
 			armarPaqueteMemoria(mensajeParaArmar, 'e',mensajeDePlanificador->pid, numero, lineaFiltrada[2]);
-		} //TODO cheackpoint 3 supongo
+		}
 
 		if(string_starts_with(instruccion,"entrada-salida")) {
 			int tiempo = atoi(lineaFiltrada[1]);
-			//armarPaquetePlanificador(mensajeDePlanificador, 'c','E', mensajeDePlanificador->pid, mensajeDePlanificador->estado,
-			//		mensajeDePlanificador->counterProgram,mensajeDePlanificador->quantum, mensajeDePlanificador->tamanioMensaje, mensajeDePlanificador->mensaje);
-            actualizarOperacionPaquetePlanificador(mensajeDePlanificador,'e');
+			actualizarOperacionPaquetePlanificador(mensajeDePlanificador,'e');
             enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
             loguearPlanificadorIO(mensajeDePlanificador, tiempo);
 		}
 
 		if (string_starts_with(instruccion, "finalizar;")) {
 				armarPaqueteMemoria(mensajeParaArmar, 'f', mensajeDePlanificador->pid, 0, "-");
-				//armarPaquetePlanificador(mensajeDePlanificador, 'c','f', mensajeDePlanificador->pid, mensajeDePlanificador->estado,
-				//mensajeDePlanificador->counterProgram,mensajeDePlanificador->quantum, mensajeDePlanificador->tamanioMensaje, mensajeDePlanificador->mensaje);
-				//enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
-
 		}
 		free(linea);
 		free(lineaFiltrada);

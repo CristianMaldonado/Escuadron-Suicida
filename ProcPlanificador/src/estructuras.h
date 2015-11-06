@@ -28,16 +28,16 @@ sem_t hayCPU;
 
 t_queue* colaProcesos;
 t_queue* colaIO;
+
 t_list* listaEjecutando;
 t_list* listaCpuLibres;
+t_list* listaAuxiliar;
 
 pthread_mutex_t mutexListaCpus;
-t_log* logPlanificador;
+pthread_mutex_t mutexColaProcesos;
+pthread_mutex_t mutexListaEjecutando;
 
-typedef struct{
-	t_list* listaCpus;
-	t_queue* procesos;
-}tParametroEnviar;
+t_log* logPlanificador;
 
 typedef struct {
 	int socket;
@@ -48,6 +48,8 @@ typedef struct {
 	char algoritmo;
 	int quantum;
 }tconfig_planif;
+
+tconfig_planif *configPlanificador;
 
 typedef enum {
 	LISTO, IO, EJECUTANDO, FINALIZADO

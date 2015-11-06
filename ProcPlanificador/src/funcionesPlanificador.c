@@ -136,6 +136,18 @@ void mostrarEstadoProcesosLista(t_list* lista){
     free(infoProceso);
 }
 
+int buscoPCB(int pidBuscado){//SI NO ESTA ME DA EL TAMANIO DE LA LISTA -> SUPONGO QUE SI SE MANDO A CPU EL PCB ESTA EN LA LISTA
+	t_link_element* element = listaAuxiliar->head;
+	tpcb* pcb;
+	pcb=(element->data);
+	int posicion = 0;
+	while (element != NULL && pcb->pid != pidBuscado){
+		element=element->next;
+		posicion++;
+		}
+	return posicion;
+}
+
 int clasificarComando(char* message) {//OK
 	if (!strcmp(message, "ps\n")) {
 		return 1;
@@ -156,19 +168,21 @@ int clasificarComando(char* message) {//OK
 	}
 }
 
-void procesarComando(int nro_comando, char* message, int* cantProc,t_queue* colaProc) {//OK
+void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 	tpcb* pcb;
 	switch (nro_comando) {
 	case 1:
 		printf("Entro por ps\n");
-		mostrarEstadoProcesos(colaProc);
+		mostrarEstadoProcesos(colaProcesos);
 		break;
 	case 2:
 		printf("Entro por cpu\n");
 		break;
 	case 3:
 		pcb = armarPCB(&message[7], *cantProc);//TODO cambiar como el interpretar instruccion
-		queue_push(colaProc, pcb);
+		pthread_mutex_lock(&mutexColaProcesos);
+		queue_push(colaProcesos, pcb);
+		pthread_mutex_unlock(&mutexColaProcesos);
 		(*cantProc) = (*cantProc)+ 1;
 		sem_post(&hayProgramas);
 		break;
@@ -205,7 +219,8 @@ void adaptadorPCBaProtocolo(tpcb* pcb,protocolo_planificador_cpu* paquete){//OK
 	paquete->pid = pcb->pid;
 	paquete->estado = pcb->estado;
 	paquete->counterProgram = pcb->siguiente;
-	paquete->quantum = 0;
+	if(configPlanificador->algoritmo == 'F') paquete->quantum = 0;
+	else paquete->quantum = configPlanificador->quantum;
 	paquete->tamanioMensaje = strlen(pcb->ruta)+1;
 	paquete->mensaje =malloc(strlen(pcb->ruta)+1);
 	strcpy(paquete->mensaje, pcb->ruta);
