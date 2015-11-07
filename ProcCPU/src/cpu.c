@@ -109,7 +109,6 @@ void * procesarInstruccion() {
 			if (datosParaProcesar->quantum == quantum){
 				if (datosParaProcesar->tipoOperacion != 'e' && datosParaProcesar->tipoOperacion != 'f'){
 					actualizarOperacionPaquetePlanificador(datosParaProcesar, 'q');
-					printf("datos para procesar -> quantum : %d\n", datosParaProcesar->quantum);
 					enviarAPlanificador(datosParaProcesar, socketPlanifAux);
 					printf("pid-> %d salio por quantum\n", datosParaProcesar->pid);
 				}

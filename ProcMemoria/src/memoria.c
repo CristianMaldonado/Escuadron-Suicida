@@ -116,7 +116,7 @@ int main(void) {
 				if(config->habilitadaTLB)
 					borrame_las_entradas_del_proceso(paquete_desde_cpu.pid, &tlb);
 
-				log_info(logMem, "proceso finalizado");
+				log_info(logMem, "proceso finalizado -> pid: %d\n", paquete_desde_cpu.pid);
 
 				avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteCPU);
 				pthread_mutex_unlock(&mutex);
