@@ -22,18 +22,6 @@ void enviarAMemoria(protocolo_cpu_memoria* message) {
 	free(empaquetado);
 }
 
-void armarPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoProceso,char codOperacion, int pid, testado estado, int counterProgram ,int quantum, int tamanioMensaje,char* mensaje) {
-	paquete->tipoProceso = tipoProceso;
-	paquete->tipoOperacion = codOperacion;
-	paquete->pid = pid;
-	paquete->estado = estado;
-	paquete->counterProgram = counterProgram;
-	paquete->quantum = quantum;
-	paquete->tamanioMensaje = strlen(mensaje) + 1;
-	paquete->mensaje = malloc(paquete->tamanioMensaje);
-	strcpy(paquete->mensaje, mensaje);
-}
-
 void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoOperacion){
 	paquete->tipoOperacion = tipoOperacion;
 	//TODO: Modificar estado (?

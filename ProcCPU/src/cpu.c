@@ -62,7 +62,7 @@ void * procesarInstruccion() {
 			break;
 		}
 
-		fseek(archivo, 0, SEEK_END);//TODO funcion calcularTamanio
+		fseek(archivo, 0, SEEK_END);
 		int tamanio = ftell(archivo);
 		fseek(archivo, 0, SEEK_SET);
 		char* lineaLeida = malloc(tamanio);
@@ -72,8 +72,10 @@ void * procesarInstruccion() {
 
 			//calcularTamanioDeLinea(archivo,&tamanio);
 			char* instruccionLeida = leerInstruccion(&(datosParaProcesar->counterProgram), lineaLeida, archivo,tamanio);
+			char** linea = string_split(instruccionLeida, ";");
+			printf("pid-> %d ejecutar %s\n", datosParaProcesar->pid, *linea);
+			free(*linea);
 
-			printf("pid-> %d linea %s\n", datosParaProcesar->pid, instruccionLeida);
 			interpretarInstruccion(instruccionLeida, datosParaProcesar, mensajeAMemoria, socketPlanifAux);
 			if (datosParaProcesar->tipoOperacion == 'e') break;
 
@@ -88,17 +90,44 @@ void * procesarInstruccion() {
 				case 'f': {
 					actualizarOperacionPaquetePlanificador(datosParaProcesar, 'f');
 					enviarAPlanificador(datosParaProcesar,socketPlanifAux);
+
+					/*me voy al eof para salir del while*/
+					while(getc(archivo) != EOF);
+					continue;
 				}
 				break;
 
 				case 'i':{
-					actualizarOperacionPaquetePlanificador(datosParaProcesar, (mensajeDeMemoria->codAux == 'a') ? 'a' : 'i');
+					/*para saber desde el planifciador si el fallo es por inicializacion*/
+					datosParaProcesar->tipoProceso = 'i';
+					actualizarOperacionPaquetePlanificador(datosParaProcesar, mensajeDeMemoria->codAux);
 					enviarAPlanificador(datosParaProcesar,socketPlanifAux);
+
+					if (mensajeDeMemoria->codAux == 'a'){
+
+						/*me voy al eof para salir del while*/
+						while(getc(archivo) != EOF);
+						continue;
+					}
+				}
+				break;
+
+				case 'l':
+				case 'e':{
+					if (mensajeDeMemoria->codAux == 'a'){
+						/*para saber desde el planifciador si el fallo es por lectura o escritura*/
+						datosParaProcesar->tipoProceso = mensajeDeMemoria->codOperacion;
+						actualizarOperacionPaquetePlanificador(datosParaProcesar, 'a');
+						enviarAPlanificador(datosParaProcesar,socketPlanifAux);
+						datosParaProcesar->tipoOperacion = 'f';
+
+						/*me voy al eof para salir del while*/
+						while(getc(archivo) != EOF);
+						continue;
+					}
 				}
 				break;
 			}
-
-			if (mensajeDeMemoria->codAux == 'a'	&& mensajeDeMemoria->codOperacion == 'i') break;
 			sleep(config->retardo);
 			quantum++;
 		}
@@ -118,6 +147,7 @@ void * procesarInstruccion() {
 	}
 	free(mensajeAMemoria);
 	free(mensajeDeMemoria);
+	free(datosParaProcesar);
 	close(socketPlanifAux);
 	return 0;
 }
