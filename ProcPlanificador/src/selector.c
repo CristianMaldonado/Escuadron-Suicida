@@ -132,7 +132,6 @@ void * selector(void * arg) {
 						case 'a':{
 							int* puntero = malloc(sizeof(int));
 							*puntero = socketCpu[i];
-							printf("Fallo al inicializar el proceso %d\n",respuestaDeCPU.pid);
 							pthread_mutex_lock(&mutexListaCpus);
 							/*agreo la cpu a lista disponible*/
 							list_add(listaCpuLibres,puntero);

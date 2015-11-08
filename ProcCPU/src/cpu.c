@@ -74,17 +74,16 @@ void * procesarInstruccion() {
 			char* instruccionLeida = leerInstruccion(&(datosParaProcesar->counterProgram), lineaLeida, archivo,tamanio);
 
 			printf("pid-> %d linea %s\n", datosParaProcesar->pid, instruccionLeida);
-			interpretarInstruccion(instruccionLeida, datosParaProcesar, mensajeAMemoria, socketPlanifAux); //arma el paquete para memoria y lo carga en mensajeAMemoria
+			interpretarInstruccion(instruccionLeida, datosParaProcesar, mensajeAMemoria, socketPlanifAux);
 			if (datosParaProcesar->tipoOperacion == 'e') break;
 
+			/*asi la comunicacion con la memoria es atomica*/
+			pthread_mutex_lock(&mutex);
 			enviarAMemoria(mensajeAMemoria);
-
 			deserializarMemoria(mensajeDeMemoria, socketMemoria);
+			pthread_mutex_unlock(&mutex);
 
-			//printf("operacion de men %c\n", mensajeDeMemoria->codOperacion);
-			//printf("cod aux de men %c\n", mensajeDeMemoria->codAux);
-
-			switch (mensajeDeMemoria->codOperacion){// arma mensaje a planificador
+			switch (mensajeDeMemoria->codOperacion){
 
 				case 'f': {
 					actualizarOperacionPaquetePlanificador(datosParaProcesar, 'f');

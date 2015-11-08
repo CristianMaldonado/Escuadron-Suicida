@@ -18,10 +18,8 @@
 void enviarAMemoria(protocolo_cpu_memoria* message) {
 	int tamanio;
 	void* empaquetado = serializarPaqueteMemoria(message,&tamanio);
-	pthread_mutex_lock(&mutex);
 	send(socketMemoria, empaquetado, tamanio,0);
-	pthread_mutex_unlock(&mutex);
-	free(empaquetado); //free(1)
+	free(empaquetado);
 }
 
 void armarPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoProceso,char codOperacion, int pid, testado estado, int counterProgram ,int quantum, int tamanioMensaje,char* mensaje) {
