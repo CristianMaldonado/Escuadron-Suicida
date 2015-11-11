@@ -13,6 +13,8 @@
 #include <string.h>
 #include "paquetes.h"
 #include <unistd.h>
+#include <ctype.h>
+
 
 
 
@@ -41,6 +43,7 @@ int main(void) {
 
 	tprotocolo_memoria_swap protocolo_desde_memoria;
 	while(recibir_paquete_desde_memoria(&socket_memoria, &protocolo_desde_memoria)) {
+		sleep(config_swap->retardo_swap);
 		printf("pid-> %d operacion %c\n", protocolo_desde_memoria.pid, toupper(protocolo_desde_memoria.codigo_op));
 		switch(protocolo_desde_memoria.codigo_op){
 			case 'i': {
@@ -62,10 +65,10 @@ int main(void) {
 						asignar_espacio(protocolo_desde_memoria.pid, comienzo, protocolo_desde_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
 
 						// actualizar la lista de vacios, con los espacios vacios que resultaron de compactar menos los solicitados
+						// esto es lo que hace la lista dame_espacio, sacamos el espacio que asignamos al proceso
 						tlista_vacio *aux = list_get(lista_vacia, 0);
 						tlista_vacio *update = malloc(sizeof(tlista_vacio));
 						*update = *aux;
-
 						update->comienzo += protocolo_desde_memoria.cantidad_pagina;
 						update->paginas_vacias -= protocolo_desde_memoria.cantidad_pagina;
 						list_destroy_and_destroy_elements(lista_vacia,free);
@@ -119,6 +122,9 @@ int main(void) {
 				fread(pag_data, config_swap->tamanioPagina, 1, swap);
 				pag_data[config_swap->tamanioPagina] = '\0';
 
+				/*tlista_ocupado * la_estructura = dame_la_estructura_del_pid(lista_ocupado);
+				la_estructura->catidad_paginas_leidas++;
+*/
 				log_lectura(logSwap, protocolo_desde_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, pag_data);
 
 				tprotocolo_swap_memoria swap_memoria;
@@ -130,10 +136,10 @@ int main(void) {
 
 			case 'e': {
 				int pag_inicio = get_comienzo_espacio_asignado(lista_ocupado, protocolo_desde_memoria.pid);
-				//indica la pagina a leer
+				//indica la pagina a escribir
 				int pagina_a_escribir = protocolo_desde_memoria.cantidad_pagina;
 
-				//me posiciono sobre la pagina a leer
+				//me posiciono sobre la pagina a escribir
 				int desplazamiento_en_bytes = (pag_inicio + pagina_a_escribir)*config_swap->tamanioPagina;
 				log_escritura(logSwap, protocolo_desde_memoria.pid, pag_inicio, config_swap->tamanioPagina, pagina_a_escribir,protocolo_desde_memoria.mensaje);
 				fseek(swap, desplazamiento_en_bytes, SEEK_SET);

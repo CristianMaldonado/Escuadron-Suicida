@@ -84,6 +84,7 @@ int main(void) {
 	tprotocolo_desde_cpu_y_hacia_swap paquete_desde_cpu;
 
 	while(recibir_paquete_desde_cpu(&socketClienteCPU, &paquete_desde_cpu)) {
+		sleep(config->retardoMemoria);
 		printf("pid-> %d operacion %c\n", paquete_desde_cpu.pid, toupper(paquete_desde_cpu.cod_op));
 		switch (paquete_desde_cpu.cod_op) {
 			case 'i': {
@@ -127,13 +128,12 @@ int main(void) {
 			case 'e':
 			case 'l': {
 				pthread_mutex_lock(&mutex);
-				sleep(config->retardoMemoria);
 				// si la tlb esta activada
-				int direccion_posta = -1;
+				int marco_en_tlb = -1;
 				if(config->habilitadaTLB)
-					direccion_posta = dame_la_direccion_posta_de_la_pagina_en_la_tlb(&tlb, paquete_desde_cpu.pid, paquete_desde_cpu.paginas);
+					marco_en_tlb = dame_el_marco_de_la_pagina_en_la_tlb(&tlb, paquete_desde_cpu.pid, paquete_desde_cpu.paginas);
 
-				if(direccion_posta == -1) { // si la pagina no esta en la tlb
+				if(marco_en_tlb == -1) { // si la pagina no esta en la tlb
 					tabla_paginas *tabla_de_paginas = dame_la_tabla_de_paginas(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
 					int nro_marco = obtener_direccion_fisica(tabla_de_paginas, paquete_desde_cpu.paginas);
 
@@ -141,11 +141,14 @@ int main(void) {
 						int nro_tlb = -1;
 						char fifo = 'n'; // n = no esta habilitada la tlb
 						if(config->habilitadaTLB) {
-							fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, nro_marco * config->tamanio_marco, paquete_desde_cpu.paginas);
-							nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, nro_marco * config->tamanio_marco);
+							fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, nro_marco, paquete_desde_cpu.paginas);
+							nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, nro_marco);
 						}
 
 						log_acceso_memoria(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_marco);
+
+						if(config->algoritmo_reemplazo == 'L')
+							aplicar_LRU(&(tabla_de_paginas->list_pagina_direccion), paquete_desde_cpu.paginas);
 
 						if(paquete_desde_cpu.cod_op == 'l') {
 							char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
@@ -181,7 +184,7 @@ int main(void) {
 							char fifo = 'n';
 							list_add(tabla_de_paginas->list_pagina_direccion, pagina_nueva);
 							if(config->habilitadaTLB)
-								fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, pagina_nueva->nro_marco * config->tamanio_marco, paquete_desde_cpu.paginas);
+								fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, pagina_nueva->nro_marco, paquete_desde_cpu.paginas);
 
 							// la pagina ocupada la paso a la swap si esta modificada
 							if (pagina_ocupada->fue_modificado) {
@@ -199,7 +202,7 @@ int main(void) {
 
 							//avisar a la cpu
 							char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
-							int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, pagina_nueva->nro_marco * config->tamanio_marco);
+							int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, pagina_nueva->nro_marco);
 
 							if(paquete_desde_cpu.cod_op == 'l') {
 								log_lectura_escritura('l', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, swap_memoria.mensaje);
@@ -227,9 +230,13 @@ int main(void) {
 										pagina->nro_pagina = paquete_desde_cpu.paginas;
 										pagina->nro_marco = nro_marco;
 
+										//aplicamos fifo y lru (al final estan las mas recientemente usadas)
+										list_remove(tabla_de_paginas->list_pagina_direccion, i);
+										list_add(tabla_de_paginas->list_pagina_direccion, pagina);
+
 										char fifo = 'n';
 										if(config->habilitadaTLB)
-											fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, pagina->nro_marco * config->tamanio_marco, paquete_desde_cpu.paginas);
+											fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, pagina->nro_marco, paquete_desde_cpu.paginas);
 
 										// copiar el contenido del marco de la swap al marco de memoria y traerse la pagina nueva desde swap
 										avisar_a_swap('l', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteSWAP);
@@ -241,7 +248,7 @@ int main(void) {
 										memcpy(memoria + nro_marco * config->tamanio_marco, swap_memoria.mensaje, swap_memoria.tamanio);
 
 										char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
-										int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, pagina->nro_marco * config->tamanio_marco);
+										int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, pagina->nro_marco);
 
 										if(paquete_desde_cpu.cod_op == 'l') { //avisar a la cpu
 
@@ -269,22 +276,26 @@ int main(void) {
 						}
 					}
 				} else { // si esta en la tlb
-					int nro_marco = direccion_posta / config->tamanio_marco;
-					int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, direccion_posta);
 
-					log_acceso_memoria(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_marco);
+					int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, marco_en_tlb);
+
+					tabla_paginas *tabla_de_paginas = dame_la_tabla_de_paginas(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
+					if(config->algoritmo_reemplazo == 'L')
+						aplicar_LRU(&(tabla_de_paginas->list_pagina_direccion), paquete_desde_cpu.paginas);
+
+					log_acceso_memoria(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, marco_en_tlb);
 					if(paquete_desde_cpu.cod_op == 'l') { // leer
-						char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanio_marco);
-						log_lectura_escritura('l', "-", logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, true, nro_marco, mensaje);
+						char * mensaje = dame_mensaje_de_memoria(&memoria, marco_en_tlb, config->tamanio_marco);
+						log_lectura_escritura('l', "-", logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, true,marco_en_tlb, mensaje);
 
 						avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
 						free(mensaje);
 
 					} else { // escribir, y poner el bit de modificado en true
-						memcpy(memoria + direccion_posta, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
+						memcpy(memoria + marco_en_tlb * config->tamanio_marco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
 						tabla_paginas * tabla_de_paginas = dame_la_tabla_de_paginas(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
 
-						log_lectura_escritura('e', "-", logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, true, nro_marco, paquete_desde_cpu.mensaje);
+						log_lectura_escritura('e', "-", logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, true, marco_en_tlb, paquete_desde_cpu.mensaje);
 
 						poneme_en_modificado_la_entrada(tabla_de_paginas, paquete_desde_cpu.paginas);
 						avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
@@ -302,4 +313,5 @@ int main(void) {
 	close(socketServidorCPU);
 	pthread_mutex_destroy(&mutex);
 	return 0;
+	// la lista esta alreves, list_add te agrega al final, y en fifo lo que sacamos esta al principio, lru mandamos al final
 }

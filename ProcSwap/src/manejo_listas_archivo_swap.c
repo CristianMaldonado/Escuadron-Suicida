@@ -149,6 +149,8 @@ void asignar_espacio(int pid, int comienzo, int cantidad_pagina, t_list **lista_
 	ocupado->pid = pid;
 	ocupado->comienzo = comienzo;
 	ocupado->paginas_ocupadas = cantidad_pagina;
+	/*ocupado->cantidad_paginas_escritas = 0;
+	ocupado->catidad_paginas_leidas = 0;*/
 	list_add(*lista_ocupado, ocupado);
 	log_inicializar(*log_swap, pid, ocupado->comienzo, tamanio_pagina, cantidad_pagina);
 }

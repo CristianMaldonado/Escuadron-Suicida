@@ -22,6 +22,7 @@ tconfig_memoria* leerConfiguracion() {
 	datosMemoria->entradasTLB = config_get_int_value(config, "ENTRADAS_TLB");
 	datosMemoria->habilitadaTLB = config_get_string_value(config,"TLB_HABILITADA")[0];
 	datosMemoria->retardoMemoria = config_get_int_value(config,"RETARDO_MEMORIA");
+	datosMemoria->algoritmo_reemplazo = config_get_string_value(config, "ALGORITMO_REEMPLAZO")[0];
 	return datosMemoria;
 }
 

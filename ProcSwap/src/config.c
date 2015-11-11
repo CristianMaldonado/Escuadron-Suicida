@@ -18,6 +18,7 @@ tconfig_swap* leerConfiguracion() {
 	datosSwap->cantidadPaginas = config_get_int_value(config, "CANTIDAD_PAGINAS");
 	datosSwap->tamanioPagina = config_get_int_value(config, "TAMANIO_PAGINA");
 	datosSwap->retardo = config_get_int_value(config, "RETARDO_COMPACTATION");
+	datosSwap->retardo_swap = config_get_int_value(config, "RETARDO_SWAP");
 	return datosSwap;
 }
 

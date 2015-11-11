@@ -8,6 +8,7 @@ typedef struct {
 	int cantidadPaginas;
 	int tamanioPagina;
 	int retardo;
+	int retardo_swap;
 }   tconfig_swap;
 
 typedef struct {
@@ -29,6 +30,8 @@ typedef struct{
 	int pid;
 	int comienzo;
 	int paginas_ocupadas;
+	/*int catidad_paginas_leidas;
+	int cantidad_paginas_escritas;*/
 } tlista_ocupado;
 
 typedef struct{

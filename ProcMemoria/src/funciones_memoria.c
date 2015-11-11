@@ -140,23 +140,24 @@ t_list * inicializar_tlb(int nro_entradas) {
 	}
 	return tlb;
 }
-
-int dame_la_direccion_posta_de_la_pagina_en_la_tlb(t_list ** tlb, int pid, int nro_pagina) {
+//modificado
+int dame_el_marco_de_la_pagina_en_la_tlb(t_list ** tlb, int pid, int nro_pagina) {
 	int i;
 	for(i = 0; i < list_size(*tlb); i++) {
 		cache_13 * aux = list_get(*tlb, i);
 		if(aux->pid == pid && aux->nro_pagina == nro_pagina)
-			return aux->direccion_posta;
+			return aux->nro_marco;
 	}
 	return -1;
 }
 
-char actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pagina) {
+//modificado
+char actualizame_la_tlb(t_list ** tlb, int pid, int nro_marco, int nro_pagina) {
 	int i;
 	for(i = 0; i< list_size(*tlb); i++) {
 		cache_13 * aux = list_get(*tlb, i);
 		if(!aux->esta_en_uso) {
-			aux->direccion_posta = direccion_posta;
+			aux->nro_marco = nro_marco;
 			aux->esta_en_uso = true;
 			aux->pid = pid;
 			aux->nro_pagina = nro_pagina;
@@ -166,7 +167,7 @@ char actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_pag
 	// esta lleno, sacar por fifo
 	free(list_remove(*tlb, 0));
 	cache_13 * nueva_entrada = malloc(sizeof(cache_13));
-	nueva_entrada->direccion_posta = direccion_posta;
+	nueva_entrada->nro_marco = nro_marco;
 	nueva_entrada->esta_en_uso = true;
 	nueva_entrada->nro_pagina = nro_pagina;
 	nueva_entrada->pid = pid;
@@ -239,12 +240,30 @@ void volcar_memoria(char * memoria, tconfig_memoria * config, t_log * logMem) {
 	}
 }
 
-int dame_el_numero_de_entrada_de_la_tlb(t_list * tlb, int direccion_posta) {
+int dame_el_numero_de_entrada_de_la_tlb(t_list * tlb, int nro_marco) {
 	int i;
 	for(i = 0; i < list_size(tlb) ; i++) {
 		cache_13 * aux = list_get(tlb, i);
-		if(direccion_posta == aux->direccion_posta)
+		if(nro_marco == aux->nro_marco)
 			return i;
 	}
 	return -1;
 }
+
+void aplicar_LRU(t_list **tabla_de_paginas, int nro_pagina) {
+	int i;
+	for(i = 0; i < list_size(*tabla_de_paginas) ; i++) {
+		pagina_direccion * pagina = list_get(*tabla_de_paginas, i);
+		if(pagina->nro_pagina == nro_pagina) {
+			list_remove(*tabla_de_paginas, i);
+			list_add(*tabla_de_paginas, pagina);
+		}
+
+	}
+
+}
+
+
+
+
+

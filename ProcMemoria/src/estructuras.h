@@ -8,7 +8,7 @@
 typedef struct {
 	int pid;
 	int nro_pagina;
-	int direccion_posta;
+	int nro_marco;
 	bool esta_en_uso;
 } cache_13;
 
@@ -37,6 +37,7 @@ typedef struct {
 	int entradasTLB;
 	char habilitadaTLB;
 	int retardoMemoria;
+	char algoritmo_reemplazo;
 }   tconfig_memoria;
 
 // estructura para leer el protocolo desde el cpu a la memoria
