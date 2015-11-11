@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include "estructuras.h"
 
-void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensajeDePlanificador,protocolo_cpu_memoria* mensajeParaArmar,int socketPlanificador);
+bool interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensajeDePlanificador,protocolo_cpu_memoria* mensajeParaArmar,int socketPlanificador);
 char* leerInstruccion(int* instructionPointer, char* lineaLeida, FILE* archivo, int tam);
 void enviarAMemoria(protocolo_cpu_memoria* message);
 void armarPaqueteMemoria(protocolo_cpu_memoria* paquete, char codOperacion, int pid, int nroPagina, char* mensaje);

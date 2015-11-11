@@ -14,6 +14,7 @@
 #include "logueo.h"
 #include "serializacion.h"
 #include <pthread.h>
+#include <stdbool.h>
 
 void enviarAMemoria(protocolo_cpu_memoria* message) {
 	int tamanio;
@@ -50,36 +51,41 @@ void armarPaqueteMemoria(protocolo_cpu_memoria* paquete,char codOperacion, int p
 	strcpy(paquete->mensaje, mensaje);
 }
 
-void interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensajeDePlanificador,protocolo_cpu_memoria* mensajeParaArmar,int socketPlanificador) {
+bool interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensajeDePlanificador,protocolo_cpu_memoria* mensajeParaArmar,int socketPlanificador) {
 
 		char** linea = string_split(instruccion, ";");
 		char** lineaFiltrada = string_split(linea[0]," ");
+		bool entendio = false;
 
 		if (string_starts_with(instruccion, "iniciar")) {
 			int numero = atoi(lineaFiltrada[1]);
 			armarPaqueteMemoria(mensajeParaArmar, 'i',mensajeDePlanificador->pid,numero , "-");
+			entendio = true;
 		}
 		if (string_starts_with(instruccion, "leer")) {
 			int numero = atoi(lineaFiltrada[1]);
 			armarPaqueteMemoria(mensajeParaArmar, 'l',mensajeDePlanificador->pid, numero, "-");
+			entendio = true;
 		}
 		if(string_starts_with(instruccion,"escribir")) {
 			int numero = atoi(lineaFiltrada[1]);
 			armarPaqueteMemoria(mensajeParaArmar, 'e',mensajeDePlanificador->pid, numero, lineaFiltrada[2]);
+			entendio = true;
 		}
-
 		if(string_starts_with(instruccion,"entrada-salida")) {
 			int tiempo = atoi(lineaFiltrada[1]);
 			actualizarOperacionPaquetePlanificadorIO(mensajeDePlanificador,'e',tiempo);
             enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
             loguearPlanificadorIO(mensajeDePlanificador, tiempo);
+            entendio = true;
 		}
-
 		if (string_starts_with(instruccion, "finalizar;")) {
 				armarPaqueteMemoria(mensajeParaArmar, 'f', mensajeDePlanificador->pid, 0, "-");
+				entendio = true;
 		}
 		free(linea);
 		free(lineaFiltrada);
+		return entendio;
 }
 
 /*Lee del archivo la linea indicada por el Instruction Pointer*/

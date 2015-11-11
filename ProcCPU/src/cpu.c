@@ -76,7 +76,10 @@ void * procesarInstruccion() {
 			printf("pid-> %d ejecutar %s\n", datosParaProcesar->pid, *linea);
 			free(*linea);
 
-			interpretarInstruccion(instruccionLeida, datosParaProcesar, mensajeAMemoria, socketPlanifAux);
+			/*si no "entiende" la instruccion pasa a la siguiente*/
+			if (!interpretarInstruccion(instruccionLeida, datosParaProcesar, mensajeAMemoria, socketPlanifAux))
+				continue;
+
 			if (datosParaProcesar->tipoOperacion == 'e') break;
 
 			/*asi la comunicacion con la memoria es atomica*/
