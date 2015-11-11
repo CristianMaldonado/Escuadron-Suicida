@@ -38,10 +38,8 @@ int get_comienzo_espacio_asignado(t_list * lista_ocupado, int pid) {
 	for (i = 0; i < list_size(lista_ocupado); i++){
 		tlista_ocupado * ocupado = malloc(sizeof(tlista_ocupado));
 		ocupado = list_get(lista_ocupado, i);
-		if (ocupado->pid == pid) {
-			int comienzo = ocupado->comienzo;
-			return comienzo;
-		}
+		if (ocupado->pid == pid)
+			return ocupado->comienzo;
 	}
 	return -1; // si no encuentra el pid en la lista
 }
