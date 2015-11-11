@@ -49,7 +49,7 @@ tabla_paginas * dame_la_tabla_de_paginas(int pid, t_list ** lista_tabla_de_pagin
 	return 0;
 }
 
-int dame_la_direccion_de_la_pagina(tabla_paginas *tabla, int pagina) {
+int obtener_direccion_fisica(tabla_paginas *tabla, int pagina) {
 	int i;
 	for(i = 0 ; i < list_size(tabla->list_pagina_direccion) ; i++) {
 		pagina_direccion *pagina_aux = list_get(tabla->list_pagina_direccion, i);

@@ -16,6 +16,7 @@
 #include <signal.h>
 #include <pthread.h>
 #include "log_memoria.h"
+#include <ctype.h>
 
 t_list * tlb;
 t_list * lista_tabla_de_paginas;
@@ -134,7 +135,7 @@ int main(void) {
 
 				if(direccion_posta == -1) { // si la pagina no esta en la tlb
 					tabla_paginas *tabla_de_paginas = dame_la_tabla_de_paginas(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
-					int nro_marco = dame_la_direccion_de_la_pagina(tabla_de_paginas, paquete_desde_cpu.paginas);
+					int nro_marco = obtener_direccion_fisica(tabla_de_paginas, paquete_desde_cpu.paginas);
 
 					if(nro_marco != -1) { // si la pagina esta en memoria
 						int nro_tlb = -1;
