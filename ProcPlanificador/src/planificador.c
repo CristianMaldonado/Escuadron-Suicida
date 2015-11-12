@@ -14,28 +14,34 @@
 #include <pthread.h>
 #include <stdbool.h>
 
-#define PACKAGESIZE 30
-
-//t_list* listaEjecutando=list_create();
-bool llegoexit;
+bool llegoexit = false;
 
 void* consumidor(){
 	tprocIO* pcb;
 	while(1){
 		sem_wait(&hayIO);
+
 		pthread_mutex_lock(&mutexIO);
-		pcb = queue_pop(colaIO);
+		pcb = queue_peek(colaIO);
 		pthread_mutex_unlock(&mutexIO);
 		sleep(pcb->tiempo);
+
+		pthread_mutex_lock(&mutexSwitchProc);
+		pthread_mutex_lock(&mutexIO);
+		queue_pop(colaIO);
+		pthread_mutex_unlock(&mutexIO);
+		pcb->pcb->estado = LISTO;
 		pthread_mutex_lock(&mutexProcesoListo);
 		queue_push(colaListos,pcb->pcb);
 		pthread_mutex_unlock(&mutexProcesoListo);
+		pthread_mutex_unlock(&mutexSwitchProc);
+
 		sem_post(&hayProgramas);
 		printf("pid-> %d salio de io\n",pcb->pcb->pid);
 		free(pcb);
 	}
+	return 0;
 }
-
 
 void definirMensaje(tpcb* pcb,char* message){
 	//char *message=malloc(strlen(pcb[0].ruta)+(2*sizeof(int))+sizeof(testado)+10+1);
@@ -59,21 +65,24 @@ void *enviar(){
 		sem_wait(&hayCPU);
 		sem_wait(&hayProgramas);
 		if(llegoexit) break;
+		pthread_mutex_lock(&mutexSwitchProc);
 		pthread_mutex_lock(&mutexProcesoListo);
-		pcb=queue_pop(colaListos);
+		pcb = queue_pop(colaListos);
 		pthread_mutex_unlock(&mutexProcesoListo);
 		if(pcb->siguiente == 1){
+			pcb->estado = EJECUTANDO;
 			pthread_mutex_lock(&mutexInicializando);
 			list_add(listaInicializando,pcb);
 			pthread_mutex_unlock(&mutexInicializando);
 		}else{
+			pcb->estado = EJECUTANDO;
 			pthread_mutex_lock(&mutexListaEjecutando);
 			list_add(listaEjecutando,pcb);
 			pthread_mutex_unlock(&mutexListaEjecutando);
 		}
+		pthread_mutex_unlock(&mutexSwitchProc);
 		adaptadorPCBaProtocolo(pcb,package);
 		void* message=malloc(sizeof(protocolo_planificador_cpu) + strlen(pcb->ruta));
-
 		message = serializarPaqueteCPU(package, &tamanio);
 		//message[strlen((message))] = '\0';
 		pthread_mutex_lock(&mutexListaCpus);
@@ -91,16 +100,13 @@ void *enviar(){
 
 int main(){
 	system("clear");
-	int cantProc=1;
 
-	listaEjecutando= list_create();
-	listaCpuLibres= list_create();
-	colaListos = queue_create();
+	listaEjecutando = list_create();
+	listaCpuLibres = list_create();
 	listaInicializando = list_create();
+	colaListos = queue_create();
 	colaIO = queue_create();
 
-	pthread_t enviarAlCpu,selectorCpu,consumidorIO;
-	pthread_attr_t attr;
 	sem_init(&hayProgramas,0,0);
 	sem_init(&hayCPU,0,0);
 	sem_init(&hayIO,0,0);
@@ -109,7 +115,7 @@ int main(){
 	pthread_mutex_init(&mutexListaCpus,NULL);
 	pthread_mutex_init(&mutexIO,NULL);
 	pthread_mutex_init(&mutexListaEjecutando,NULL);
-
+	pthread_mutex_init(&mutexSwitchProc,NULL);
 	//creacion de la instancia de log
 	logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
 
@@ -125,38 +131,54 @@ int main(){
 	sel.socket = serverSocket;
 	sel.listaCpus = listaCpuLibres;
 
+	pthread_t enviarAlCpu,selectorCpu,consumidorIO;
+	pthread_attr_t attr;
 	pthread_attr_init(&attr);
-	pthread_create( &selectorCpu, &attr, selector,(void*) &sel);
+	/*creacion de hilos*/
+	pthread_create(&selectorCpu,&attr,selector,(void*)&sel);
+	pthread_create(&enviarAlCpu,&attr,enviar,NULL);
+	pthread_create(&consumidorIO,&attr,consumidor,NULL);
 
-	//selector(serverSocket, listaCpuLibres);
-	pthread_create( &enviarAlCpu, &attr, enviar,NULL);
-	pthread_create(&consumidorIO,&attr, consumidor,NULL);
+	int enviar = 1;
+	int cantProc = 1;
+	int lng = 0;
+	char * message = 0;
 
+	while(enviar){
+		/*reemplaza a fgets*/
+		while(1){
+			int c ;
+			if ((c = getchar()) == EOF)
+				break;
 
-	int enviar2 = 1;
-	char message[PACKAGESIZE];
-	int nro_comando=0;
-	llegoexit = false;
+			message = realloc(message,lng + 1);
+			message[lng] = c;
+			lng++;
 
-	while(enviar2){
-		fgets(message, PACKAGESIZE, stdin);
+			if (c == '\n')
+				break;
+		}
+
+		message = realloc(message,lng + 1);
+		message[lng] = '\0';
 
 		if (!strcmp(message,"exit\n")) {
-			enviar2 = 0;
+			enviar = 0;
 			llegoexit = true;
 			sem_post(&hayCPU);
 			sem_post(&hayProgramas);
 		}
 		else
-		{
-			nro_comando = clasificarComando(&message[0]);
-			procesarComando(nro_comando,&message[0],&cantProc);
-		}
+			procesarComando(clasificarComando(message),message,&cantProc);
+
+		/*reinicio*/
+		free(message);
+		message = 0;
+		lng = 0;
 	}
+	/*espero la terminacion de enviar*/
 	pthread_join(enviarAlCpu,NULL);
-	close(serverSocket);
-	//close(socketCPU);
-	//list_destroy(listaAuxiliar);
+
 	sem_destroy(&hayCPU);
 	sem_destroy(&hayIO);
 	sem_destroy(&hayProgramas);
@@ -165,7 +187,15 @@ int main(){
 	pthread_mutex_destroy(&mutexListaCpus);
 	pthread_mutex_destroy(&mutexListaEjecutando);
 	pthread_mutex_destroy(&mutexProcesoListo);
-	list_destroy(listaCpuLibres);
-	queue_destroy(colaListos);
+	pthread_mutex_destroy(&mutexSwitchProc);
+	/*destruyo la lista y sus elementos*/
+	list_destroy_and_destroy_elements(listaCpuLibres,free);
+	list_destroy_and_destroy_elements(listaEjecutando,free);
+	list_destroy_and_destroy_elements(listaInicializando,free);
+	/*destruyo la cola y sus elementos*/
+	queue_destroy_and_destroy_elements(colaListos,free);
+	queue_destroy_and_destroy_elements(colaListos,free);
+
+	close(serverSocket);
 	return 0;
 }

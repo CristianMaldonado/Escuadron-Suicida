@@ -22,7 +22,6 @@
 #include <pthread.h>
 #include <sys/socket.h>
 
-
 sem_t hayProgramas;
 sem_t hayCPU;
 sem_t hayIO;
@@ -39,6 +38,7 @@ pthread_mutex_t mutexProcesoListo;
 pthread_mutex_t mutexListaEjecutando;
 pthread_mutex_t mutexIO;
 pthread_mutex_t mutexInicializando;
+pthread_mutex_t mutexSwitchProc;
 
 t_log* logPlanificador;
 
@@ -46,6 +46,7 @@ typedef struct {
 	int socket;
 	t_list* listaCpus;
 } tParametroSelector;
+
 typedef struct {
 	char* puertoEscucha;
 	char algoritmo;

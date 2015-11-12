@@ -3,7 +3,6 @@
 #include <semaphore.h>
 #include <stdio.h>
 
-
 int maxLineas(char* path){
 	FILE* archivo = fopen(path, "r+");
 	/*desde armarPCB me fijo si es distinto de -1*/
@@ -50,40 +49,17 @@ tpcb * armarPCB(char* path, int cant) {
 
 void convertirEstado(testado estadoEnum, char** estado){
 
-if (estadoEnum == LISTO) {
-	string_append(estado, "LISTO");
-	}
-	if (estadoEnum == IO) {
-		string_append(estado, "IO");
-	}
-	if (estadoEnum == EJECUTANDO) {
-		string_append(estado, "EJECUTANDO");
-	}
-	if (estadoEnum == FINALIZADO) {
-		string_append(estado, "FINALIZADO");
-	}
+	if (estadoEnum == LISTO)
+		string_append(estado, "Listo");
 
-}
+	if (estadoEnum == IO)
+		string_append(estado, "Bloqueado");
 
-void mostrarEstadoProcesos(t_queue* colaProc){
-	char* infoProceso = (char*)malloc(50);
-	t_list* lista = colaProc->elements;
-	tpcb* pcb;
-	int i;
-	for(i = 0;i < list_size(lista); i++){
-		char* estado = string_new();
-		pcb=list_get(lista,i);
-		convertirEstado(pcb->estado, &estado);
-		strcpy(infoProceso, "mProc: ");
-		string_append_with_format(&infoProceso, "%d ", pcb->pid);
-		string_append(&infoProceso, pcb->nombre);
-		string_append(&infoProceso, " -> ");
-		string_append(&infoProceso,estado);
-		printf("%s\n",infoProceso);
-		free(estado);
-	}
-    free(infoProceso);
-    free(lista);
+	if (estadoEnum == EJECUTANDO)
+		string_append(estado, "Ejecutando");
+
+	if (estadoEnum == FINALIZADO)
+		string_append(estado, "Finalizado");
 }
 
 void mostrarEstadoProcesosLista(t_list* lista){
@@ -97,8 +73,9 @@ void mostrarEstadoProcesosLista(t_list* lista){
 		strcpy(infoProceso, "mProc: ");
 		string_append_with_format(&infoProceso, "%d ", pcb->pid);
 		string_append(&infoProceso, pcb->nombre);
-		string_append(&infoProceso, " -> ");
+		string_append(&infoProceso, "-> ");
 		string_append(&infoProceso,estado);
+		string_append(&infoProceso,"\n");
 		printf("%s",infoProceso);
 		free(estado);
 	}
@@ -148,36 +125,61 @@ int clasificarComando(char* message) {//OK
 	}
 }
 
+bool comparadorPid(void * elemA, void * elemB){
+
+	return ((tpcb*)elemA)->pid < ((tpcb*)elemB)->pid;
+}
+
 void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 	tpcb* pcb;
-	switch (nro_comando) {
-	case 1:
-		printf("Entro por ps\n");
-		//mostrarEstadoProcesos(colaProcesos);
-		//mostrarEstadoProcesosLista(listaEjecutando);
-		//mostrarEstadoProcesos(colaIO);
-		break;
-	case 2:
-		printf("Entro por cpu\n");
-		break;
-	case 3:
-		pcb = armarPCB(&message[7], *cantProc);//TODO cambiar como el interpretar instruccion
-		if (pcb){
-			pthread_mutex_lock(&mutexProcesoListo);
-			queue_push(colaListos, pcb);
-			pthread_mutex_unlock(&mutexProcesoListo);
-			(*cantProc) = (*cantProc)+ 1;
-			sem_post(&hayProgramas);
+	switch (nro_comando){
+		case 1:{
+			pthread_mutex_lock(&mutexSwitchProc);
+
+			/*lista auxiliar*/
+			t_list * aux = list_create();
+			int i;
+
+			for(i = 0; i < list_size(listaEjecutando); i++)
+				list_add(aux,list_get(listaEjecutando,i));
+
+			for(i = 0; i < list_size(colaListos->elements); i++)
+				list_add(aux,list_get(colaListos->elements,i));
+
+			for(i = 0; i < list_size(colaIO->elements); i++)
+				list_add(aux,((tprocIO*)list_get(colaIO->elements,i))->pcb);
+
+			for(i = 0; i < list_size(listaInicializando); i++)
+				list_add(aux,list_get(listaInicializando,i));
+
+			/*ordeno por pid para luego mostrar*/
+			list_sort(aux,comparadorPid);
+			mostrarEstadoProcesosLista(aux);
+
+			pthread_mutex_unlock(&mutexSwitchProc);
 		}
-		else
-			printf("No se encontro %s\n", &message[7]);
-		break;
-	case 4:
-		finalizarPID(&message[10]);
-		break;
-	default:
-		printf("Comando ingresado incorrecto\n");
-		break;
+			break;
+		case 2:
+			printf("Entro por cpu\n");
+			break;
+		case 3:
+			pcb = armarPCB(&message[7], *cantProc);
+			if (pcb){
+				pthread_mutex_lock(&mutexProcesoListo);
+				queue_push(colaListos, pcb);
+				pthread_mutex_unlock(&mutexProcesoListo);
+				(*cantProc) = (*cantProc)+ 1;
+				sem_post(&hayProgramas);
+			}
+			else
+				printf("No se encontro %s\n", &message[7]);
+			break;
+		case 4:
+			finalizarPID(&message[10]);
+			break;
+		default:
+			printf("Comando ingresado incorrecto\n");
+			break;
 	}
 }
 
