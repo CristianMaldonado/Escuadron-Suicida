@@ -359,12 +359,11 @@ void llevar_a_swap(int socket_Swap, char * memoria, pagina_direccion * pagina, i
 	}
 }
 
-char * traer_de_swap(int socket_Swap, char * memoria, int nro_marco, int nro_pagina, int tamanio_marco, int pid){
+void traer_de_swap(int socket_Swap, char * memoria, int nro_marco, int nro_pagina, int tamanio_marco, int pid){
 	avisar_a_swap('l', pid, nro_pagina, "vacio", socket_Swap);
 	tprotocolo_swap_memoria swap_memoria;
 	recibir_paquete_desde_swap(socket_Swap, &swap_memoria);
 	//pasar la pagina desde el swap a la memoria
 	memcpy(memoria + nro_marco * tamanio_marco, swap_memoria.mensaje, swap_memoria.tamanio);
-	return swap_memoria.mensaje;
 }
 

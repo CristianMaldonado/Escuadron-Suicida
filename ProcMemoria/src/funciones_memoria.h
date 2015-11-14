@@ -29,5 +29,5 @@ bool aplicar_clock_modificado(int nro_pagina, int * nro_pagina_reemplazada, t_li
 bool f_u_cero_m_cero(pagina_direccion * una_pagina);
 bool f_u_cero_m_uno(pagina_direccion * una_pagina);
 void llevar_a_swap(int socket_Swap, char * memoria, pagina_direccion * pagina, int tamanio_marco, int pid);
-char * traer_de_swap(int socket_Swap, char * memoria, int nro_marco, int nro_pagina, int tamanio_marco, int pid);
+void traer_de_swap(int socket_Swap, char * memoria, int nro_marco, int nro_pagina, int tamanio_marco, int pid);
 #endif /* SRC_FUNCIONES_MEMORIA_H_ */
