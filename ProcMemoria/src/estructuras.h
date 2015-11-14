@@ -23,6 +23,7 @@ typedef struct {
 
 typedef struct {
 	int pid;
+	int pos_puntero;
 	t_list * list_pagina_direccion;
 } tabla_paginas;
 

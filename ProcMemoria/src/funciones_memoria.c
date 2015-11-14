@@ -16,11 +16,13 @@ tabla_paginas * inicializar_tabla_de_paginas(int cantidad_maxima_marcos_por_proc
 	tabla_paginas * tabla = malloc(sizeof(tabla_paginas));
 	tabla->list_pagina_direccion = list_create();
 	tabla->pid = pid;
+	tabla->pos_puntero = 0;
 	int i;
 	for(i = 0 ; i < cantidad_maxima_marcos_por_proceso ; i++) {
 		pagina_direccion *pagina = malloc(sizeof(pagina_direccion));
 		pagina->en_uso = false;
 		pagina->fue_modificado = false;
+		pagina->nro_pagina = -1;
 		list_add(tabla->list_pagina_direccion, pagina);
 	}
 	return tabla;
@@ -49,12 +51,22 @@ tabla_paginas * dame_la_tabla_de_paginas(int pid, t_list ** lista_tabla_de_pagin
 	return 0;
 }
 
-int obtener_direccion_fisica(tabla_paginas *tabla, int pagina) {
+int obtener_marco_pagina(tabla_paginas *tabla, int pagina, int es_clock) {
 	int i;
 	for(i = 0 ; i < list_size(tabla->list_pagina_direccion) ; i++) {
 		pagina_direccion *pagina_aux = list_get(tabla->list_pagina_direccion, i);
-		if(pagina_aux->en_uso && pagina_aux->nro_pagina == pagina)
-			return pagina_aux->nro_marco;
+
+		if (!es_clock){
+			if(pagina_aux->en_uso && pagina_aux->nro_pagina == pagina)
+				return pagina_aux->nro_marco;
+		}
+		else
+		{
+			if(pagina_aux->nro_pagina == pagina){
+				pagina_aux->en_uso = 1;
+				return pagina_aux->nro_marco;
+			}
+		}
 	}
 	return -1;
 }
@@ -70,12 +82,20 @@ void poneme_en_modificado_la_entrada(tabla_paginas *tabla, int pagina) {
 	}
 }
 
-bool estan_los_frames_ocupados(t_list *tabla_paginas) {
+bool estan_los_frames_ocupados(t_list *tabla_paginas, bool es_clock) {
 	int i = 0;
 	pagina_direccion *pagina = list_get(tabla_paginas, 0);
 	while(pagina) {
-		if(!pagina->en_uso)
-			return false;
+		if (!es_clock){
+			if(!pagina->en_uso)
+				return false;
+		}
+		else
+		{
+			/*si es -1 la entrada en la tabla de paginas no esta cargada*/
+			if (pagina->nro_pagina == -1)
+				return false;
+		}
 		i++;
 		pagina = list_get(tabla_paginas, i);
 	}
@@ -258,12 +278,93 @@ void aplicar_LRU(t_list **tabla_de_paginas, int nro_pagina) {
 			list_remove(*tabla_de_paginas, i);
 			list_add(*tabla_de_paginas, pagina);
 		}
-
 	}
-
 }
 
+bool f_u_cero_m_cero(pagina_direccion * una_pagina) {
+	return (una_pagina->en_uso == 0 && una_pagina->fue_modificado == 0);
+}
 
+bool f_u_cero_m_uno(pagina_direccion * una_pagina) {
+	return (una_pagina->en_uso == 0 && una_pagina->fue_modificado == 1);
+}
 
+void reemplazar_pagina(int nro_pagina, int * nro_pagina_reemplazada, t_list * paginas, int pos, int * puntero, bool es_escritura) {
 
+	pagina_direccion * pagina_objetivo = list_get(paginas, pos);
+	if(!es_escritura) {
+		pagina_objetivo->en_uso = 1;
+		pagina_objetivo->fue_modificado = 0;
+	}
+	else {
+		pagina_objetivo->en_uso = 1;
+		pagina_objetivo->fue_modificado = 1;
+	}
+
+	*nro_pagina_reemplazada = pagina_objetivo->nro_pagina;
+	pagina_objetivo->nro_pagina = nro_pagina;
+
+	if (pos + 1 < list_size(paginas))
+		(*puntero) = pos + 1;
+	else
+		(*puntero) = 0;
+}
+
+//hay que llevar la pagina desalojada a la swap
+bool aplicar_clock_modificado(int nro_pagina, int * nro_pagina_reemplazada, t_list * paginas, int * puntero, bool es_escritura){
+
+	while(1){
+		int i;
+		/*recorro segunda mitad*/
+		for(i = (*puntero); i < list_size(paginas); i++){
+			if(f_u_cero_m_cero(list_get(paginas,i))){
+				reemplazar_pagina(nro_pagina,nro_pagina_reemplazada,paginas,i,puntero,es_escritura);
+				return false;
+			}
+		}
+		/*recorro primera mitad*/
+		for(i = 0; i < (*puntero); i++){
+			if(f_u_cero_m_cero(list_get(paginas,i))){
+				reemplazar_pagina(nro_pagina,nro_pagina_reemplazada,paginas,i,puntero,es_escritura);
+				return false;
+			}
+		}
+
+		/*recorro segunda mitad*/
+		for(i = (*puntero); i < list_size(paginas); i++){
+			if(f_u_cero_m_uno(list_get(paginas,i))){
+				reemplazar_pagina(nro_pagina, nro_pagina_reemplazada,paginas,i,puntero,es_escritura);
+				return true;
+			}
+			else
+				((pagina_direccion*)list_get(paginas,i))->en_uso = false;
+		}
+		/*recorro primera mitad*/
+		for(i = 0; i < (*puntero); i++){
+			if(f_u_cero_m_uno(list_get(paginas,i))){
+				reemplazar_pagina(nro_pagina, nro_pagina_reemplazada,paginas,i,puntero,es_escritura);
+				return true;
+			}
+			else
+				((pagina_direccion*)list_get(paginas,i))->en_uso = false;
+		}
+	}
+}
+
+void llevar_a_swap(int socket_Swap, char * memoria, pagina_direccion * pagina, int tamanio_marco, int pid){
+	if (pagina->fue_modificado) {
+		char * mensaje = dame_mensaje_de_memoria(&memoria, pagina->nro_marco, tamanio_marco);
+		avisar_a_swap('e', pid, pagina->nro_pagina, mensaje, socket_Swap);
+		free(mensaje);
+	}
+}
+
+char * traer_de_swap(int socket_Swap, char * memoria, int nro_marco, int nro_pagina, int tamanio_marco, int pid){
+	avisar_a_swap('l', pid, nro_pagina, "vacio", socket_Swap);
+	tprotocolo_swap_memoria swap_memoria;
+	recibir_paquete_desde_swap(socket_Swap, &swap_memoria);
+	//pasar la pagina desde el swap a la memoria
+	memcpy(memoria + nro_marco * tamanio_marco, swap_memoria.mensaje, swap_memoria.tamanio);
+	return swap_memoria.mensaje;
+}
 
