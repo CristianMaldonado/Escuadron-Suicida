@@ -361,7 +361,6 @@ int main(void) {
 										avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
 									}
 									free(paquete_desde_cpu.mensaje);
-									free(pagina);
 								}
 							} else {
 								//avisale a la cpu que no hay mas memoria y no se puede agregar una nueva entrada de paginas
