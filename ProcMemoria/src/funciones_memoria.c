@@ -156,6 +156,8 @@ t_list * inicializar_tlb(int nro_entradas) {
 	for(i = 0 ; i < nro_entradas ; i++) {
 		cache_13 *entrada = malloc(sizeof(cache_13));
 		entrada->esta_en_uso = false;
+		entrada->nro_marco = -1;
+		entrada->pid = -1;
 		list_add(tlb, entrada);
 	}
 	return tlb;
@@ -365,5 +367,6 @@ void traer_de_swap(int socket_Swap, char * memoria, int nro_marco, int nro_pagin
 	recibir_paquete_desde_swap(socket_Swap, &swap_memoria);
 	//pasar la pagina desde el swap a la memoria
 	memcpy(memoria + nro_marco * tamanio_marco, swap_memoria.mensaje, swap_memoria.tamanio);
+	free(swap_memoria.mensaje);
 }
 

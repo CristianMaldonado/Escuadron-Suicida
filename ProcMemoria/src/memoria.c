@@ -146,6 +146,7 @@ int main(void) {
 				log_info(logMem, "proceso finalizado -> pid: %d\n", paquete_desde_cpu.pid);
 
 				avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteCPU);
+				free(paquete_desde_cpu.mensaje);
 				pthread_mutex_unlock(&mutex);
 			}
 			break;
@@ -247,17 +248,19 @@ int main(void) {
 								if(config->habilitadaTLB)
 									fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, nro_marco, paquete_desde_cpu.paginas);
 
-								//traerse la pagina nueva desde swap
-								traer_de_swap(socketClienteSWAP,memoria,nro_marco,paquete_desde_cpu.paginas,config->tamanio_marco,paquete_desde_cpu.pid);
-
+								//la pagina ocupada la paso a la swap si esta modificada
 								if (llevarSwap){
-									//la pagina ocupada la paso a la swap si esta modificada
 									pagina_direccion * pagina_ocupada = malloc(sizeof(pagina_direccion));
 									pagina_ocupada->nro_pagina = pagina_reemplazada;
 									pagina_ocupada->nro_marco = nro_marco;
+									pagina_ocupada->fue_modificado = true;
 
 									llevar_a_swap(socketClienteSWAP,memoria,pagina_ocupada,config->tamanio_marco,paquete_desde_cpu.pid);
+									free(pagina_ocupada);
 								}
+
+								//traerse la pagina nueva desde swap
+								traer_de_swap(socketClienteSWAP,memoria,nro_marco,paquete_desde_cpu.paginas,config->tamanio_marco,paquete_desde_cpu.pid);
 
 								char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
 								int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, nro_marco);
@@ -378,6 +381,36 @@ int main(void) {
 						aplicar_LRU(&(tabla_de_paginas->list_pagina_direccion), paquete_desde_cpu.paginas);
 
 					log_acceso_memoria(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, marco_en_tlb);
+
+
+
+					//VER!!!!!!!
+					////////////////////////////////////////////////////////////////////////////////////
+
+					int nro_marco = obtener_marco_pagina(tabla_de_paginas, paquete_desde_cpu.paginas,config->algoritmo_reemplazo == 'C');
+					if (nro_marco != marco_en_tlb){
+						printf("//////////////////////////////////////////");
+						printf("\nNo coinciden los nro de marcos!! pagina: %d, marcoTLB: %d, marcoMEMORIA: %d\n", paquete_desde_cpu.paginas,marco_en_tlb,nro_marco);
+
+						int i;
+						for(i = 0; i < list_size(tlb);i++){
+							cache_13 * entrada = list_get(tlb,i);
+							if ((entrada->pid == paquete_desde_cpu.pid) && entrada->esta_en_uso)
+								printf("pagina: %d, marco: %d\n",entrada->nro_pagina,entrada->nro_marco);
+						}
+
+						printf("//////////////////////////////////////////\n");
+
+						//Cuando desalojamos un pagina de la memoria tendriamos que eleminar esa pagina de la tlb, luego ya se actualiza
+						//con la nueva pagina cuando llamamos a actualizar tlb
+
+
+						//Ojo creo que es por eso, por eso obtener_marco_pagina devuelbe -1, porque no la encuentra en la tabla de paginas pero si esta en la tlb
+
+					}
+
+
+					////////////////////////////////////////////////////////////////////////////////////
 
 					if(paquete_desde_cpu.cod_op == 'l') {
 						char * mensaje = dame_mensaje_de_memoria(&memoria, marco_en_tlb, config->tamanio_marco);
