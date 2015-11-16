@@ -71,6 +71,18 @@ int obtener_marco_pagina(tabla_paginas *tabla, int pagina, int es_clock) {
 	return -1;
 }
 
+// en tabla de paginas
+void poneme_en_uso_la_entrada(tabla_paginas *tabla, int pagina) {
+	int i;
+	for(i = 0 ; i < list_size(tabla->list_pagina_direccion) ; i++) {
+		pagina_direccion *pagina_aux = list_get(tabla->list_pagina_direccion, i);
+		if(pagina_aux->nro_pagina == pagina) {
+			pagina_aux->en_uso = true;
+			break;
+		}
+	}
+}
+
 void poneme_en_modificado_la_entrada(tabla_paginas *tabla, int pagina) {
 	int i;
 	for(i = 0 ; i < list_size(tabla->list_pagina_direccion) ; i++) {
@@ -162,7 +174,7 @@ t_list * inicializar_tlb(int nro_entradas) {
 	}
 	return tlb;
 }
-//modificado
+
 int dame_el_marco_de_la_pagina_en_la_tlb(t_list ** tlb, int pid, int nro_pagina) {
 	int i;
 	for(i = 0; i < list_size(*tlb); i++) {
@@ -173,7 +185,22 @@ int dame_el_marco_de_la_pagina_en_la_tlb(t_list ** tlb, int pid, int nro_pagina)
 	return -1;
 }
 
-//modificado
+void eliminar_entrada_tlb(t_list ** tlb, int pid, int nro_pagina) {
+	int i;
+	for(i = 0; i < list_size(*tlb) ; i++) {
+		cache_13 * aux = list_get(*tlb, i);
+		if(aux->esta_en_uso && aux->pid == pid && aux->nro_pagina == nro_pagina) {
+			free(list_remove(*tlb, i));
+			cache_13 * new = malloc(sizeof(cache_13));
+			new->esta_en_uso = false;
+			new->nro_marco = -1;
+			new->nro_pagina = -1;
+			new->pid = -1;
+			list_add(*tlb, new);
+		}
+	}
+}
+
 char actualizame_la_tlb(t_list ** tlb, int pid, int nro_marco, int nro_pagina) {
 	int i;
 	for(i = 0; i< list_size(*tlb); i++) {
@@ -369,4 +396,5 @@ void traer_de_swap(int socket_Swap, char * memoria, int nro_marco, int nro_pagin
 	memcpy(memoria + nro_marco * tamanio_marco, swap_memoria.mensaje, swap_memoria.tamanio);
 	free(swap_memoria.mensaje);
 }
+
 

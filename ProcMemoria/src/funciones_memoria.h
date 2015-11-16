@@ -16,6 +16,7 @@ void avisar_a_cpu(char cod_op, char cod_aux, int pid, int paginas, char *mensaje
 void avisar_a_swap(char cod_op, int pid, int paginas, char *mensaje, int socket_ser_swap);
 t_list * inicializar_tlb(int nro_entradas);
 int dame_el_marco_de_la_pagina_en_la_tlb(t_list ** tlb, int pid, int nro_pagina);
+void eliminar_entrada_tlb(t_list ** tlb, int pid, int nro_pagina);
 char actualizame_la_tlb(t_list ** tlb, int pid, int direccion_posta, int nro_marco);
 void borrame_las_entradas_del_proceso(int pid, t_list ** tlb);
 void limpiar_la_tlb(t_list ** tlb);
@@ -30,4 +31,10 @@ bool f_u_cero_m_cero(pagina_direccion * una_pagina);
 bool f_u_cero_m_uno(pagina_direccion * una_pagina);
 void llevar_a_swap(int socket_Swap, char * memoria, pagina_direccion * pagina, int tamanio_marco, int pid);
 void traer_de_swap(int socket_Swap, char * memoria, int nro_marco, int nro_pagina, int tamanio_marco, int pid);
+void poneme_en_uso_la_entrada(tabla_paginas *tabla, int pagina);
+
+
+
+
+
 #endif /* SRC_FUNCIONES_MEMORIA_H_ */
