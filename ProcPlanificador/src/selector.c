@@ -4,6 +4,7 @@
 #include <commons/collections/list.h>
 #include <pthread.h>
 #include <commons/string.h>
+#include "logueo.h"
 
 void eliminarCpusDesconectadas(int ** socketCpu, int * numeroCpus){
 
@@ -132,6 +133,8 @@ void * selector(void * arg) {
 							list_add(listaEjecutando,pcb);
 							pthread_mutex_unlock(&mutexListaEjecutando);
 							pthread_mutex_unlock(&mutexSwitchProc);
+							logueoProcesos(respuestaDeCPU.pid,respuestaDeCPU.mensaje,'i');
+							logueoAlgoritmo(respuestaDeCPU.quantum,respuestaDeCPU.mensaje);
 							printf("pid-> %d inicio correctamente\n", respuestaDeCPU.pid);
 
 						}
@@ -208,8 +211,8 @@ void * selector(void * arg) {
 							free(list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando)));
 							pthread_mutex_unlock(&mutexListaEjecutando);
 							pthread_mutex_unlock(&mutexSwitchProc);
-
 							sem_post(&hayCPU);
+							logueoProcesos(respuestaDeCPU.pid,respuestaDeCPU.mensaje,'f');
 							printf("pid-> %d finalizo\n", respuestaDeCPU.pid);
 						}
 						break;
@@ -217,7 +220,9 @@ void * selector(void * arg) {
 				}
 				else
 				{
+
 					/*lo seteo en -1 para luego eliminarlo del vector*/
+					logueoConexionCPUS(socketCpu[i]);
 					socketCpu[i] = -1;
 					printf("CPU desconectada\n");
 				}
@@ -230,6 +235,8 @@ void * selector(void * arg) {
 			int nuevaCpu;
 			/*acepto la cpu*/
 			server_acept(servidor, &nuevaCpu);
+
+			logueoConexionCPUS(nuevaCpu);
 			if (nuevaCpu != -1){
 
 				/*se agrega el nuevo socket*/

@@ -194,7 +194,7 @@ int main(){
 	list_destroy_and_destroy_elements(listaInicializando,free);
 	/*destruyo la cola y sus elementos*/
 	queue_destroy_and_destroy_elements(colaListos,free);
-	queue_destroy_and_destroy_elements(colaListos,free);
+	//queue_destroy_and_destroy_elements(colaListos,free);
 
 	close(serverSocket);
 	return 0;

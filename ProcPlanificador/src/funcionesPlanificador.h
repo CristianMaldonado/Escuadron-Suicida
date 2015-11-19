@@ -16,7 +16,7 @@ int clasificarComando(char* message);
 void adaptadorPCBaProtocolo(tpcb* pcb,protocolo_planificador_cpu* paquete);
 void procesarComando(int nro_comando, char* message, int* cantProc);
 void convertirEstado(testado estadoEnum, char** estado);
-void mostrarEstadoProcesosLista(t_list* lista);
+void mostrarEstadoProcesosLista(t_list* lista, char* mensaje);
 int deserializarCPU(protocolo_planificador_cpu *package,int socketCPU);
 void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio);
 int maxLineas(char * archivo);

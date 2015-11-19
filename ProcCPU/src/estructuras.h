@@ -13,13 +13,13 @@
 
 sem_t ejecutaInstruccion;
 
-t_log *logCpu;
 
 int socketMemoria;
 
 pthread_mutex_t mutexSocket;
 pthread_mutex_t mutexLogueo;
 pthread_mutex_t mutex;
+pthread_mutex_t mutexLogueoRafaga;
 
 typedef enum {
 	LISTO, IO, EJECUTANDO, FINALIZADO

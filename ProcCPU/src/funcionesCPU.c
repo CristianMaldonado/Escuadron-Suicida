@@ -51,7 +51,7 @@ void armarPaqueteMemoria(protocolo_cpu_memoria* paquete,char codOperacion, int p
 	strcpy(paquete->mensaje, mensaje);
 }
 
-bool interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensajeDePlanificador,protocolo_cpu_memoria* mensajeParaArmar,int socketPlanificador) {
+bool interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensajeDePlanificador,protocolo_cpu_memoria* mensajeParaArmar,int socketPlanificador,t_log* logCpu) {
 
 		char** linea = string_split(instruccion, ";");
 		char** lineaFiltrada = string_split(linea[0]," ");
@@ -76,7 +76,7 @@ bool interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 			int tiempo = atoi(lineaFiltrada[1]);
 			actualizarOperacionPaquetePlanificadorIO(mensajeDePlanificador,'e',tiempo);
             enviarAPlanificador(mensajeDePlanificador,socketPlanificador);
-            loguearPlanificadorIO(mensajeDePlanificador, tiempo);
+            loguearPlanificadorIO(mensajeDePlanificador, tiempo,logCpu);
             entendio = true;
 		}
 		if (string_starts_with(instruccion, "finalizar;")) {

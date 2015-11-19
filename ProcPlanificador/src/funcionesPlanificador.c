@@ -62,7 +62,7 @@ void convertirEstado(testado estadoEnum, char** estado){
 		string_append(estado, "Finalizado");
 }
 
-void mostrarEstadoProcesosLista(t_list* lista){
+void mostrarEstadoProcesosLista(t_list* lista, char* mensaje){
 	char* infoProceso = (char*)malloc(50);
 	tpcb* pcb;
 	int i;
@@ -76,7 +76,11 @@ void mostrarEstadoProcesosLista(t_list* lista){
 		string_append(&infoProceso, "-> ");
 		string_append(&infoProceso,estado);
 		string_append(&infoProceso,"\n");
-		printf("%s",infoProceso);
+        //Me fijo si estoy logueando o usando el ps
+		if(!strcmp(mensaje,"logueo"))
+			log_info(logPlanificador,infoProceso);
+		else
+			printf("%s",infoProceso);
 		free(estado);
 	}
     free(infoProceso);
@@ -154,7 +158,7 @@ void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 
 			/*ordeno por pid para luego mostrar*/
 			list_sort(aux,comparadorPid);
-			mostrarEstadoProcesosLista(aux);
+			mostrarEstadoProcesosLista(aux,message);
 
 			pthread_mutex_unlock(&mutexSwitchProc);
 		}

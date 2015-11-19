@@ -11,7 +11,7 @@
 #include <commons/log.h>
 #include <commons/string.h>
 
-void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int tid) {
+void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int tid,t_log* logCpu) {
 	char* logueoContexto = (char*)malloc(50);
 	char* estado;
 	if (contextoDeEjecucion->estado == LISTO) {
@@ -49,11 +49,12 @@ void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int
 
 }
 
-void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida){
+void prepararLogueoMemoria(protocolo_memoria_cpu* respuestaMemoria, int nroRafaga, t_log* logCpu){
 
-	char* logueoMemoria = malloc(sizeof(char) * 10);
+	char* logueoMemoria = string_new();
 
-	strcpy(logueoMemoria, "mProc: ");
+    string_append_with_format(&logueoMemoria, "Numero de Rafaga: %d ", nroRafaga);
+	string_append(&logueoMemoria, "mProc: ");
 	string_append_with_format(&logueoMemoria, "%d", respuestaMemoria->pid);
 	string_append(&logueoMemoria, " - ");
 
@@ -78,19 +79,21 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 		string_append(&logueoMemoria, "Fallo al iniciar\n");
 	}
 
-	if ((respuestaMemoria->codOperacion == 'f') && (respuestaMemoria->codAux == 'f')) {
+	if ((respuestaMemoria->codOperacion == 'f')) {
 		string_append(&logueoMemoria, "Finalizado");
 	}
-	log_info(logCpu, logueoMemoria);
+
+	log_info(logCpu,logueoMemoria);
 	free(logueoMemoria);
+
 
 }
 
-void loguearPlanificadorIO(protocolo_planificador_cpu* mensajeDePlanificador, int tiempo){
+void loguearPlanificadorIO(protocolo_planificador_cpu* mensajeDePlanificador, int tiempo,t_log* logCpu){
 	char* logueoIO = malloc(sizeof(char) * 10);
 	strcpy(logueoIO, "mProc: ");
 	string_append_with_format(&logueoIO, "%d", mensajeDePlanificador->pid);
-	string_append(&logueoIO, " en entrada-salida de tiempo ");
+	string_append(&logueoIO, " entrada-salida de tiempo: ");
 	string_append_with_format(&logueoIO, "%d", tiempo);
 
 	log_info(logCpu, logueoIO);
