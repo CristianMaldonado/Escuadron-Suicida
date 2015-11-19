@@ -14,28 +14,26 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <commons/collections/list.h>
-#include <commons/string.h>
 
 bool terminoPlanificador;
 tipoConfiguracionCPU *config;
 
 void * procesarInstruccion() {
 
+	t_log *logCpu;
 	protocolo_planificador_cpu* datosParaProcesar = malloc(sizeof(protocolo_planificador_cpu));
 	protocolo_cpu_memoria* mensajeAMemoria = malloc( sizeof(protocolo_cpu_memoria));
 	protocolo_memoria_cpu* mensajeDeMemoria = malloc(sizeof(protocolo_memoria_cpu));
-	t_log* logCpu;
 	int tid = process_get_thread_id();
 	int socketPlanifAux;
-	int nroRafaga = 0;
-	char* nombreLog = string_new();
-	string_append(&nombreLog, "../src/log");
-	string_append_with_format(&nombreLog, "%d",tid);
-	string_append(&nombreLog,".txt");
-	logCpu = log_create(nombreLog, "cpu.c", false, LOG_LEVEL_INFO);
-
-
 	pthread_mutex_lock(&mutexSocket);
+
+	// creacion de la instancia de log
+	char* nombrelog = string_new();
+	string_append_with_format(&nombrelog,"../src/logCPU%d",tid);
+	string_append(&nombrelog,".txt");
+	logCpu = log_create(nombrelog, "cpu.c", false, LOG_LEVEL_INFO);
+	free(nombrelog);
 
 	printf("Conectando al Planificador (%s : %s)... ", config->ipPlanificador,config->puertoPlanificador);
 	client_init(&socketPlanifAux, config->ipPlanificador, config->puertoPlanificador);
@@ -56,13 +54,11 @@ void * procesarInstruccion() {
 	while (1) {
 
 		status = deserializarPlanificador(datosParaProcesar, socketPlanifAux);
-		if(status < 0) {
-			break;;
-			sem_post(&ejecutaInstruccion);//TODO
-		}
+		if(status < 0) pthread_exit(0);
 
+		pthread_mutex_lock(&mutexLogueo);
 		logueoRecepcionDePlanif(datosParaProcesar,tid,logCpu);
-
+		pthread_mutex_unlock(&mutexLogueo);
 
 		FILE* archivo = fopen(datosParaProcesar->mensaje, "r+");
 
@@ -77,7 +73,6 @@ void * procesarInstruccion() {
 		char* lineaLeida = malloc(tamanio);
 		int quantum = 0;
 
-
 		while ((!feof(archivo) && (quantum < datosParaProcesar->quantum || datosParaProcesar->quantum == 0))) {
 
 			//calcularTamanioDeLinea(archivo,&tamanio);
@@ -90,7 +85,6 @@ void * procesarInstruccion() {
 			if (!interpretarInstruccion(instruccionLeida, datosParaProcesar, mensajeAMemoria, socketPlanifAux,logCpu))
 				continue;
 
-
 			if (datosParaProcesar->tipoOperacion == 'e') break;
 
 			/*asi la comunicacion con la memoria es atomica*/
@@ -98,8 +92,7 @@ void * procesarInstruccion() {
 			enviarAMemoria(mensajeAMemoria);
 			deserializarMemoria(mensajeDeMemoria, socketMemoria);
 			pthread_mutex_unlock(&mutex);
-
-			prepararLogueoMemoria(mensajeDeMemoria, nroRafaga,logCpu);
+			loguearEstadoMemoria(mensajeDeMemoria,instruccionLeida,logCpu);
 
 			switch (mensajeDeMemoria->codOperacion){
 
@@ -147,8 +140,6 @@ void * procesarInstruccion() {
 			sleep(config->retardo);
 			quantum++;
 		}
-		nroRafaga++;
-
 
 		/*es rr y salio por quantum y no por io*/
 		if (datosParaProcesar->quantum != 0) {
@@ -158,10 +149,8 @@ void * procesarInstruccion() {
 					enviarAPlanificador(datosParaProcesar, socketPlanifAux);
 					printf("pid-> %d salio por quantum\n", datosParaProcesar->pid);
 				}
-
 			}
 		}
-
 		free(lineaLeida);
 		fclose(archivo);
 	}
@@ -176,9 +165,6 @@ void * procesarInstruccion() {
 
 int main() {
 	system("clear");
-
-	// creacion de la instancia de log
-
 	config = leerConfiguracion();
 
 	//Inicia el Socket para conectarse con la Memoria
@@ -190,28 +176,23 @@ int main() {
 	pthread_attr_t atrib;
 	pthread_mutex_init(&mutexSocket, NULL);
 	pthread_mutex_init(&mutexLogueo, NULL);
-	pthread_mutex_init(&mutexLogueoRafaga, NULL);
 	pthread_mutex_init(&mutex, NULL);
-	sem_init(&ejecutaInstruccion, 0, 0);
 
 	pthread_attr_init(&atrib);
 
 	int i;
 	for (i = 0; i < config->cantidadHilos; i++) {
-		vectorHilos[i] = pthread_create(&vectorHilos[i], &atrib, procesarInstruccion, NULL);
+		pthread_create(&vectorHilos[i], &atrib, procesarInstruccion, NULL);
 	}
 
-	sem_wait(&ejecutaInstruccion);
+	for (i = 0; i < config->cantidadHilos; i++) {
+		pthread_join(vectorHilos[i], NULL);
+	}
 
 	printf("Finalizo el planificador...\n");
-	close(socketMemoria);
-
-	sem_destroy(&ejecutaInstruccion);
 	pthread_mutex_destroy(&mutexSocket);
 	pthread_mutex_destroy(&mutexLogueo);
-	pthread_mutex_destroy(&mutexLogueoRafaga);
 	pthread_mutex_destroy(&mutex);
-
 	return 0;
 }
 
