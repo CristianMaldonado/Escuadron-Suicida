@@ -47,7 +47,6 @@ void agregarNuevaCpu(int nuevaCpu, int ** socketCpu, int * numeroCpus){
 }
 
 void * selector(void * arg) {
-
 	fd_set descriptores;
 	int numeroCpus = 0;
 	int * socketCpu = 0;
@@ -56,7 +55,6 @@ void * selector(void * arg) {
 	int servidor = ((tParametroSelector*)arg)->socket;
 
 	while(1){
-
 		/*elimino las cpu con -1*/
 		eliminarCpusDesconectadas(&socketCpu, &numeroCpus);
 
@@ -256,6 +254,7 @@ void * selector(void * arg) {
 			}
 		}
 	}
+	pthread_exit(0);
 	return 0;
 }
 

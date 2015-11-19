@@ -54,7 +54,7 @@ void * procesarInstruccion() {
 	while (1) {
 
 		status = deserializarPlanificador(datosParaProcesar, socketPlanifAux);
-		if(status < 0) pthread_exit(0);
+		if(status <= 0) pthread_exit(0);
 
 		pthread_mutex_lock(&mutexLogueo);
 		logueoRecepcionDePlanif(datosParaProcesar,tid,logCpu);

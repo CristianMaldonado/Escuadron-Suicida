@@ -13,6 +13,7 @@
 #include <commons/collections/queue.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include "estructuras.h"
 
 bool llegoexit = false;
 
@@ -20,7 +21,7 @@ void* consumidor(){
 	tprocIO* pcb;
 	while(1){
 		sem_wait(&hayIO);
-
+		if(llegoexit) break;
 		pthread_mutex_lock(&mutexIO);
 		pcb = queue_peek(colaIO);
 		pthread_mutex_unlock(&mutexIO);
@@ -40,6 +41,7 @@ void* consumidor(){
 		printf("pid-> %d salio de io\n",pcb->pcb->pid);
 		free(pcb);
 	}
+	pthread_exit(0);
 	return 0;
 }
 
@@ -56,7 +58,8 @@ void definirMensaje(tpcb* pcb,char* message){
 }
 
 void *enviar(){
-	tpcb* pcb = malloc(sizeof(tpcb));
+
+	tpcb* pcb;
 	protocolo_planificador_cpu* package = malloc(sizeof(protocolo_planificador_cpu));
 	int tamanio = 0;
 	int * socketCPU;
@@ -94,7 +97,8 @@ void *enviar(){
 		free(message);
 	}
 	free(package);
-	free(pcb);
+	//free(pcb);
+	pthread_exit(0);
 	return 0;
 }
 
@@ -167,6 +171,7 @@ int main(){
 			llegoexit = true;
 			sem_post(&hayCPU);
 			sem_post(&hayProgramas);
+			sem_post(&hayIO);
 		}
 		else
 			procesarComando(clasificarComando(message),message,&cantProc);
@@ -178,6 +183,7 @@ int main(){
 	}
 	/*espero la terminacion de enviar*/
 	pthread_join(enviarAlCpu,NULL);
+	pthread_join(consumidorIO,NULL);
 
 	sem_destroy(&hayCPU);
 	sem_destroy(&hayIO);
@@ -194,7 +200,6 @@ int main(){
 	list_destroy_and_destroy_elements(listaInicializando,free);
 	/*destruyo la cola y sus elementos*/
 	queue_destroy_and_destroy_elements(colaListos,free);
-	//queue_destroy_and_destroy_elements(colaListos,free);
 
 	close(serverSocket);
 	return 0;
