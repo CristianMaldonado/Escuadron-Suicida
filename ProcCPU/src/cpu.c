@@ -18,6 +18,15 @@
 bool terminoPlanificador;
 tipoConfiguracionCPU *config;
 
+void* monitor(){
+	while(1){
+		llegoComandoCPU = false;
+		if(recv() <= 0) break;
+		llegoComandoCPU = true;
+	}
+	pthread_exit(0);
+}
+
 void * procesarInstruccion() {
 
 	t_log *logCpu;
@@ -26,6 +35,8 @@ void * procesarInstruccion() {
 	protocolo_memoria_cpu* mensajeDeMemoria = malloc(sizeof(protocolo_memoria_cpu));
 	int tid = process_get_thread_id();
 	int socketPlanifAux;
+	int cantidadInstruccionesLeidas = 0;
+	int maximoInstruccion = div(60,config->retardo).quot;
 
 	// creacion de la instancia de log
 	char* nombrelog = string_new();
@@ -53,7 +64,12 @@ void * procesarInstruccion() {
 
 		status = deserializarPlanificador(datosParaProcesar, socketPlanifAux);
 		if(status <= 0) pthread_exit(0);
-
+		if(datosParaProcesar->tipoOperacion == 'u'){
+			int porcentajeCPU = (div(cantidadInstruccionesLeidas,maximoInstruccion).quot) * 100;
+			datosParaProcesar->pid = tid;
+			datosParaProcesar->counterProgram = porcentajeCPU;
+			enviarAPlanificador(datosParaProcesar,socketPlanifAux);
+		}else{
 		logueoRecepcionDePlanif(datosParaProcesar,tid,logCpu);
 
 		FILE* archivo = fopen(datosParaProcesar->mensaje, "r+");
@@ -70,6 +86,8 @@ void * procesarInstruccion() {
 		int quantum = 0;
 
 		while ((!feof(archivo) && (quantum < datosParaProcesar->quantum || datosParaProcesar->quantum == 0))) {
+			//para calcular el porcentaje de cpu
+			if(cantidadInstruccionesLeidas == maximoInstruccion) cantidadInstruccionesLeidas = 0;
 
 			//calcularTamanioDeLinea(archivo,&tamanio);
 			char* instruccionLeida = leerInstruccion(&(datosParaProcesar->counterProgram), lineaLeida, archivo,tamanio);
@@ -135,6 +153,7 @@ void * procesarInstruccion() {
 			}
 			sleep(config->retardo);
 			quantum++;
+			cantidadInstruccionesLeidas++;
 		}
 
 		/*es rr y salio por quantum y no por io*/
@@ -149,6 +168,7 @@ void * procesarInstruccion() {
 		}
 		free(lineaLeida);
 		fclose(archivo);
+		}
 	}
 	free(mensajeAMemoria);
 	free(mensajeDeMemoria);
@@ -169,10 +189,12 @@ int main() {
 	printf("OK\n");
 
 	pthread_t vectorHilos[config->cantidadHilos];
+	pthread_t checkeaSiHayComandoCPU;
 	pthread_attr_t atrib;
 	pthread_mutex_init(&mutex, NULL);
-
 	pthread_attr_init(&atrib);
+
+	pthread_create(&checkeaSiHayComandoCPU, &atrib, monitor, NULL);
 
 	int i;
 	for (i = 0; i < config->cantidadHilos; i++) {
@@ -183,6 +205,7 @@ int main() {
 		pthread_join(vectorHilos[i], NULL);
 	}
 
+	pthread_join(checkeaSiHayComandoCPU,NULL);
 	printf("Finalizo el planificador...\n");
 	pthread_mutex_destroy(&mutex);
 	return 0;

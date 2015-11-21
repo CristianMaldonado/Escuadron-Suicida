@@ -12,6 +12,7 @@
 #include <commons/log.h>
 
 sem_t ejecutaInstruccion;
+bool llegoComandoCPU;
 
 int socketMemoria;
 

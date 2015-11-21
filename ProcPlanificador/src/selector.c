@@ -97,11 +97,14 @@ void * selector(void * arg) {
 							tprocIO* aux = malloc(sizeof(tprocIO));
 							int* puntero = malloc(sizeof(int));
 							*puntero = socketCpu[i];
-							pthread_mutex_lock(&mutexListaCpus);
-							/*agreo la cpu a lista disponible*/
-							list_add(listaCpuLibres,puntero);
-							pthread_mutex_unlock(&mutexListaCpus);
-
+							pthread_mutex_lock(&mutexListaCpusEjecutando);
+							if(hayQueFinalizarlo(socketCpu[i],listaCpuEjecutando)){
+								pthread_mutex_lock(&mutexListaCpus);
+								/*agreo la cpu a lista disponible*/
+								list_add(listaCpuLibres,puntero);
+								pthread_mutex_unlock(&mutexListaCpus);
+							}
+							pthread_mutex_unlock(&mutexListaCpusEjecutando);
 							pthread_mutex_lock(&mutexSwitchProc);
 							pthread_mutex_lock(&mutexListaEjecutando);
 							aux->pcb = list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando));
@@ -187,7 +190,7 @@ void * selector(void * arg) {
 							pcb->estado = LISTO;
 
 							pthread_mutex_lock(&mutexFinalizarPid);
-								if(hayQueFinalizarlo(pcb->pid))
+								if(hayQueFinalizarlo(pcb->pid,listaAfinalizar))
 									pcb->siguiente = pcb->maximo;
 							pthread_mutex_unlock(&mutexFinalizarPid);
 
@@ -205,11 +208,14 @@ void * selector(void * arg) {
 						case 'f':{
 							int* puntero = malloc(sizeof(int));
 							*puntero = socketCpu[i];
-							pthread_mutex_lock(&mutexListaCpus);
-							/*agreo la cpu a lista disponible*/
-							list_add(listaCpuLibres, puntero);
-							pthread_mutex_unlock(&mutexListaCpus);
-
+							pthread_mutex_lock(&mutexListaCpusEjecutando);
+							if(hayQueFinalizarlo(socketCpu[i],listaCpuEjecutando)){
+								pthread_mutex_lock(&mutexListaCpus);
+								/*agreo la cpu a lista disponible*/
+								list_add(listaCpuLibres, puntero);
+								pthread_mutex_unlock(&mutexListaCpus);
+							}
+							pthread_mutex_unlock(&mutexListaCpusEjecutando);
 							pthread_mutex_lock(&mutexSwitchProc);
 							pthread_mutex_lock(&mutexListaEjecutando);
 							free(list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando)));
@@ -220,6 +226,9 @@ void * selector(void * arg) {
 							printf("pid-> %d finalizo\n", respuestaDeCPU.pid);
 						}
 						break;
+						case 'u':{
+							printf("CPU %d : %d %",respuestaDeCPU.pid,respuestaDeCPU.counterProgram);
+						}break;
 					}
 				}
 				else
@@ -248,12 +257,10 @@ void * selector(void * arg) {
 
 				int * puntero = malloc(sizeof(int));
 				*puntero = nuevaCpu;
-
 				pthread_mutex_lock(&mutexListaCpus);
 				/*agreo la cpu a lista disponible*/
 				list_add(listaCpuLibres, puntero);
 				pthread_mutex_unlock(&mutexListaCpus);
-
 				sem_post(&hayCPU);
 
 				printf("Nueva CPU conectada: %d\n", nuevaCpu);

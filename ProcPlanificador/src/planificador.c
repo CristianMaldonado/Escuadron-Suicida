@@ -34,7 +34,7 @@ void* consumidor(){
 		pcb->pcb->estado = LISTO;
 		pthread_mutex_lock(&mutexFinalizarPid);
 
-		if(hayQueFinalizarlo(pcb->pcb->pid))
+		if(hayQueFinalizarlo(pcb->pcb->pid,listaAfinalizar))
 			pcb->pcb->siguiente = pcb->pcb->maximo;
 
 		pthread_mutex_unlock(&mutexFinalizarPid);
@@ -99,6 +99,10 @@ void *enviar(){
 		int a = send(*socketCPU,message,tamanio,0);
 		if(a == -1) printf("fallo envio %d\n", *socketCPU);
 
+		pthread_mutex_lock(&mutexListaCpusEjecutando);
+		list_add(listaCpuEjecutando,socketCPU);
+		pthread_mutex_unlock(&mutexListaCpusEjecutando);
+
 		free(message);
 	}
 	free(package);
@@ -114,6 +118,7 @@ int main(){
 	listaCpuLibres = list_create();
 	listaInicializando = list_create();
 	listaAfinalizar = list_create();
+	listaCpuEjecutando = list_create();
 	colaListos = queue_create();
 	colaIO = queue_create();
 
@@ -137,6 +142,10 @@ int main(){
 	int serverSocket;
 	server_init(&serverSocket, configPlanificador->puertoEscucha);
 	printf("Planificador listo...\n");
+
+	//Inicio socket nuevo para comando cpu
+	//int socketComandoCPU;
+	//server_init(&socketComandoCPU, "6667");
 
 	tParametroSelector sel;
 	sel.socket = serverSocket;
@@ -206,7 +215,8 @@ int main(){
 	list_destroy_and_destroy_elements(listaCpuLibres,free);
 	list_destroy_and_destroy_elements(listaEjecutando,free);
 	list_destroy_and_destroy_elements(listaInicializando,free);
-	list_clean_and_destroy_elements(listaAfinalizar,free);
+	list_destroy_and_destroy_elements(listaAfinalizar,free);
+	list_destroy_and_destroy_elements(listaCpuEjecutando,free);
 	/*destruyo la cola y sus elementos*/
 	queue_destroy_and_destroy_elements(colaListos,free);
 
