@@ -185,6 +185,12 @@ void * selector(void * arg) {
 							pthread_mutex_unlock(&mutexListaEjecutando);
 							pcb->siguiente = respuestaDeCPU.counterProgram;
 							pcb->estado = LISTO;
+
+							pthread_mutex_lock(&mutexFinalizarPid);
+								if(hayQueFinalizarlo(pcb->pid))
+									pcb->siguiente = pcb->maximo;
+							pthread_mutex_unlock(&mutexFinalizarPid);
+
 							pthread_mutex_lock(&mutexProcesoListo);
 							queue_push(colaListos,pcb);
 							pthread_mutex_unlock(&mutexProcesoListo);

@@ -86,27 +86,66 @@ void mostrarEstadoProcesosLista(t_list* lista, char* mensaje){
     free(infoProceso);
 }
 
-int buscoPCB(int pidBuscado,t_list* lista){//SI NO ESTA ME DA EL TAMANIO DE LA LISTA -> SUPONGO QUE SI SE MANDO A CPU EL PCB ESTA EN LA LISTA
+int buscoPCB(int pidBuscado,t_list* lista){
 	tpcb* pcb;
 	int posicion = 0;
 	int i;
 	for(i = 0; i < list_size(lista); i++){
 		pcb = list_get(lista,i);
-		if(pcb->pid == pidBuscado) break;
+		if(pcb->pid == pidBuscado)  return posicion;
 		posicion++;
 	}
+	return -1;
+}
+
+/*int buscoPCBporFinalizar(int pidBuscado,t_list* lista){
+	tpcb* pcb;
+	int posicion = 1;
+	int i =1;
+	while(i){
+	pcb = list_get(lista,posicion);
+	if(pcb->pid==pidBuscado)i=0;
+	else posicion++;
+	}
+	if(posicion == list_size(lista) && pcb->pid != pidBuscado) posicion = -1;
 	return posicion;
+}*/
+
+bool hayQueFinalizarlo(int pid){
+
+	int i;
+	for(i=0 ; i<list_size(listaAfinalizar); i++){
+		int* aux = list_get(listaAfinalizar,i);
+
+		if(*aux == pid){
+			free(list_remove(listaAfinalizar,i));
+			return true;
+		}
+	}
+
+    return false;
+
 }
 
 void finalizarPID(char* pidBuscado){
-	//t_list* lista= colaProcesos->elements;
-	t_list* lista= listaEjecutando;// TODO ALGO PERO FALLA ACA POR LAS COLAS
+	t_list* lista= colaListos->elements;
 	tpcb* pcb;
 	int pid = atoi(pidBuscado);
 	int posicion = buscoPCB(pid,lista);
-	pcb = list_get(lista,posicion);
-	printf("%p",pcb);
-	pcb->siguiente = pcb->maximo;
+
+	if(posicion == -1){
+		int* aux = malloc(sizeof(int));
+		*aux = pid;
+		pthread_mutex_lock(&mutexFinalizarPid);
+		list_add(listaAfinalizar,aux);
+		pthread_mutex_unlock(&mutexFinalizarPid);
+	}
+	else {
+		pcb = list_get(lista,posicion);
+		pcb->siguiente = pcb->maximo;
+
+	}
+
 }
 
 int clasificarComando(char* message) {//OK
@@ -179,7 +218,11 @@ void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 				printf("No se encontro %s\n", &message[7]);
 			break;
 		case 4:
+			pthread_mutex_lock(&mutexSwitchProc);
+			pthread_mutex_lock(&mutexProcesoListo);
 			finalizarPID(&message[10]);
+			pthread_mutex_unlock(&mutexProcesoListo);
+			pthread_mutex_unlock(&mutexSwitchProc);
 			break;
 		default:
 			printf("Comando ingresado incorrecto\n");

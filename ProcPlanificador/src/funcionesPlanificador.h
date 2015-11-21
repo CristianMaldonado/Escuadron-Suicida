@@ -23,7 +23,7 @@ int maxLineas(char * archivo);
 char* nombrePrograma(char* path);
 int buscoPCB(int pidBuscado,t_list* lista);
 void finalizarPID(char* pidBuscado);
-
+bool hayQueFinalizarlo(int pid);
 /*char* definirMensaje(tpcb* pcb);*/
 
 #endif /* SRC_FUNCIONESPLANIFICADOR_H_ */

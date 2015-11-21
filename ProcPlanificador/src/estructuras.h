@@ -32,6 +32,7 @@ t_queue* colaIO;
 t_list* listaEjecutando;
 t_list* listaCpuLibres;
 t_list* listaInicializando;
+t_list* listaAfinalizar;
 
 pthread_mutex_t mutexListaCpus;
 pthread_mutex_t mutexProcesoListo;
@@ -39,6 +40,7 @@ pthread_mutex_t mutexListaEjecutando;
 pthread_mutex_t mutexIO;
 pthread_mutex_t mutexInicializando;
 pthread_mutex_t mutexSwitchProc;
+pthread_mutex_t mutexFinalizarPid;
 
 t_log* logPlanificador;
 

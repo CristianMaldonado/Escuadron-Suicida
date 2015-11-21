@@ -32,6 +32,12 @@ void* consumidor(){
 		queue_pop(colaIO);
 		pthread_mutex_unlock(&mutexIO);
 		pcb->pcb->estado = LISTO;
+		pthread_mutex_lock(&mutexFinalizarPid);
+
+		if(hayQueFinalizarlo(pcb->pcb->pid))
+			pcb->pcb->siguiente = pcb->pcb->maximo;
+
+		pthread_mutex_unlock(&mutexFinalizarPid);
 		pthread_mutex_lock(&mutexProcesoListo);
 		queue_push(colaListos,pcb->pcb);
 		pthread_mutex_unlock(&mutexProcesoListo);
@@ -87,7 +93,6 @@ void *enviar(){
 		adaptadorPCBaProtocolo(pcb,package);
 		void* message=malloc(sizeof(protocolo_planificador_cpu) + strlen(pcb->ruta));
 		message = serializarPaqueteCPU(package, &tamanio);
-		//message[strlen((message))] = '\0';
 		pthread_mutex_lock(&mutexListaCpus);
 		socketCPU = list_remove(listaCpuLibres, 0);
 		pthread_mutex_unlock(&mutexListaCpus);
@@ -108,6 +113,7 @@ int main(){
 	listaEjecutando = list_create();
 	listaCpuLibres = list_create();
 	listaInicializando = list_create();
+	listaAfinalizar = list_create();
 	colaListos = queue_create();
 	colaIO = queue_create();
 
@@ -120,6 +126,7 @@ int main(){
 	pthread_mutex_init(&mutexIO,NULL);
 	pthread_mutex_init(&mutexListaEjecutando,NULL);
 	pthread_mutex_init(&mutexSwitchProc,NULL);
+	pthread_mutex_init(&mutexFinalizarPid,NULL);
 	//creacion de la instancia de log
 	logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
 
@@ -194,10 +201,12 @@ int main(){
 	pthread_mutex_destroy(&mutexListaEjecutando);
 	pthread_mutex_destroy(&mutexProcesoListo);
 	pthread_mutex_destroy(&mutexSwitchProc);
+	pthread_mutex_destroy(&mutexFinalizarPid);
 	/*destruyo la lista y sus elementos*/
 	list_destroy_and_destroy_elements(listaCpuLibres,free);
 	list_destroy_and_destroy_elements(listaEjecutando,free);
 	list_destroy_and_destroy_elements(listaInicializando,free);
+	list_clean_and_destroy_elements(listaAfinalizar,free);
 	/*destruyo la cola y sus elementos*/
 	queue_destroy_and_destroy_elements(colaListos,free);
 

@@ -26,7 +26,6 @@ void * procesarInstruccion() {
 	protocolo_memoria_cpu* mensajeDeMemoria = malloc(sizeof(protocolo_memoria_cpu));
 	int tid = process_get_thread_id();
 	int socketPlanifAux;
-	pthread_mutex_lock(&mutexSocket);
 
 	// creacion de la instancia de log
 	char* nombrelog = string_new();
@@ -49,16 +48,13 @@ void * procesarInstruccion() {
 	else
 		log_info(logCpu, "CPU %d se conecto con Memoria", tid);
 
-	pthread_mutex_unlock(&mutexSocket);
 	int status;
 	while (1) {
 
 		status = deserializarPlanificador(datosParaProcesar, socketPlanifAux);
 		if(status <= 0) pthread_exit(0);
 
-		pthread_mutex_lock(&mutexLogueo);
 		logueoRecepcionDePlanif(datosParaProcesar,tid,logCpu);
-		pthread_mutex_unlock(&mutexLogueo);
 
 		FILE* archivo = fopen(datosParaProcesar->mensaje, "r+");
 
@@ -174,8 +170,6 @@ int main() {
 
 	pthread_t vectorHilos[config->cantidadHilos];
 	pthread_attr_t atrib;
-	pthread_mutex_init(&mutexSocket, NULL);
-	pthread_mutex_init(&mutexLogueo, NULL);
 	pthread_mutex_init(&mutex, NULL);
 
 	pthread_attr_init(&atrib);
@@ -190,8 +184,6 @@ int main() {
 	}
 
 	printf("Finalizo el planificador...\n");
-	pthread_mutex_destroy(&mutexSocket);
-	pthread_mutex_destroy(&mutexLogueo);
 	pthread_mutex_destroy(&mutex);
 	return 0;
 }

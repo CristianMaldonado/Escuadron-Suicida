@@ -15,8 +15,6 @@ sem_t ejecutaInstruccion;
 
 int socketMemoria;
 
-pthread_mutex_t mutexSocket;
-pthread_mutex_t mutexLogueo;
 pthread_mutex_t mutex;
 
 typedef enum {
