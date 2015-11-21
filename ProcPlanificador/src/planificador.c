@@ -91,17 +91,12 @@ void *enviar(){
 		}
 		pthread_mutex_unlock(&mutexSwitchProc);
 		adaptadorPCBaProtocolo(pcb,package);
-		void* message=malloc(sizeof(protocolo_planificador_cpu) + strlen(pcb->ruta));
-		message = serializarPaqueteCPU(package, &tamanio);
+		void* message = serializarPaqueteCPU(package, &tamanio);
 		pthread_mutex_lock(&mutexListaCpus);
 		socketCPU = list_remove(listaCpuLibres, 0);
 		pthread_mutex_unlock(&mutexListaCpus);
 		int a = send(*socketCPU,message,tamanio,0);
 		if(a == -1) printf("fallo envio %d\n", *socketCPU);
-
-		pthread_mutex_lock(&mutexListaCpusEjecutando);
-		list_add(listaCpuEjecutando,socketCPU);
-		pthread_mutex_unlock(&mutexListaCpusEjecutando);
 
 		free(message);
 	}
@@ -118,7 +113,8 @@ int main(){
 	listaCpuLibres = list_create();
 	listaInicializando = list_create();
 	listaAfinalizar = list_create();
-	listaCpuEjecutando = list_create();
+	listaPorcentajeCpus = list_create();
+	listaCpus = list_create();
 	colaListos = queue_create();
 	colaIO = queue_create();
 
@@ -132,6 +128,7 @@ int main(){
 	pthread_mutex_init(&mutexListaEjecutando,NULL);
 	pthread_mutex_init(&mutexSwitchProc,NULL);
 	pthread_mutex_init(&mutexFinalizarPid,NULL);
+	pthread_mutex_init(&mutexComandoCpu,NULL);
 	//creacion de la instancia de log
 	logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
 
@@ -142,10 +139,6 @@ int main(){
 	int serverSocket;
 	server_init(&serverSocket, configPlanificador->puertoEscucha);
 	printf("Planificador listo...\n");
-
-	//Inicio socket nuevo para comando cpu
-	//int socketComandoCPU;
-	//server_init(&socketComandoCPU, "6667");
 
 	tParametroSelector sel;
 	sel.socket = serverSocket;
@@ -211,12 +204,14 @@ int main(){
 	pthread_mutex_destroy(&mutexProcesoListo);
 	pthread_mutex_destroy(&mutexSwitchProc);
 	pthread_mutex_destroy(&mutexFinalizarPid);
+	pthread_mutex_destroy(&mutexComandoCpu);
 	/*destruyo la lista y sus elementos*/
 	list_destroy_and_destroy_elements(listaCpuLibres,free);
 	list_destroy_and_destroy_elements(listaEjecutando,free);
 	list_destroy_and_destroy_elements(listaInicializando,free);
 	list_destroy_and_destroy_elements(listaAfinalizar,free);
-	list_destroy_and_destroy_elements(listaCpuEjecutando,free);
+	list_destroy_and_destroy_elements(listaCpus,free);
+	list_destroy_and_destroy_elements(listaPorcentajeCpus,free);
 	/*destruyo la cola y sus elementos*/
 	queue_destroy_and_destroy_elements(colaListos,free);
 

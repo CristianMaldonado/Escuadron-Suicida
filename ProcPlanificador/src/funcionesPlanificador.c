@@ -225,22 +225,24 @@ void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 		}
 			break;
 		case 2:{
-			/*int tamanio;
-			int* socketCPU;
+			int tamanio,p;
 			protocolo_planificador_cpu* package = malloc(sizeof(protocolo_planificador_cpu));
-			package->mensaje = malloc(1);
-			package->estado = 0;
+			package->mensaje = malloc(2);
+			strcpy(package->mensaje," ");
+			package->tamanioMensaje = strlen(package->mensaje) +1;
 			package->tipoOperacion = 'u';
-			package->tipoProceso = 'p';
-			strcpy(package->mensaje,"");
-			void* message=malloc(sizeof(protocolo_planificador_cpu) + strlen(package->mensaje));
-			message = serializarPaqueteCPU(package, &tamanio);
-			pthread_mutex_lock(&mutexListaCpus);
-			socketCPU = list_get(listaCpuLibres, 0);
-			send(*socketCPU,message,tamanio,0);
-			pthread_mutex_unlock(&mutexListaCpus);
+			void* message = serializarPaqueteCPU(package, &tamanio);
+			pthread_mutex_lock(&mutexComandoCpu);
+			int* socketCPU;
+			for(p = 0; p < list_size(listaCpus); p++){
+				socketCPU = list_get(listaCpus, p);
+				int a = send(*socketCPU,message,tamanio,0);
+				if(a == -1) printf("fallo envio a cpu %d\n", *socketCPU);
+			}
+			pthread_mutex_unlock(&mutexComandoCpu);
+			free(package->mensaje);
 			free(package);
-			free(message);*/
+			free(message);
 		}
 			break;
 

@@ -14,18 +14,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <commons/collections/list.h>
+#include<sys/types.h>
+#include<sys/socket.h>
 
 bool terminoPlanificador;
 tipoConfiguracionCPU *config;
-
-void* monitor(){
-	while(1){
-		llegoComandoCPU = false;
-		if(recv() <= 0) break;
-		llegoComandoCPU = true;
-	}
-	pthread_exit(0);
-}
 
 void * procesarInstruccion() {
 
@@ -36,7 +29,7 @@ void * procesarInstruccion() {
 	int tid = process_get_thread_id();
 	int socketPlanifAux;
 	int cantidadInstruccionesLeidas = 0;
-	int maximoInstruccion = div(60,config->retardo).quot;
+	int maximoInstruccion = (int)(60.0f/config->retardo);
 
 	// creacion de la instancia de log
 	char* nombrelog = string_new();
@@ -65,109 +58,108 @@ void * procesarInstruccion() {
 		status = deserializarPlanificador(datosParaProcesar, socketPlanifAux);
 		if(status <= 0) pthread_exit(0);
 		if(datosParaProcesar->tipoOperacion == 'u'){
-			int porcentajeCPU = (div(cantidadInstruccionesLeidas,maximoInstruccion).quot) * 100;
 			datosParaProcesar->pid = tid;
-			datosParaProcesar->counterProgram = porcentajeCPU;
+			datosParaProcesar->counterProgram = ((int)(((float)cantidadInstruccionesLeidas/(float)maximoInstruccion) * 100.0f));
 			enviarAPlanificador(datosParaProcesar,socketPlanifAux);
 		}else{
-		logueoRecepcionDePlanif(datosParaProcesar,tid,logCpu);
+			logueoRecepcionDePlanif(datosParaProcesar,tid,logCpu);
 
-		FILE* archivo = fopen(datosParaProcesar->mensaje, "r+");
+			FILE* archivo = fopen(datosParaProcesar->mensaje, "r+");
 
-		if (archivo == NULL){
-			printf("Error al abrir mCod: %s\n", datosParaProcesar->mensaje);
-			break;
-		}
+			if (archivo == NULL){
+				printf("Error al abrir mCod: %s\n", datosParaProcesar->mensaje);
+				break;
+			}
 
-		fseek(archivo, 0, SEEK_END);
-		int tamanio = ftell(archivo);
-		fseek(archivo, 0, SEEK_SET);
-		char* lineaLeida = malloc(tamanio);
-		int quantum = 0;
+			fseek(archivo, 0, SEEK_END);
+			int tamanio = ftell(archivo);
+			fseek(archivo, 0, SEEK_SET);
+			char* lineaLeida = malloc(tamanio);
+			int quantum = 0;
 
-		while ((!feof(archivo) && (quantum < datosParaProcesar->quantum || datosParaProcesar->quantum == 0))) {
-			//para calcular el porcentaje de cpu
-			if(cantidadInstruccionesLeidas == maximoInstruccion) cantidadInstruccionesLeidas = 0;
+			while ((!feof(archivo) && (quantum < datosParaProcesar->quantum || datosParaProcesar->quantum == 0))) {
+				//para calcular el porcentaje de cpu
+				if(cantidadInstruccionesLeidas == maximoInstruccion) cantidadInstruccionesLeidas = 0;
 
-			//calcularTamanioDeLinea(archivo,&tamanio);
-			char* instruccionLeida = leerInstruccion(&(datosParaProcesar->counterProgram), lineaLeida, archivo,tamanio);
-			char** linea = string_split(instruccionLeida, ";");
-			printf("pid-> %d ejecutar %s\n", datosParaProcesar->pid, *linea);
-			free(*linea);
+				//calcularTamanioDeLinea(archivo,&tamanio);
+				char* instruccionLeida = leerInstruccion(&(datosParaProcesar->counterProgram), lineaLeida, archivo,tamanio);
+				char** linea = string_split(instruccionLeida, ";");
+				printf("pid-> %d ejecutar %s\n", datosParaProcesar->pid, *linea);
+				free(*linea);
 
-			/*si no "entiende" la instruccion pasa a la siguiente*/
-			if (!interpretarInstruccion(instruccionLeida, datosParaProcesar, mensajeAMemoria, socketPlanifAux,logCpu))
-				continue;
-
-			if (datosParaProcesar->tipoOperacion == 'e') break;
-
-			/*asi la comunicacion con la memoria es atomica*/
-			pthread_mutex_lock(&mutex);
-			enviarAMemoria(mensajeAMemoria);
-			deserializarMemoria(mensajeDeMemoria, socketMemoria);
-			pthread_mutex_unlock(&mutex);
-			loguearEstadoMemoria(mensajeDeMemoria,instruccionLeida,logCpu);
-
-			switch (mensajeDeMemoria->codOperacion){
-
-				case 'f': {
-					actualizarOperacionPaquetePlanificador(datosParaProcesar, 'f');
-					enviarAPlanificador(datosParaProcesar,socketPlanifAux);
-
-					/*me voy al eof para salir del while*/
-					while(getc(archivo) != EOF);
+				/*si no "entiende" la instruccion pasa a la siguiente*/
+				if (!interpretarInstruccion(instruccionLeida, datosParaProcesar, mensajeAMemoria, socketPlanifAux,logCpu))
 					continue;
-				}
-				break;
 
-				case 'i':{
-					/*para saber desde el planifciador si el fallo es por inicializacion*/
-					datosParaProcesar->tipoProceso = 'i';
-					actualizarOperacionPaquetePlanificador(datosParaProcesar, mensajeDeMemoria->codAux);
-					enviarAPlanificador(datosParaProcesar,socketPlanifAux);
+				if (datosParaProcesar->tipoOperacion == 'e') break;
 
-					if (mensajeDeMemoria->codAux == 'a'){
+				/*asi la comunicacion con la memoria es atomica*/
+				pthread_mutex_lock(&mutex);
+				enviarAMemoria(mensajeAMemoria);
+				deserializarMemoria(mensajeDeMemoria, socketMemoria);
+				pthread_mutex_unlock(&mutex);
+				loguearEstadoMemoria(mensajeDeMemoria,instruccionLeida,logCpu);
 
-						/*me voy al eof para salir del while*/
-						while(getc(archivo) != EOF);
-						continue;
-					}
-				}
-				break;
+				switch (mensajeDeMemoria->codOperacion){
 
-				case 'l':
-				case 'e':{
-					if (mensajeDeMemoria->codAux == 'a'){
-						/*para saber desde el planifciador si el fallo es por lectura o escritura*/
-						datosParaProcesar->tipoProceso = mensajeDeMemoria->codOperacion;
-						actualizarOperacionPaquetePlanificador(datosParaProcesar, 'a');
+					case 'f': {
+						actualizarOperacionPaquetePlanificador(datosParaProcesar, 'f');
 						enviarAPlanificador(datosParaProcesar,socketPlanifAux);
-						datosParaProcesar->tipoOperacion = 'f';
 
 						/*me voy al eof para salir del while*/
 						while(getc(archivo) != EOF);
 						continue;
 					}
-				}
-				break;
-			}
-			sleep(config->retardo);
-			quantum++;
-			cantidadInstruccionesLeidas++;
-		}
+					break;
 
-		/*es rr y salio por quantum y no por io*/
-		if (datosParaProcesar->quantum != 0) {
-			if (datosParaProcesar->quantum == quantum){
-				if (datosParaProcesar->tipoOperacion != 'e' && datosParaProcesar->tipoOperacion != 'f'){
-					actualizarOperacionPaquetePlanificador(datosParaProcesar, 'q');
-					enviarAPlanificador(datosParaProcesar, socketPlanifAux);
-					printf("pid-> %d salio por quantum\n", datosParaProcesar->pid);
+					case 'i':{
+						/*para saber desde el planifciador si el fallo es por inicializacion*/
+						datosParaProcesar->tipoProceso = 'i';
+						actualizarOperacionPaquetePlanificador(datosParaProcesar, mensajeDeMemoria->codAux);
+						enviarAPlanificador(datosParaProcesar,socketPlanifAux);
+
+						if (mensajeDeMemoria->codAux == 'a'){
+
+							/*me voy al eof para salir del while*/
+							while(getc(archivo) != EOF);
+							continue;
+						}
+					}
+					break;
+
+					case 'l':
+					case 'e':{
+						if (mensajeDeMemoria->codAux == 'a'){
+							/*para saber desde el planifciador si el fallo es por lectura o escritura*/
+							datosParaProcesar->tipoProceso = mensajeDeMemoria->codOperacion;
+							actualizarOperacionPaquetePlanificador(datosParaProcesar, 'a');
+							enviarAPlanificador(datosParaProcesar,socketPlanifAux);
+							datosParaProcesar->tipoOperacion = 'f';
+
+							/*me voy al eof para salir del while*/
+							while(getc(archivo) != EOF);
+							continue;
+						}
+					}
+					break;
+				}
+				sleep(config->retardo);
+				quantum++;
+				cantidadInstruccionesLeidas++;
+			}
+
+			/*es rr y salio por quantum y no por io*/
+			if (datosParaProcesar->quantum != 0) {
+				if (datosParaProcesar->quantum == quantum){
+					if (datosParaProcesar->tipoOperacion != 'e' && datosParaProcesar->tipoOperacion != 'f'){
+						actualizarOperacionPaquetePlanificador(datosParaProcesar, 'q');
+						enviarAPlanificador(datosParaProcesar, socketPlanifAux);
+						printf("pid-> %d salio por quantum\n", datosParaProcesar->pid);
+					}
 				}
 			}
-		}
-		free(lineaLeida);
-		fclose(archivo);
+			free(lineaLeida);
+			fclose(archivo);
 		}
 	}
 	free(mensajeAMemoria);
@@ -189,12 +181,9 @@ int main() {
 	printf("OK\n");
 
 	pthread_t vectorHilos[config->cantidadHilos];
-	pthread_t checkeaSiHayComandoCPU;
 	pthread_attr_t atrib;
 	pthread_mutex_init(&mutex, NULL);
 	pthread_attr_init(&atrib);
-
-	pthread_create(&checkeaSiHayComandoCPU, &atrib, monitor, NULL);
 
 	int i;
 	for (i = 0; i < config->cantidadHilos; i++) {
@@ -205,7 +194,6 @@ int main() {
 		pthread_join(vectorHilos[i], NULL);
 	}
 
-	pthread_join(checkeaSiHayComandoCPU,NULL);
 	printf("Finalizo el planificador...\n");
 	pthread_mutex_destroy(&mutex);
 	return 0;
