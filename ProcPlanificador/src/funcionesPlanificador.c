@@ -195,6 +195,11 @@ bool comparadorPid(void * elemA, void * elemB){
 	return ((tpcb*)elemA)->pid < ((tpcb*)elemB)->pid;
 }
 
+bool comparadorTid(void * elemA, void * elemB){
+
+	return ((tPorcentajeCpu*)elemA)->tid < ((tPorcentajeCpu*)elemB)->tid;
+}
+
 void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 	tpcb* pcb;
 	switch (nro_comando){
@@ -234,10 +239,12 @@ void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 			void* message = serializarPaqueteCPU(package, &tamanio);
 			pthread_mutex_lock(&mutexComandoCpu);
 			int* socketCPU;
-			for(p = 0; p < list_size(listaCpus); p++){
-				socketCPU = list_get(listaCpus, p);
-				int a = send(*socketCPU,message,tamanio,0);
-				if(a == -1) printf("fallo envio a cpu %d\n", *socketCPU);
+			if (list_size(listaPorcentajeCpus) == 0){
+				for(p = 0; p < list_size(listaCpus); p++){
+					socketCPU = list_get(listaCpus, p);
+					int a = send(*socketCPU,message,tamanio,0);
+					if(a == -1) printf("fallo envio a cpu %d\n", *socketCPU);
+				}
 			}
 			pthread_mutex_unlock(&mutexComandoCpu);
 			free(package->mensaje);

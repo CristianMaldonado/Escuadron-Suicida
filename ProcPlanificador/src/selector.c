@@ -225,6 +225,9 @@ void * selector(void * arg) {
 							list_add(listaPorcentajeCpus,porcentaje);
 
 							if(list_size(listaPorcentajeCpus) == list_size(listaCpus)){
+
+								list_sort(listaPorcentajeCpus,comparadorTid);
+
 								int i;
 								for(i = 0; i < list_size(listaPorcentajeCpus); i++){
 									tPorcentajeCpu* aMostrar = list_get(listaPorcentajeCpus,i);

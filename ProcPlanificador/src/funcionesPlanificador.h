@@ -24,6 +24,7 @@ char* nombrePrograma(char* path);
 int buscoPCB(int pidBuscado,t_list* lista);
 void finalizarPID(char* pidBuscado);
 bool hayQueFinalizarlo(int pid,t_list* lista);
+bool comparadorTid(void * elemA, void * elemB);
 /*char* definirMensaje(tpcb* pcb);*/
 
 #endif /* SRC_FUNCIONESPLANIFICADOR_H_ */

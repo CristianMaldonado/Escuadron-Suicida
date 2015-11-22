@@ -14,8 +14,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <commons/collections/list.h>
-#include<sys/types.h>
-#include<sys/socket.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <time.h>
 
 bool terminoPlanificador;
 tipoConfiguracionCPU *config;
@@ -28,8 +29,8 @@ void * procesarInstruccion() {
 	protocolo_memoria_cpu* mensajeDeMemoria = malloc(sizeof(protocolo_memoria_cpu));
 	int tid = process_get_thread_id();
 	int socketPlanifAux;
-	int cantidadInstruccionesLeidas = 0;
 	int maximoInstruccion = (int)(60.0f/config->retardo);
+	t_list * listaTiempos = list_create();
 
 	// creacion de la instancia de log
 	char* nombrelog = string_new();
@@ -38,9 +39,12 @@ void * procesarInstruccion() {
 	logCpu = log_create(nombrelog, "cpu.c", false, LOG_LEVEL_INFO);
 	free(nombrelog);
 
-	printf("Conectando al Planificador (%s : %s)... ", config->ipPlanificador,config->puertoPlanificador);
+	/*solo para que quede lindo cuando imprime*/
+	pthread_mutex_lock(&mutexConectarPlanificador);
+	printf("Conectando CPU %d al Planificador (%s : %s)... ", tid, config->ipPlanificador,config->puertoPlanificador);
 	client_init(&socketPlanifAux, config->ipPlanificador, config->puertoPlanificador);
 	printf("OK\n");
+	pthread_mutex_unlock(&mutexConectarPlanificador);
 
 	if (socketPlanifAux == -1)
 		log_info(logCpu, "Fallo al conectar con Planificador");
@@ -58,10 +62,34 @@ void * procesarInstruccion() {
 		status = deserializarPlanificador(datosParaProcesar, socketPlanifAux);
 		if(status <= 0) pthread_exit(0);
 		if(datosParaProcesar->tipoOperacion == 'u'){
+
+			/*tiempo actual*/
+			time_t tiempoActual = time(NULL);
+
+			int i;
+			int cantidadInstruccionesLeidas = 0;
+
+			for(i = 0; i < list_size(listaTiempos); i++){
+				time_t * tiempoInstruccion = list_get(listaTiempos,i);
+
+				if (tiempoActual - (*tiempoInstruccion) < 60)
+					cantidadInstruccionesLeidas++;
+			}
+
+			/*borro los tiempos de las isntrucciones que son anteriores al minuto*/
+			for(i = list_size(listaTiempos) - 1; i >= 0; i--){
+				time_t * tiempoInstruccion = list_get(listaTiempos,i);
+
+				if (tiempoActual - (*tiempoInstruccion) > 60){
+					free(list_remove(listaTiempos,i));
+				}
+			}
+
 			datosParaProcesar->pid = tid;
 			datosParaProcesar->counterProgram = ((int)(((float)cantidadInstruccionesLeidas/(float)maximoInstruccion) * 100.0f));
 			enviarAPlanificador(datosParaProcesar,socketPlanifAux);
-		}else{
+		}
+		else{
 			logueoRecepcionDePlanif(datosParaProcesar,tid,logCpu);
 
 			FILE* archivo = fopen(datosParaProcesar->mensaje, "r+");
@@ -78,8 +106,6 @@ void * procesarInstruccion() {
 			int quantum = 0;
 
 			while ((!feof(archivo) && (quantum < datosParaProcesar->quantum || datosParaProcesar->quantum == 0))) {
-				//para calcular el porcentaje de cpu
-				if(cantidadInstruccionesLeidas == maximoInstruccion) cantidadInstruccionesLeidas = 0;
 
 				//calcularTamanioDeLinea(archivo,&tamanio);
 				char* instruccionLeida = leerInstruccion(&(datosParaProcesar->counterProgram), lineaLeida, archivo,tamanio);
@@ -145,7 +171,11 @@ void * procesarInstruccion() {
 				}
 				sleep(config->retardo);
 				quantum++;
-				cantidadInstruccionesLeidas++;
+
+				/*guardo tiempo en el que se ejecuto la instruccion*/
+				time_t * tiempoInstruccion = malloc(sizeof(time_t));
+				*tiempoInstruccion = time(NULL);
+				list_add(listaTiempos, tiempoInstruccion);
 			}
 
 			/*es rr y salio por quantum y no por io*/
@@ -183,6 +213,7 @@ int main() {
 	pthread_t vectorHilos[config->cantidadHilos];
 	pthread_attr_t atrib;
 	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_init(&mutexConectarPlanificador,NULL);
 	pthread_attr_init(&atrib);
 
 	int i;
@@ -196,6 +227,7 @@ int main() {
 
 	printf("Finalizo el planificador...\n");
 	pthread_mutex_destroy(&mutex);
+	pthread_mutex_destroy(&mutexConectarPlanificador);
 	return 0;
 }
 
