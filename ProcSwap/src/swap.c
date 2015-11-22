@@ -66,9 +66,9 @@ int main(void) {
 
 						// actualizar la lista de vacios, con los espacios vacios que resultaron de compactar menos los solicitados
 						// esto es lo que hace la lista dame_espacio, sacamos el espacio que asignamos al proceso
-						tlista_vacio *aux = list_get(lista_vacia, 0);
+
 						tlista_vacio *update = malloc(sizeof(tlista_vacio));
-						*update = *aux;
+						update = list_get(lista_vacia, 0);
 						update->comienzo += protocolo_desde_memoria.cantidad_pagina;
 						update->paginas_vacias -= protocolo_desde_memoria.cantidad_pagina;
 						list_destroy_and_destroy_elements(lista_vacia,free);
