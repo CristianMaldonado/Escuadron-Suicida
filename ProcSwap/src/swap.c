@@ -41,20 +41,20 @@ int main(void) {
 	server_acept(server_socket, &socket_memoria);
 	printf("Memoria aceptada...\n");
 
-	tprotocolo_memoria_swap protocolo_desde_memoria;
-	while(recibir_paquete_desde_memoria(&socket_memoria, &protocolo_desde_memoria)) {
+	tprotocolo_memoria_swap paquete_de_memoria;
+	while(recibir_paquete_desde_memoria(&socket_memoria, &paquete_de_memoria)) {
 		sleep(config_swap->retardo_swap);
-		printf("pid-> %d operacion %c\n", protocolo_desde_memoria.pid, toupper(protocolo_desde_memoria.codigo_op));
-		switch(protocolo_desde_memoria.codigo_op){
+		printf("pid-> %d operacion %c\n", paquete_de_memoria.pid, toupper(paquete_de_memoria.codigo_op));
+		switch(paquete_de_memoria.codigo_op){
 			case 'i': {
 				int comienzo = -1, hay_espacio;
 				char cod_aux = 'i';
-				hay_espacio = dame_si_hay_espacio(&lista_vacia, protocolo_desde_memoria.cantidad_pagina, &comienzo);
+				hay_espacio = dame_si_hay_espacio(&lista_vacia, paquete_de_memoria.cantidad_pagina, &comienzo);
 
 				if (hay_espacio)
-					asignar_espacio(protocolo_desde_memoria.pid, comienzo, protocolo_desde_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
+					asignar_espacio(paquete_de_memoria.pid, comienzo, paquete_de_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
 				else {
-					if (espacio_total_disponible(lista_vacia) >= protocolo_desde_memoria.cantidad_pagina){
+					if (espacio_total_disponible(lista_vacia) >= paquete_de_memoria.cantidad_pagina){
 						//compactamos, y retorno el comienzo del espacio vacio
 						log_info(logSwap,"compactacion iniciada /n");
 						sleep(config_swap->retardo);
@@ -62,15 +62,15 @@ int main(void) {
 						log_info(logSwap,"compactacion finalizada /n");
 
 						//asignar el espacio solicitado
-						asignar_espacio(protocolo_desde_memoria.pid, comienzo, protocolo_desde_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
+						asignar_espacio(paquete_de_memoria.pid, comienzo, paquete_de_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
 
 						// actualizar la lista de vacios, con los espacios vacios que resultaron de compactar menos los solicitados
 						// esto es lo que hace la lista dame_espacio, sacamos el espacio que asignamos al proceso
 
 						tlista_vacio *update = malloc(sizeof(tlista_vacio));
 						update = list_get(lista_vacia, 0);
-						update->comienzo += protocolo_desde_memoria.cantidad_pagina;
-						update->paginas_vacias -= protocolo_desde_memoria.cantidad_pagina;
+						update->comienzo += paquete_de_memoria.cantidad_pagina;
+						update->paginas_vacias -= paquete_de_memoria.cantidad_pagina;
 						list_destroy_and_destroy_elements(lista_vacia,free);
 
 						lista_vacia = list_create();
@@ -78,13 +78,10 @@ int main(void) {
 					}
 					else {
 						cod_aux = 'a';
-						log_proc_rechazado(logSwap, protocolo_desde_memoria.pid);
+						log_proc_rechazado(logSwap, paquete_de_memoria.pid);
 					}
 				}
-				tprotocolo_swap_memoria swap_memoria;
-				armar_estructura_protocolo_a_memoria(&swap_memoria, cod_aux, protocolo_desde_memoria.pid, "-");
-				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socket_memoria, buffer, 9 + strlen("-"), 0);
+				avisar_a_memoria(cod_aux, paquete_de_memoria.pid, "-", socket_memoria, strlen("-"));
 			}
 			break;
 
@@ -93,7 +90,7 @@ int main(void) {
 				int i;
 				for (i = 0; i < list_size(lista_ocupado); i++){
 					tlista_ocupado * espacio_ocupado = list_get(lista_ocupado, i);
-					if (espacio_ocupado->pid == protocolo_desde_memoria.pid) {
+					if (espacio_ocupado->pid == paquete_de_memoria.pid) {
 						//agrego a la lista vacia el espacio que voy a liberar
 						tlista_vacio * espacio_vacio = malloc(sizeof(tlista_vacio));
 						espacio_vacio->comienzo = espacio_ocupado->comienzo;
@@ -103,16 +100,16 @@ int main(void) {
 						//saco espacio de lista ocupado
 						log_finalizar(logSwap,espacio_ocupado->pid,config_swap->tamanioPagina, espacio_ocupado->paginas_ocupadas);
 						free(list_remove(lista_ocupado, i));
-						arreglame_la_lista_vacia_che(&lista_vacia);
+						arreglar_lista_vacia(&lista_vacia);
 					}
 				}
 			}
 			break;
 
 			case 'l': {
-				int pag_inicio = get_comienzo_espacio_asignado(lista_ocupado, protocolo_desde_memoria.pid);
+				int pag_inicio = get_comienzo_espacio_asignado(lista_ocupado, paquete_de_memoria.pid);
 				//indica la pagina a leer
-				int pag_leer = protocolo_desde_memoria.cantidad_pagina;
+				int pag_leer = paquete_de_memoria.cantidad_pagina;
 
 				//me posiciono sobre la pagina a leer
 				int desplazamiento_en_bytes = (pag_inicio + pag_leer)*config_swap->tamanioPagina;
@@ -125,29 +122,26 @@ int main(void) {
 				/*tlista_ocupado * la_estructura = dame_la_estructura_del_pid(lista_ocupado);
 				la_estructura->catidad_paginas_leidas++;
 */
-				log_lectura(logSwap, protocolo_desde_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, pag_data);
+				log_lectura(logSwap, paquete_de_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, pag_data);
 
-				tprotocolo_swap_memoria swap_memoria;
-				armar_estructura_protocolo_a_memoria(&swap_memoria, 'i', protocolo_desde_memoria.pid, pag_data);
-				void * buffer = serializar_a_memoria(&swap_memoria);
-				send(socket_memoria, buffer, 9 + config_swap->tamanioPagina, 0);
+				avisar_a_memoria('i', paquete_de_memoria.pid, pag_data, socket_memoria, config_swap->tamanioPagina);
 			}
 			break;
 
 			case 'e': {
-				int pag_inicio = get_comienzo_espacio_asignado(lista_ocupado, protocolo_desde_memoria.pid);
+				int pag_inicio = get_comienzo_espacio_asignado(lista_ocupado, paquete_de_memoria.pid);
 				//indica la pagina a escribir
-				int pagina_a_escribir = protocolo_desde_memoria.cantidad_pagina;
+				int pagina_a_escribir = paquete_de_memoria.cantidad_pagina;
 
 				//me posiciono sobre la pagina a escribir
 				int desplazamiento_en_bytes = (pag_inicio + pagina_a_escribir)*config_swap->tamanioPagina;
-				log_escritura(logSwap, protocolo_desde_memoria.pid, pag_inicio, config_swap->tamanioPagina, pagina_a_escribir,protocolo_desde_memoria.mensaje);
+				log_escritura(logSwap, paquete_de_memoria.pid, pag_inicio, config_swap->tamanioPagina, pagina_a_escribir,paquete_de_memoria.mensaje);
 				fseek(swap, desplazamiento_en_bytes, SEEK_SET);
-				fwrite(protocolo_desde_memoria.mensaje ,protocolo_desde_memoria.tamanio_mensaje, 1, swap);
+				fwrite(paquete_de_memoria.mensaje ,paquete_de_memoria.tamanio_mensaje, 1, swap);
 			}
 			break;
 		}
-		free(protocolo_desde_memoria.mensaje);
+		free(paquete_de_memoria.mensaje);
 	}
 
 	close(socket_memoria);

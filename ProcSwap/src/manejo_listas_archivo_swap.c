@@ -6,6 +6,8 @@
 #include <string.h>
 #include <commons/log.h>
 #include "config.h"
+#include <sys/types.h>
+#include <sys/socket.h>
 
 
 void reinicar_archivo_swap(FILE **swap, t_list **lista_ocupada) {
@@ -126,7 +128,7 @@ void posicion_ultimo_elemento_contiguo(t_list **lista_vacia, tlista_vacio* elem,
 	}
 }
 
-void arreglame_la_lista_vacia_che(t_list ** lista_vacia) {
+void arreglar_lista_vacia(t_list ** lista_vacia) {
 	list_sort(*lista_vacia, comparacion);
 	t_list* list_aux = list_create();
 	while(!list_is_empty(*lista_vacia)) {
@@ -153,4 +155,12 @@ void asignar_espacio(int pid, int comienzo, int cantidad_pagina, t_list **lista_
 	ocupado->catidad_paginas_leidas = 0;*/
 	list_add(*lista_ocupado, ocupado);
 	log_inicializar(*log_swap, pid, ocupado->comienzo, tamanio_pagina, cantidad_pagina);
+}
+
+
+void avisar_a_memoria(char cod_aux, int pid, char * pag_data, int socket_memoria, int tamanio_pag) {
+	tprotocolo_swap_memoria swap_memoria;
+	armar_estructura_protocolo_a_memoria(&swap_memoria, cod_aux, pid, pag_data);
+	void * buffer = serializar_a_memoria(&swap_memoria);
+	send(socket_memoria, buffer, 9 + tamanio_pag, 0);
 }
