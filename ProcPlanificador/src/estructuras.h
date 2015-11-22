@@ -32,6 +32,9 @@ t_queue* colaIO;
 t_list* listaEjecutando;
 t_list* listaCpuLibres;
 t_list* listaInicializando;
+t_list* listaAfinalizar;
+t_list* listaCpus;
+t_list* listaPorcentajeCpus;
 
 pthread_mutex_t mutexListaCpus;
 pthread_mutex_t mutexProcesoListo;
@@ -39,6 +42,8 @@ pthread_mutex_t mutexListaEjecutando;
 pthread_mutex_t mutexIO;
 pthread_mutex_t mutexInicializando;
 pthread_mutex_t mutexSwitchProc;
+pthread_mutex_t mutexFinalizarPid;
+pthread_mutex_t mutexComandoCpu;
 
 t_log* logPlanificador;
 
@@ -46,6 +51,11 @@ typedef struct {
 	int socket;
 	t_list* listaCpus;
 } tParametroSelector;
+
+typedef struct {
+	int tid;
+	int porcentaje;
+} tPorcentajeCpu;
 
 typedef struct {
 	char* puertoEscucha;

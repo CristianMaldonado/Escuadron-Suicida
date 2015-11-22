@@ -30,7 +30,7 @@ void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete,
 
 void actualizarOperacionPaquetePlanificadorIO(protocolo_planificador_cpu* paquete, char tipoOperacion,int IO){
 	paquete->tipoOperacion = tipoOperacion;
-	paquete->mensaje = malloc(4);
+	paquete->mensaje = (char*)malloc(sizeof(int));
 	strcpy(paquete->mensaje,string_itoa(IO));
 }
 

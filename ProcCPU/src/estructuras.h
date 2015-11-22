@@ -12,14 +12,12 @@
 #include <commons/log.h>
 
 sem_t ejecutaInstruccion;
-
+bool llegoComandoCPU;
 
 int socketMemoria;
 
-pthread_mutex_t mutexSocket;
-pthread_mutex_t mutexLogueo;
 pthread_mutex_t mutex;
-pthread_mutex_t mutexLogueoRafaga;
+pthread_mutex_t mutexConectarPlanificador;
 
 typedef enum {
 	LISTO, IO, EJECUTANDO, FINALIZADO
@@ -33,7 +31,6 @@ typedef struct {
 	int cantidadHilos;
 	int retardo;
 } tipoConfiguracionCPU;
-
 
 typedef struct {
 	char tipoProceso;

@@ -3,6 +3,43 @@
 #include <semaphore.h>
 #include <stdio.h>
 
+void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio){ //malloc(1)
+	//SERIALIZA SOLO CORRER
+	size_t messageLength = strlen(paquete->mensaje);
+
+	void* paqueteSerializado = malloc(sizeof(protocolo_planificador_cpu) + messageLength);
+	int offset = 0;
+	int size_to_send;
+
+	size_to_send = sizeof(paquete->tipoProceso);
+	memcpy(paqueteSerializado + offset, &(paquete->tipoProceso),size_to_send);
+	offset += size_to_send;
+	size_to_send = sizeof(paquete->tipoOperacion);
+	memcpy(paqueteSerializado + offset, &(paquete->tipoOperacion),size_to_send);
+	offset += size_to_send;
+	size_to_send = sizeof(paquete->estado);
+	memcpy(paqueteSerializado + offset, &(paquete->estado), size_to_send);
+	offset += size_to_send;
+	size_to_send = sizeof(paquete->pid);
+	memcpy(paqueteSerializado + offset, &(paquete->pid), size_to_send);
+	offset += size_to_send;
+	size_to_send = sizeof(paquete->counterProgram);
+	memcpy(paqueteSerializado + offset, &(paquete->counterProgram),size_to_send);
+	offset += size_to_send;
+	size_to_send = sizeof(paquete->quantum);
+	memcpy(paqueteSerializado + offset, &(paquete->quantum), size_to_send);
+	offset += size_to_send;
+	size_to_send = sizeof(paquete->tamanioMensaje);
+	memcpy(paqueteSerializado + offset, &messageLength, size_to_send);
+	offset += size_to_send;
+	size_to_send = messageLength;
+	memcpy(paqueteSerializado + offset, paquete->mensaje, size_to_send);
+	offset += size_to_send;
+	*tamanio = offset;
+
+	return paqueteSerializado;
+}
+
 int maxLineas(char* path){
 	FILE* archivo = fopen(path, "r+");
 	/*desde armarPCB me fijo si es distinto de -1*/
@@ -86,27 +123,51 @@ void mostrarEstadoProcesosLista(t_list* lista, char* mensaje){
     free(infoProceso);
 }
 
-int buscoPCB(int pidBuscado,t_list* lista){//SI NO ESTA ME DA EL TAMANIO DE LA LISTA -> SUPONGO QUE SI SE MANDO A CPU EL PCB ESTA EN LA LISTA
+int buscoPCB(int pidBuscado,t_list* lista){
 	tpcb* pcb;
 	int posicion = 0;
 	int i;
 	for(i = 0; i < list_size(lista); i++){
 		pcb = list_get(lista,i);
-		if(pcb->pid == pidBuscado) break;
+		if(pcb->pid == pidBuscado)  return posicion;
 		posicion++;
 	}
-	return posicion;
+	return -1;
+}
+
+bool hayQueFinalizarlo(int pid,t_list* lista){
+
+	int i;
+	for(i=0 ; i<list_size(lista); i++){
+		int* aux = list_get(lista,i);
+
+		if(*aux == pid){
+			free(list_remove(lista,i));
+			return true;
+		}
+	}
+    return false;
 }
 
 void finalizarPID(char* pidBuscado){
-	//t_list* lista= colaProcesos->elements;
-	t_list* lista= listaEjecutando;// TODO ALGO PERO FALLA ACA POR LAS COLAS
+	t_list* lista= colaListos->elements;
 	tpcb* pcb;
 	int pid = atoi(pidBuscado);
 	int posicion = buscoPCB(pid,lista);
-	pcb = list_get(lista,posicion);
-	printf("%p",pcb);
-	pcb->siguiente = pcb->maximo;
+
+	if(posicion == -1){
+		int* aux = malloc(sizeof(int));
+		*aux = pid;
+		pthread_mutex_lock(&mutexFinalizarPid);
+		list_add(listaAfinalizar,aux);
+		pthread_mutex_unlock(&mutexFinalizarPid);
+	}
+	else {
+		pcb = list_get(lista,posicion);
+		pcb->siguiente = pcb->maximo;
+
+	}
+
 }
 
 int clasificarComando(char* message) {//OK
@@ -132,6 +193,11 @@ int clasificarComando(char* message) {//OK
 bool comparadorPid(void * elemA, void * elemB){
 
 	return ((tpcb*)elemA)->pid < ((tpcb*)elemB)->pid;
+}
+
+bool comparadorTid(void * elemA, void * elemB){
+
+	return ((tPorcentajeCpu*)elemA)->tid < ((tPorcentajeCpu*)elemB)->tid;
 }
 
 void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
@@ -163,9 +229,30 @@ void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 			pthread_mutex_unlock(&mutexSwitchProc);
 		}
 			break;
-		case 2:
-			printf("Entro por cpu\n");
+		case 2:{
+			int tamanio,p;
+			protocolo_planificador_cpu* package = malloc(sizeof(protocolo_planificador_cpu));
+			package->mensaje = malloc(2);
+			strcpy(package->mensaje," ");
+			package->tamanioMensaje = strlen(package->mensaje) +1;
+			package->tipoOperacion = 'u';
+			void* message = serializarPaqueteCPU(package, &tamanio);
+			pthread_mutex_lock(&mutexComandoCpu);
+			int* socketCPU;
+			if (list_size(listaPorcentajeCpus) == 0){
+				for(p = 0; p < list_size(listaCpus); p++){
+					socketCPU = list_get(listaCpus, p);
+					int a = send(*socketCPU,message,tamanio,0);
+					if(a == -1) printf("fallo envio a cpu %d\n", *socketCPU);
+				}
+			}
+			pthread_mutex_unlock(&mutexComandoCpu);
+			free(package->mensaje);
+			free(package);
+			free(message);
+		}
 			break;
+
 		case 3:
 			pcb = armarPCB(&message[7], *cantProc);
 			if (pcb){
@@ -179,7 +266,11 @@ void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 				printf("No se encontro %s\n", &message[7]);
 			break;
 		case 4:
+			pthread_mutex_lock(&mutexSwitchProc);//TODO este va??
+			pthread_mutex_lock(&mutexProcesoListo);
 			finalizarPID(&message[10]);
+			pthread_mutex_unlock(&mutexProcesoListo);
+			pthread_mutex_unlock(&mutexSwitchProc);
 			break;
 		default:
 			printf("Comando ingresado incorrecto\n");
@@ -218,41 +309,6 @@ void adaptadorPCBaProtocolo(tpcb* pcb,protocolo_planificador_cpu* paquete){//OK
 	strcpy(paquete->mensaje, pcb->ruta);
 }
 
-void* serializarPaqueteCPU(protocolo_planificador_cpu* paquete, int* tamanio){ //malloc(1)
-	//SERIALIZA SOLO CORRER
-	size_t messageLength = strlen(paquete->mensaje);
 
-	void* paqueteSerializado = malloc(sizeof(protocolo_planificador_cpu) + messageLength);
-	int offset = 0;
-	int size_to_send;
-
-	size_to_send = sizeof(paquete->tipoProceso);
-	memcpy(paqueteSerializado + offset, &(paquete->tipoProceso),size_to_send);
-	offset += size_to_send;
-	size_to_send = sizeof(paquete->tipoOperacion);
-	memcpy(paqueteSerializado + offset, &(paquete->tipoOperacion),size_to_send);
-	offset += size_to_send;
-	size_to_send = sizeof(paquete->estado);
-	memcpy(paqueteSerializado + offset, &(paquete->estado), size_to_send);
-	offset += size_to_send;
-	size_to_send = sizeof(paquete->pid);
-	memcpy(paqueteSerializado + offset, &(paquete->pid), size_to_send);
-	offset += size_to_send;
-	size_to_send = sizeof(paquete->counterProgram);
-	memcpy(paqueteSerializado + offset, &(paquete->counterProgram),size_to_send);
-	offset += size_to_send;
-	size_to_send = sizeof(paquete->quantum);
-	memcpy(paqueteSerializado + offset, &(paquete->quantum), size_to_send);
-	offset += size_to_send;
-	size_to_send = sizeof(paquete->tamanioMensaje);
-	memcpy(paqueteSerializado + offset, &messageLength, size_to_send);
-	offset += size_to_send;
-	size_to_send = messageLength;
-	memcpy(paqueteSerializado + offset, paquete->mensaje, size_to_send);
-	offset += size_to_send;
-	*tamanio = offset;
-
-	return paqueteSerializado;
-}
 
 

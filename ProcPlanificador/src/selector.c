@@ -47,7 +47,6 @@ void agregarNuevaCpu(int nuevaCpu, int ** socketCpu, int * numeroCpus){
 }
 
 void * selector(void * arg) {
-
 	fd_set descriptores;
 	int numeroCpus = 0;
 	int * socketCpu = 0;
@@ -56,7 +55,6 @@ void * selector(void * arg) {
 	int servidor = ((tParametroSelector*)arg)->socket;
 
 	while(1){
-
 		/*elimino las cpu con -1*/
 		eliminarCpusDesconectadas(&socketCpu, &numeroCpus);
 
@@ -103,7 +101,6 @@ void * selector(void * arg) {
 							/*agreo la cpu a lista disponible*/
 							list_add(listaCpuLibres,puntero);
 							pthread_mutex_unlock(&mutexListaCpus);
-
 							pthread_mutex_lock(&mutexSwitchProc);
 							pthread_mutex_lock(&mutexListaEjecutando);
 							aux->pcb = list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando));
@@ -187,6 +184,12 @@ void * selector(void * arg) {
 							pthread_mutex_unlock(&mutexListaEjecutando);
 							pcb->siguiente = respuestaDeCPU.counterProgram;
 							pcb->estado = LISTO;
+
+							pthread_mutex_lock(&mutexFinalizarPid);
+								if(hayQueFinalizarlo(pcb->pid,listaAfinalizar))
+									pcb->siguiente = pcb->maximo;
+							pthread_mutex_unlock(&mutexFinalizarPid);
+
 							pthread_mutex_lock(&mutexProcesoListo);
 							queue_push(colaListos,pcb);
 							pthread_mutex_unlock(&mutexProcesoListo);
@@ -205,7 +208,6 @@ void * selector(void * arg) {
 							/*agreo la cpu a lista disponible*/
 							list_add(listaCpuLibres, puntero);
 							pthread_mutex_unlock(&mutexListaCpus);
-
 							pthread_mutex_lock(&mutexSwitchProc);
 							pthread_mutex_lock(&mutexListaEjecutando);
 							free(list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando)));
@@ -216,6 +218,25 @@ void * selector(void * arg) {
 							printf("pid-> %d finalizo\n", respuestaDeCPU.pid);
 						}
 						break;
+						case 'u':{
+							tPorcentajeCpu* porcentaje = malloc(sizeof(tPorcentajeCpu));
+							porcentaje->tid = respuestaDeCPU.pid;
+							porcentaje->porcentaje = respuestaDeCPU.counterProgram;
+							list_add(listaPorcentajeCpus,porcentaje);
+
+							if(list_size(listaPorcentajeCpus) == list_size(listaCpus)){
+
+								list_sort(listaPorcentajeCpus,comparadorTid);
+
+								int i;
+								for(i = 0; i < list_size(listaPorcentajeCpus); i++){
+									tPorcentajeCpu* aMostrar = list_get(listaPorcentajeCpus,i);
+									printf("CPU %d : %d %c\n",aMostrar->tid,aMostrar->porcentaje,37);
+								}
+
+								list_clean_and_destroy_elements(listaPorcentajeCpus,free);
+							}
+						}break;
 					}
 				}
 				else
@@ -223,6 +244,16 @@ void * selector(void * arg) {
 
 					/*lo seteo en -1 para luego eliminarlo del vector*/
 					logueoConexionCPUS(socketCpu[i]);
+					pthread_mutex_lock(&mutexComandoCpu);
+					int j;
+					for(j = 0; j < list_size(listaCpus); j++){
+						int* cpu = list_get(listaCpus,j);
+						if(*cpu == socketCpu[i]) {
+							free(list_remove(listaCpus,j));
+							break;
+						}
+					}
+					pthread_mutex_unlock(&mutexComandoCpu);
 					socketCpu[i] = -1;
 					printf("CPU desconectada\n");
 				}
@@ -244,18 +275,23 @@ void * selector(void * arg) {
 
 				int * puntero = malloc(sizeof(int));
 				*puntero = nuevaCpu;
-
 				pthread_mutex_lock(&mutexListaCpus);
 				/*agreo la cpu a lista disponible*/
 				list_add(listaCpuLibres, puntero);
 				pthread_mutex_unlock(&mutexListaCpus);
-
 				sem_post(&hayCPU);
+
+				int* p = malloc(sizeof(int));
+				*p = nuevaCpu;
+				pthread_mutex_lock(&mutexComandoCpu);
+				list_add(listaCpus,p);
+				pthread_mutex_unlock(&mutexComandoCpu);
 
 				printf("Nueva CPU conectada: %d\n", nuevaCpu);
 			}
 		}
 	}
+	pthread_exit(0);
 	return 0;
 }
 

@@ -49,12 +49,11 @@ void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int
 
 }
 
-void prepararLogueoMemoria(protocolo_memoria_cpu* respuestaMemoria, int nroRafaga, t_log* logCpu){
+void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida,t_log* logCpu){
 
-	char* logueoMemoria = string_new();
+	char* logueoMemoria = malloc(sizeof(char) * 10);
 
-    string_append_with_format(&logueoMemoria, "Numero de Rafaga: %d ", nroRafaga);
-	string_append(&logueoMemoria, "mProc: ");
+	strcpy(logueoMemoria, "mProc: ");
 	string_append_with_format(&logueoMemoria, "%d", respuestaMemoria->pid);
 	string_append(&logueoMemoria, " - ");
 
@@ -79,13 +78,11 @@ void prepararLogueoMemoria(protocolo_memoria_cpu* respuestaMemoria, int nroRafag
 		string_append(&logueoMemoria, "Fallo al iniciar\n");
 	}
 
-	if ((respuestaMemoria->codOperacion == 'f')) {
+	if (respuestaMemoria->codOperacion == 'f') {
 		string_append(&logueoMemoria, "Finalizado");
 	}
-
-	log_info(logCpu,logueoMemoria);
+	log_info(logCpu, logueoMemoria);
 	free(logueoMemoria);
-
 
 }
 
@@ -93,7 +90,7 @@ void loguearPlanificadorIO(protocolo_planificador_cpu* mensajeDePlanificador, in
 	char* logueoIO = malloc(sizeof(char) * 10);
 	strcpy(logueoIO, "mProc: ");
 	string_append_with_format(&logueoIO, "%d", mensajeDePlanificador->pid);
-	string_append(&logueoIO, " entrada-salida de tiempo: ");
+	string_append(&logueoIO, " en entrada-salida de tiempo ");
 	string_append_with_format(&logueoIO, "%d", tiempo);
 
 	log_info(logCpu, logueoIO);
