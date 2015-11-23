@@ -50,18 +50,18 @@ int get_comienzo_espacio_asignado(t_list * lista_ocupado, int pid) {
 int dame_si_hay_espacio(t_list** lista_vacia, int paginas_pedidas, int* comienzo) {
 	int i;
 	tlista_vacio *aux;
-	for (i = 0; i < list_size(*lista_vacia); i++) {
+	for (i = 0 ; i < list_size(*lista_vacia) ; i++) {
 		aux = list_get(*lista_vacia, i);
 		if (aux->paginas_vacias >= paginas_pedidas) {
 			//actualizar el hueco vacio y si sigue existiendo un hueco osea != 0
 			*comienzo = aux->comienzo;
 			if (aux->paginas_vacias - paginas_pedidas != 0) {
 				//*comienzo = aux->comienzo;
-				tlista_vacio *plistV = malloc(sizeof(tlista_vacio));
-				plistV->comienzo = paginas_pedidas + aux->comienzo;
-				plistV->paginas_vacias = aux->paginas_vacias - paginas_pedidas;
+				tlista_vacio *nueva = malloc(sizeof(tlista_vacio));
+				nueva->comienzo = paginas_pedidas + aux->comienzo;
+				nueva->paginas_vacias = aux->paginas_vacias - paginas_pedidas;
 				free(list_remove(*lista_vacia, i));
-				list_add(*lista_vacia, plistV);
+				list_add(*lista_vacia, nueva);
 			}
 			else
 				free(list_remove(*lista_vacia, i));
