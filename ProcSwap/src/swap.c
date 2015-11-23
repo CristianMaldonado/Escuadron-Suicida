@@ -45,15 +45,14 @@ int main(void) {
 		printf("pid-> %d operacion %c\n", paquete_de_memoria.pid, toupper(paquete_de_memoria.codigo_op));
 		switch(paquete_de_memoria.codigo_op){
 			case 'i': {
-				int cantidad_paginas_pedidas = paquete_de_memoria.cantidad_pagina + 1;
 				int comienzo = -1;
 				char cod_aux = 'i';
-				int hay_espacio = dame_si_hay_espacio(&lista_vacia, cantidad_paginas_pedidas, &comienzo);
+				int hay_espacio = dame_si_hay_espacio(&lista_vacia, paquete_de_memoria.cantidad_pagina, &comienzo);
 
 				if (hay_espacio)
-					asignar_espacio(paquete_de_memoria.pid, comienzo, cantidad_paginas_pedidas, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
+					asignar_espacio(paquete_de_memoria.pid, comienzo, paquete_de_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
 				else {
-					if (espacio_total_disponible(lista_vacia) >= cantidad_paginas_pedidas) {
+					if (espacio_total_disponible(lista_vacia) >= paquete_de_memoria.cantidad_pagina) {
 						//compactamos, y retorno el comienzo del espacio vacio
 						log_info(logSwap,"compactacion iniciada /n");
 						sleep(config_swap->retardo);
@@ -61,15 +60,15 @@ int main(void) {
 						log_info(logSwap,"compactacion finalizada /n");
 
 						//asignar el espacio solicitado
-						asignar_espacio(paquete_de_memoria.pid, comienzo, cantidad_paginas_pedidas, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
+						asignar_espacio(paquete_de_memoria.pid, comienzo, paquete_de_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
 
 						// actualizar la lista de vacios, con los espacios vacios que resultaron de compactar menos los solicitados
 						// esto es lo que hace la lista dame_espacio, sacamos el espacio que asignamos al proceso
 
 						tlista_vacio *update = malloc(sizeof(tlista_vacio));
 						update = list_get(lista_vacia, 0);
-						update->comienzo += cantidad_paginas_pedidas;
-						update->paginas_vacias -= cantidad_paginas_pedidas;
+						update->comienzo += paquete_de_memoria.cantidad_pagina;
+						update->paginas_vacias -= paquete_de_memoria.cantidad_pagina;
 						list_destroy_and_destroy_elements(lista_vacia,free);
 
 						lista_vacia = list_create();
