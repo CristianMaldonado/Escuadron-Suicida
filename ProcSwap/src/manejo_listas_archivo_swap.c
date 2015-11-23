@@ -121,7 +121,7 @@ void posicion_ultimo_elemento_contiguo(t_list **lista_vacia, tlista_vacio* elem,
 	if (elem->comienzo + elem->paginas_vacias == aux->comienzo) {
 		tlista_vacio *copia = malloc(sizeof(tlista_vacio));
 		*copia = *aux;
-		*posicion_final = copia->comienzo + copia->paginas_vacias;
+		*posicion_final += copia->paginas_vacias;
 		free(list_remove(*lista_vacia, 0));
 		if(!list_is_empty(*lista_vacia))
 			posicion_ultimo_elemento_contiguo(lista_vacia, copia, posicion_final);
