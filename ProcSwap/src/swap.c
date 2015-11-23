@@ -16,8 +16,6 @@
 #include <ctype.h>
 
 
-
-
 int main(void) {
 	system("clear");
 	t_log *logSwap = log_create("log.txt", "swap.c", false, LOG_LEVEL_INFO);
@@ -54,7 +52,7 @@ int main(void) {
 				if (hay_espacio)
 					asignar_espacio(paquete_de_memoria.pid, comienzo, paquete_de_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
 				else {
-					if (espacio_total_disponible(lista_vacia) >= paquete_de_memoria.cantidad_pagina){
+					if (espacio_total_disponible(lista_vacia) >= paquete_de_memoria.cantidad_pagina) {
 						//compactamos, y retorno el comienzo del espacio vacio
 						log_info(logSwap,"compactacion iniciada /n");
 						sleep(config_swap->retardo);
@@ -85,10 +83,9 @@ int main(void) {
 			}
 			break;
 
-			case 'f':
-			{
+			case 'f': {
 				int i;
-				for (i = 0; i < list_size(lista_ocupado); i++){
+				for (i = 0; i < list_size(lista_ocupado); i++) {
 					tlista_ocupado * espacio_ocupado = list_get(lista_ocupado, i);
 					if (espacio_ocupado->pid == paquete_de_memoria.pid) {
 						//agrego a la lista vacia el espacio que voy a liberar
@@ -115,7 +112,7 @@ int main(void) {
 				int desplazamiento_en_bytes = (pag_inicio + pag_leer)*config_swap->tamanioPagina;
 				fseek(swap, desplazamiento_en_bytes, SEEK_SET);
 
-				char * pag_data = malloc(config_swap->tamanioPagina+1);
+				char * pag_data = malloc(config_swap->tamanioPagina + 1);
 				fread(pag_data, config_swap->tamanioPagina, 1, swap);
 				pag_data[config_swap->tamanioPagina] = '\0';
 
@@ -123,7 +120,6 @@ int main(void) {
 				la_estructura->catidad_paginas_leidas++;
 */
 				log_lectura(logSwap, paquete_de_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, pag_data);
-
 				avisar_a_memoria('i', paquete_de_memoria.pid, pag_data, socket_memoria, config_swap->tamanioPagina);
 			}
 			break;

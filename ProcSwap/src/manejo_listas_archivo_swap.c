@@ -24,12 +24,12 @@ t_list *pasar_ocupada_a_lista_auxiliar(FILE **swap, t_list **lista_ocupada, int 
 		elem = list_remove(*lista_ocupada, 0);
 		tdatos_paginas *data = malloc(sizeof(tdatos_paginas));
 		data->pid = elem->pid;
-		data->tamanio = elem->paginas_ocupadas*tamanio_pagina;//en bytes
-		data->buffer = (char*)malloc(data->tamanio);// puede haber igual o menor del tamanio
+		data->tamanio = elem->paginas_ocupadas*tamanio_pagina; //en bytes
+		data->buffer = (char*)malloc(data->tamanio); // puede haber igual o menor del tamanio
 		// leemos los datos
 		fseek(*swap, elem->comienzo*tamanio_pagina, SEEK_SET);
 		fread(data->buffer, sizeof(char), tamanio_pagina*elem->paginas_ocupadas , *swap); // lee y guarda en buffer pero tiene ceros al final
-		list_add(lista_aux,data);
+		list_add(lista_aux, data);
 		free(elem);
 	}
 	return lista_aux;
@@ -86,10 +86,10 @@ int lista_vacia_compactada(t_list **lista_vacia, FILE **swap, int tamanio_pagina
 	int comienzo = (int)ftell(*swap) / tamanio_pagina;
 	tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
 	vacio->comienzo = comienzo;
-	vacio->paginas_vacias = total_de_paginas - vacio->comienzo;
+	vacio->paginas_vacias = total_de_paginas - comienzo;
 	*lista_vacia = list_create();
 	list_add(*lista_vacia, vacio);
-	return vacio->comienzo;
+	return comienzo;
 }
 
 int compactar_swap(FILE ** swap, t_list** lista_vacia, t_list** lista_ocupada,int tamanio_pagina, int total_de_paginas) {
@@ -154,7 +154,7 @@ void asignar_espacio(int pid, int comienzo, int cantidad_pagina, t_list **lista_
 	/*ocupado->cantidad_paginas_escritas = 0;
 	ocupado->catidad_paginas_leidas = 0;*/
 	list_add(*lista_ocupado, ocupado);
-	log_inicializar(*log_swap, pid, ocupado->comienzo, tamanio_pagina, cantidad_pagina);
+	log_inicializar(*log_swap, pid, comienzo, tamanio_pagina, cantidad_pagina);
 }
 
 
