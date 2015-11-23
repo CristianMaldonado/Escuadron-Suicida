@@ -109,18 +109,18 @@ int main(void) {
 				int pag_leer = paquete_de_memoria.cantidad_pagina;
 
 				//me posiciono sobre la pagina a leer
-				int desplazamiento_en_bytes = (pag_inicio + pag_leer)*config_swap->tamanioPagina;
+				int desplazamiento_en_bytes = (pag_inicio + pag_leer) * config_swap->tamanioPagina;
 				fseek(swap, desplazamiento_en_bytes, SEEK_SET);
 
-				char * pag_data = malloc(config_swap->tamanioPagina + 1);
-				fread(pag_data, config_swap->tamanioPagina, 1, swap);
-				pag_data[config_swap->tamanioPagina] = '\0';
+				char * lectura_pagina = malloc(config_swap->tamanioPagina + 1);
+				fread(lectura_pagina, config_swap->tamanioPagina, 1, swap);
+				lectura_pagina[config_swap->tamanioPagina] = '\0';
 
 				/*tlista_ocupado * la_estructura = dame_la_estructura_del_pid(lista_ocupado);
 				la_estructura->catidad_paginas_leidas++;
 */
-				log_lectura(logSwap, paquete_de_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, pag_data);
-				avisar_a_memoria('i', paquete_de_memoria.pid, pag_data, socket_memoria, config_swap->tamanioPagina);
+				log_lectura(logSwap, paquete_de_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, lectura_pagina);
+				avisar_a_memoria('i', paquete_de_memoria.pid, lectura_pagina, socket_memoria, config_swap->tamanioPagina);
 			}
 			break;
 
@@ -130,7 +130,7 @@ int main(void) {
 				int pagina_a_escribir = paquete_de_memoria.cantidad_pagina;
 
 				//me posiciono sobre la pagina a escribir
-				int desplazamiento_en_bytes = (pag_inicio + pagina_a_escribir)*config_swap->tamanioPagina;
+				int desplazamiento_en_bytes = (pag_inicio + pagina_a_escribir) * config_swap->tamanioPagina;
 				log_escritura(logSwap, paquete_de_memoria.pid, pag_inicio, config_swap->tamanioPagina, pagina_a_escribir,paquete_de_memoria.mensaje);
 				fseek(swap, desplazamiento_en_bytes, SEEK_SET);
 				fwrite(paquete_de_memoria.mensaje ,paquete_de_memoria.tamanio_mensaje, 1, swap);
