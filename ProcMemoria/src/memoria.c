@@ -145,7 +145,7 @@ int main(void) {
 
 				log_info(logMem, "proceso finalizado -> pid: %d\n", paquete_desde_cpu.pid);
 
-				avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteCPU);
+				avisar_a_cpu(paquete_desde_cpu.cod_op, '-', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteCPU);
 				free(paquete_desde_cpu.mensaje);
 				pthread_mutex_unlock(&mutex);
 			}
