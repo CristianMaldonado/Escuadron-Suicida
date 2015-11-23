@@ -116,15 +116,15 @@ bool comparacion(void * a, void * b) {
 	return ((tlista_vacio*)a)->comienzo < ((tlista_vacio*)b)->comienzo;
 }
 
-void posicion_ultimo_elemento_contiguo(t_list **lista_vacia, tlista_vacio* elem, int* posicion_final) {
+void posicion_ultimo_elemento_contiguo(t_list **lista_vacia, tlista_vacio* elem, int* paginas_vacias) {
 	tlista_vacio * aux = list_get(*lista_vacia, 0);
 	if (elem->comienzo + elem->paginas_vacias == aux->comienzo) {
 		tlista_vacio *copia = malloc(sizeof(tlista_vacio));
 		*copia = *aux;
-		*posicion_final += copia->paginas_vacias;
+		*paginas_vacias += copia->paginas_vacias;
 		free(list_remove(*lista_vacia, 0));
 		if(!list_is_empty(*lista_vacia))
-			posicion_ultimo_elemento_contiguo(lista_vacia, copia, posicion_final);
+			posicion_ultimo_elemento_contiguo(lista_vacia, copia, paginas_vacias);
 	}
 }
 
@@ -133,12 +133,12 @@ void arreglar_lista_vacia(t_list ** lista_vacia) {
 	t_list* list_aux = list_create();
 	while(!list_is_empty(*lista_vacia)) {
 		tlista_vacio *elem_uno = list_remove(*lista_vacia, 0);
-		int pos_final = elem_uno->paginas_vacias;
+		int paginas_vacias = elem_uno->paginas_vacias;
 		if(!list_is_empty(*lista_vacia))
-			posicion_ultimo_elemento_contiguo(lista_vacia, elem_uno, &pos_final);
+			posicion_ultimo_elemento_contiguo(lista_vacia, elem_uno, &paginas_vacias);
 		tlista_vacio *elem_bloque_vacio = malloc(sizeof(tlista_vacio));
 		elem_bloque_vacio->comienzo = elem_uno->comienzo;
-		elem_bloque_vacio->paginas_vacias = pos_final;
+		elem_bloque_vacio->paginas_vacias = paginas_vacias;
 		list_add(list_aux, elem_bloque_vacio);
 	}
 	*lista_vacia = list_aux;
