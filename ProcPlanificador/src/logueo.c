@@ -41,14 +41,43 @@ void logueoConexionCPUS(int socket){
 	free(logueo);
 }
 
-void logueoAlgoritmo(int inicial,char* mProc){//TODO tiene que loguear todas las colas y listas??
+char* contenidoDeColas(t_list* lista){
+	int i;
+	char* contenido = string_new();
+	for(i = 0; i < list_size(lista); i++){
+		tpcb* pcb = list_get(lista,i);
+		string_append_with_format(&contenido,"PID: %d ",pcb->pid);
+		string_append(&contenido,nombrePrograma(pcb->ruta));
+		contenido[strlen(contenido)-1] = '\0';
+		string_append(&contenido,",");
+	}
+	return contenido;
+}
+
+void logueoAlgoritmo(int inicial,char* mProc){
 	char* logueo = (char*)malloc(65+strlen(mProc));
 	char* algoritmo = string_new();
 	if(inicial == 0) string_append(&algoritmo,"FIFO");
 	else string_append(&algoritmo,"RR");
 	log_info(logPlanificador,"El Proceso %s se encuentra ejecutando algoritmo %s\n",nombrePrograma(mProc),algoritmo);
 	//Envio mensaje para loguear colas de planificacion
-	procesarComando(1,"logueo",NULL);
+	char* contenido = string_new();
+	pthread_mutex_lock(&mutexSwitchProc);
+
+	string_append(&contenido,"\nCola Ready: ");
+	string_append(&contenido,contenidoDeColas(colaListos->elements));
+	string_append(&contenido,contenidoDeColas(listaInicializando));
+
+	string_append(&contenido,"\nCola Ejecutando: ");
+	string_append(&contenido,contenidoDeColas(listaEjecutando));
+
+	string_append(&contenido,"\nCola I/O: ");
+	string_append(&contenido,contenidoDeColas(colaIO->elements));
+
+	pthread_mutex_unlock(&mutexSwitchProc);
+
+	log_info(logPlanificador,contenido);
+	free(contenido);
 	free(algoritmo);
 	free(logueo);
 }
