@@ -224,6 +224,7 @@ char actualizame_la_tlb(t_list ** tlb, int pid, int nro_marco, int nro_pagina) {
 	return 'f'; // f = fifo
 }
 
+/*
 void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
 	int i,j,k;
 	t_list * entradas_a_borrar = list_create();
@@ -243,6 +244,25 @@ void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
 		free(list);
 	}
 	for(k = 0 ; k < cant_entradas_a_borrar ; k++) {
+		cache_13 * nueva_entrada = malloc(sizeof(cache_13));
+		nueva_entrada->esta_en_uso = false;
+		nueva_entrada->pid = -1;
+		list_add(*tlb, nueva_entrada);
+	}
+}
+*/
+
+void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
+	int entradas_borradas = 0;
+	int i;
+	for (i = list_size(*tlb) - 1; i >= 0 ; i++){
+		cache_13 * aux = list_get(*tlb, i);
+		if(aux->pid == pid && aux->esta_en_uso){
+			free(list_remove(*tlb, i));
+			entradas_borradas++;
+		}
+	}
+	for(i = 0 ; i < entradas_borradas ; i++) {
 		cache_13 * nueva_entrada = malloc(sizeof(cache_13));
 		nueva_entrada->esta_en_uso = false;
 		nueva_entrada->pid = -1;

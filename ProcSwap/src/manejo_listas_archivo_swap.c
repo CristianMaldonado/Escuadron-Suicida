@@ -14,7 +14,7 @@ void reinicar_archivo_swap(FILE **swap, t_list **lista_ocupada) {
 	fclose(*swap);
 	*swap = iniciar_archivo_swap();
 	list_destroy_and_destroy_elements(*lista_ocupada, free);
-	*lista_ocupada = malloc(sizeof(tlista_ocupado));
+	*lista_ocupada = list_create();
 }
 
 t_list *pasar_ocupada_a_lista_auxiliar(FILE **swap, t_list **lista_ocupada, int tamanio_pagina) {
@@ -125,6 +125,7 @@ void posicion_ultimo_elemento_contiguo(t_list **lista_vacia, tlista_vacio* elem,
 		free(list_remove(*lista_vacia, 0));
 		if(!list_is_empty(*lista_vacia))
 			posicion_ultimo_elemento_contiguo(lista_vacia, copia, paginas_vacias);
+		free(copia);
 	}
 }
 
