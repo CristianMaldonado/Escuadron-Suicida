@@ -18,34 +18,41 @@
 bool llegoexit = false;
 
 void* consumidor(){
-	tprocIO* pcb;
+	tprocIO* pcbIO;
 	while(1){
 		sem_wait(&hayIO);
 		if(llegoexit) break;
 		pthread_mutex_lock(&mutexIO);
-		pcb = queue_peek(colaIO);
+		pcbIO = queue_peek(colaIO);
 		pthread_mutex_unlock(&mutexIO);
-		sleep(pcb->tiempo);
+
+		bool finalizar = hayQueFinalizarlo(pcbIO->pcb->pid);
+		/*que no haga io si hay que finalizarlo*/
+		if(!finalizar)
+			sleep(pcbIO->tiempo);
 
 		pthread_mutex_lock(&mutexSwitchProc);
+		/*una vez que hizo io recien lo saco de la cola de io*/
 		pthread_mutex_lock(&mutexIO);
 		queue_pop(colaIO);
 		pthread_mutex_unlock(&mutexIO);
-		pcb->pcb->estado = LISTO;
-		pthread_mutex_lock(&mutexFinalizarPid);
+		pcbIO->pcb->estado = LISTO;
 
-		if(hayQueFinalizarlo(pcb->pcb->pid,listaAfinalizar))
-			pcb->pcb->siguiente = pcb->pcb->maximo;
-
-		pthread_mutex_unlock(&mutexFinalizarPid);
+		/*pongo en listo*/
 		pthread_mutex_lock(&mutexProcesoListo);
-		queue_push(colaListos,pcb->pcb);
+		if(finalizar){
+			/*actualizo cp*/
+			pcbIO->pcb->siguiente = pcbIO->pcb->maximo;
+			ponerPrimero(&colaListos, pcbIO->pcb);
+		}
+		else
+			queue_push(colaListos,pcbIO->pcb);
 		pthread_mutex_unlock(&mutexProcesoListo);
 		pthread_mutex_unlock(&mutexSwitchProc);
 
 		sem_post(&hayProgramas);
-		printf("pid-> %d salio de io\n",pcb->pcb->pid);
-		free(pcb);
+		printf("pid-> %d salio de io\n",pcbIO->pcb->pid);
+		free(pcbIO);
 	}
 	pthread_exit(0);
 	return 0;
@@ -92,11 +99,11 @@ void *enviar(){
 		pthread_mutex_unlock(&mutexSwitchProc);
 		adaptadorPCBaProtocolo(pcb,package);
 		void* message = serializarPaqueteCPU(package, &tamanio);
-		pthread_mutex_lock(&mutexListaCpus);
+		pthread_mutex_lock(&mutexListaCpusLibres);
 		socketCPU = list_remove(listaCpuLibres, 0);
-		pthread_mutex_unlock(&mutexListaCpus);
-		int a = send(*socketCPU,message,tamanio,0);
-		if(a == -1) printf("fallo envio %d\n", *socketCPU);
+		pthread_mutex_unlock(&mutexListaCpusLibres);
+		if(send(*socketCPU,message,tamanio,0) < 0)
+			printf("fallo envio a cpu %d\n", *socketCPU);
 
 		free(message);
 	}
@@ -123,12 +130,13 @@ int main(){
 	sem_init(&hayIO,0,0);
 	pthread_mutex_init(&mutexProcesoListo,NULL);
 	pthread_mutex_init(&mutexInicializando,NULL);
-	pthread_mutex_init(&mutexListaCpus,NULL);
+	pthread_mutex_init(&mutexListaCpusLibres,NULL);
 	pthread_mutex_init(&mutexIO,NULL);
 	pthread_mutex_init(&mutexListaEjecutando,NULL);
 	pthread_mutex_init(&mutexSwitchProc,NULL);
 	pthread_mutex_init(&mutexFinalizarPid,NULL);
-	pthread_mutex_init(&mutexComandoCpu,NULL);
+	pthread_mutex_init(&mutexListasCpu,NULL);
+	pthread_mutex_init(&mutexListasPorcentajes,NULL);
 	//creacion de la instancia de log
 	logPlanificador = log_create("../src/log.txt", "planificador.c", false, LOG_LEVEL_INFO);
 
@@ -199,12 +207,13 @@ int main(){
 	sem_destroy(&hayProgramas);
 	pthread_mutex_destroy(&mutexIO);
 	pthread_mutex_destroy(&mutexInicializando);
-	pthread_mutex_destroy(&mutexListaCpus);
+	pthread_mutex_destroy(&mutexListaCpusLibres);
 	pthread_mutex_destroy(&mutexListaEjecutando);
 	pthread_mutex_destroy(&mutexProcesoListo);
 	pthread_mutex_destroy(&mutexSwitchProc);
 	pthread_mutex_destroy(&mutexFinalizarPid);
-	pthread_mutex_destroy(&mutexComandoCpu);
+	pthread_mutex_destroy(&mutexListasCpu);
+	pthread_mutex_destroy(&mutexListasPorcentajes);
 	/*destruyo la lista y sus elementos*/
 	list_destroy_and_destroy_elements(listaCpuLibres,free);
 	list_destroy_and_destroy_elements(listaEjecutando,free);

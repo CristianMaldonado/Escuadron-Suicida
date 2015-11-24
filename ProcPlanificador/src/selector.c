@@ -1,79 +1,35 @@
-#include "estructuras.h"
-#include "funcionesPlanificador.h"
-#include "libSocket.h"
 #include <commons/collections/list.h>
 #include <pthread.h>
 #include <commons/string.h>
+#include "estructuras.h"
+#include "funcionesPlanificador.h"
+#include "libSocket.h"
 #include "logueo.h"
-
-void eliminarCpusDesconectadas(int ** socketCpu, int * numeroCpus){
-
-	t_list * auxList = list_create();
-	int i;
-
-	for (i = 0; i < *numeroCpus; i++){
-		if ((*socketCpu)[i] != -1){
-			int * aux = malloc(sizeof(int));
-			*aux = (*socketCpu)[i];
-			list_add(auxList, aux);
-		}
-	}
-
-	/*actualizo cantidad de cpu conectadas*/
-	*numeroCpus = list_size(auxList);
-
-	/*cambio el tamano para solo contener las cpu conectadas*/
-	if (*socketCpu){
-		free(*socketCpu);
-		(*socketCpu) = malloc(sizeof(int)*(*numeroCpus));
-	}
-
-	for (i = 0; i < *numeroCpus; i++){
-		int * aux = list_remove(auxList, 0);
-		(*socketCpu)[i] = *aux;
-		free(aux);
-	}
-
-	list_destroy(auxList);
-}
-
-void agregarNuevaCpu(int nuevaCpu, int ** socketCpu, int * numeroCpus){
-	/*agrando vector para colocar el nuevo socket*/
-	(*socketCpu) = realloc((*socketCpu), sizeof(int)*((*numeroCpus) + 1));
-	/*agrego al final la nueva cpu*/
-	(*socketCpu)[*numeroCpus] = nuevaCpu;
-	/*actualizo cantidad*/
-	*numeroCpus = (*numeroCpus) + 1;
-}
 
 void * selector(void * arg) {
 	fd_set descriptores;
 	int numeroCpus = 0;
-	int * socketCpu = 0;
 	int i;
 
 	int servidor = ((tParametroSelector*)arg)->socket;
 
 	while(1){
-		/*elimino las cpu con -1*/
-		eliminarCpusDesconectadas(&socketCpu, &numeroCpus);
-
 		FD_ZERO(&descriptores);
 
 		/*añado el socket del planificador*/
 		FD_SET(servidor, &descriptores);
 		/*añado las cpus*/
 		for (i=0; i < numeroCpus; i++)
-			FD_SET (socketCpu[i], &descriptores);
+			FD_SET (*((int*)list_get(listaCpus,i)), &descriptores);
 
 		/*busco el descriptor mas grande*/
 		int maxfdset = 0;
 
 		if (numeroCpus > 1){
-			maxfdset = socketCpu[0];
+			maxfdset = *((int*)list_get(listaCpus,0));
 			for (i = 0; i < numeroCpus; i++)
-				if (socketCpu[i] > maxfdset)
-					maxfdset = socketCpu[i];
+				if (*((int*)list_get(listaCpus,i)) > maxfdset)
+					maxfdset = *((int*)list_get(listaCpus,i));
 		}
 
 		if (maxfdset < servidor)
@@ -86,36 +42,50 @@ void * selector(void * arg) {
 		/*compruebo las cpus*/
 		for (i = 0; i < numeroCpus; i++){
 
-			if (FD_ISSET (socketCpu[i], &descriptores)){
+			if (FD_ISSET (*((int*)list_get(listaCpus,i)), &descriptores)){
 
 				/*leo lo que me mando la cpu*/
 				protocolo_planificador_cpu respuestaDeCPU;
-				if(deserializarCPU(&respuestaDeCPU, socketCpu[i])){
+				if(deserializarCPU(&respuestaDeCPU, *((int*)list_get(listaCpus,i)))){
 
 					switch(respuestaDeCPU.tipoOperacion){
 						case 'e':{
-							tprocIO* aux = malloc(sizeof(tprocIO));
 							int* puntero = malloc(sizeof(int));
-							*puntero = socketCpu[i];
-							pthread_mutex_lock(&mutexListaCpus);
+							*puntero = *((int*)list_get(listaCpus,i));
+							pthread_mutex_lock(&mutexListaCpusLibres);
 							/*agreo la cpu a lista disponible*/
 							list_add(listaCpuLibres,puntero);
-							pthread_mutex_unlock(&mutexListaCpus);
+							pthread_mutex_unlock(&mutexListaCpusLibres);
+
+							tprocIO* pcbIO = malloc(sizeof(tprocIO));
 							pthread_mutex_lock(&mutexSwitchProc);
 							pthread_mutex_lock(&mutexListaEjecutando);
-							aux->pcb = list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando));
+							pcbIO->pcb = list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando));
 							pthread_mutex_unlock(&mutexListaEjecutando);
-							aux->pcb->siguiente = respuestaDeCPU.counterProgram;
-							aux->tiempo = atoi(respuestaDeCPU.mensaje);
-							aux->pcb->estado = IO;
-							pthread_mutex_lock(&mutexIO);
-							queue_push(colaIO,aux);
-							pthread_mutex_unlock(&mutexIO);
+							/*lo mando a listo, no hace io*/
+							if(hayQueFinalizarlo(pcbIO->pcb->pid)){
+								/*actualizo cp*/
+								pcbIO->pcb->siguiente = pcbIO->pcb->maximo;
+								pcbIO->pcb->estado = LISTO;
+								pthread_mutex_lock(&mutexProcesoListo);
+								ponerPrimero(&colaListos,pcbIO->pcb);
+								pthread_mutex_unlock(&mutexProcesoListo);
+								sem_post(&hayProgramas);
+							}
+							/*no hay que finalizarlo, mando a io*/
+							else{
+								pcbIO->pcb->siguiente = respuestaDeCPU.counterProgram;
+								pcbIO->tiempo = atoi(respuestaDeCPU.mensaje);
+								pcbIO->pcb->estado = IO;
+								pthread_mutex_lock(&mutexIO);
+								queue_push(colaIO,pcbIO);
+								pthread_mutex_unlock(&mutexIO);
+								printf("pid-> %d entro a io\n", respuestaDeCPU.pid);
+								sem_post(&hayIO);
+							}
 							pthread_mutex_unlock(&mutexSwitchProc);
 
-							sem_post(&hayIO);
 							sem_post(&hayCPU);
-							printf("pid-> %d entro a io\n", respuestaDeCPU.pid);
 						}
 						break;
 
@@ -130,6 +100,7 @@ void * selector(void * arg) {
 							list_add(listaEjecutando,pcb);
 							pthread_mutex_unlock(&mutexListaEjecutando);
 							pthread_mutex_unlock(&mutexSwitchProc);
+
 							logueoProcesos(respuestaDeCPU.pid,respuestaDeCPU.mensaje,'i');
 							logueoAlgoritmo(respuestaDeCPU.quantum,respuestaDeCPU.mensaje);
 							printf("pid-> %d inicio correctamente\n", respuestaDeCPU.pid);
@@ -140,11 +111,11 @@ void * selector(void * arg) {
 						/*aca se usa tipo proceso*/
 						case 'a':{
 							int* puntero = malloc(sizeof(int));
-							*puntero = socketCpu[i];
-							pthread_mutex_lock(&mutexListaCpus);
+							*puntero = *((int*)list_get(listaCpus,i));
+							pthread_mutex_lock(&mutexListaCpusLibres);
 							/*agreo la cpu a lista disponible*/
 							list_add(listaCpuLibres,puntero);
-							pthread_mutex_unlock(&mutexListaCpus);
+							pthread_mutex_unlock(&mutexListaCpusLibres);
 							sem_post(&hayCPU);
 
 							/*es un fallo de inicializacion*/
@@ -170,28 +141,30 @@ void * selector(void * arg) {
 						break;
 
 						case 'q':{
-							tpcb* pcb;
 							int* puntero = malloc(sizeof(int));
-							*puntero = socketCpu[i];
-							pthread_mutex_lock(&mutexListaCpus);
+							*puntero = *((int*)list_get(listaCpus,i));
+							pthread_mutex_lock(&mutexListaCpusLibres);
 							/*agreo la cpu a lista disponible*/
 							list_add(listaCpuLibres, puntero);
-							pthread_mutex_unlock(&mutexListaCpus);
+							pthread_mutex_unlock(&mutexListaCpusLibres);
 
+							tpcb* pcb;
 							pthread_mutex_lock(&mutexSwitchProc);
 							pthread_mutex_lock(&mutexListaEjecutando);
 							pcb = list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando));
 							pthread_mutex_unlock(&mutexListaEjecutando);
-							pcb->siguiente = respuestaDeCPU.counterProgram;
-							pcb->estado = LISTO;
-
-							pthread_mutex_lock(&mutexFinalizarPid);
-								if(hayQueFinalizarlo(pcb->pid,listaAfinalizar))
-									pcb->siguiente = pcb->maximo;
-							pthread_mutex_unlock(&mutexFinalizarPid);
-
 							pthread_mutex_lock(&mutexProcesoListo);
-							queue_push(colaListos,pcb);
+							if(hayQueFinalizarlo(pcb->pid)){
+								/*actualizo cp*/
+								pcb->siguiente = pcb->maximo;
+								pcb->estado = LISTO;
+								ponerPrimero(&colaListos, pcb);
+							}
+							else{
+								pcb->siguiente = respuestaDeCPU.counterProgram;
+								pcb->estado = LISTO;
+								queue_push(colaListos,pcb);
+							}
 							pthread_mutex_unlock(&mutexProcesoListo);
 							pthread_mutex_unlock(&mutexSwitchProc);
 
@@ -203,59 +176,63 @@ void * selector(void * arg) {
 
 						case 'f':{
 							int* puntero = malloc(sizeof(int));
-							*puntero = socketCpu[i];
-							pthread_mutex_lock(&mutexListaCpus);
+							*puntero = *((int*)list_get(listaCpus,i));
+							pthread_mutex_lock(&mutexListaCpusLibres);
 							/*agreo la cpu a lista disponible*/
 							list_add(listaCpuLibres, puntero);
-							pthread_mutex_unlock(&mutexListaCpus);
+							pthread_mutex_unlock(&mutexListaCpusLibres);
+
 							pthread_mutex_lock(&mutexSwitchProc);
 							pthread_mutex_lock(&mutexListaEjecutando);
 							free(list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando)));
 							pthread_mutex_unlock(&mutexListaEjecutando);
 							pthread_mutex_unlock(&mutexSwitchProc);
+
 							sem_post(&hayCPU);
 							logueoProcesos(respuestaDeCPU.pid,respuestaDeCPU.mensaje,'f');
 							printf("pid-> %d finalizo\n", respuestaDeCPU.pid);
 						}
 						break;
+
 						case 'u':{
 							tPorcentajeCpu* porcentaje = malloc(sizeof(tPorcentajeCpu));
 							porcentaje->tid = respuestaDeCPU.pid;
 							porcentaje->porcentaje = respuestaDeCPU.counterProgram;
+							pthread_mutex_lock(&mutexListasPorcentajes);
 							list_add(listaPorcentajeCpus,porcentaje);
 
-							if(list_size(listaPorcentajeCpus) == list_size(listaCpus)){
-
+							if(list_size(listaPorcentajeCpus) >= list_size(listaCpus)){
+								/*ordeno por tid*/
 								list_sort(listaPorcentajeCpus,comparadorTid);
-
 								int i;
 								for(i = 0; i < list_size(listaPorcentajeCpus); i++){
 									tPorcentajeCpu* aMostrar = list_get(listaPorcentajeCpus,i);
 									printf("CPU %d : %d %c\n",aMostrar->tid,aMostrar->porcentaje,37);
 								}
-
 								list_clean_and_destroy_elements(listaPorcentajeCpus,free);
 							}
-						}break;
+							pthread_mutex_unlock(&mutexListasPorcentajes);
+						}
+						break;
 					}
 				}
 				else
 				{
-
-					/*lo seteo en -1 para luego eliminarlo del vector*/
-					logueoConexionCPUS(socketCpu[i]);
-					pthread_mutex_lock(&mutexComandoCpu);
+					/*elimino cpu*/
+					pthread_mutex_lock(&mutexListasCpu);
 					int j;
 					for(j = 0; j < list_size(listaCpus); j++){
 						int* cpu = list_get(listaCpus,j);
-						if(*cpu == socketCpu[i]) {
+						if(*cpu == *((int*)list_get(listaCpus,i))) {
 							free(list_remove(listaCpus,j));
+							numeroCpus--;
 							break;
 						}
 					}
-					pthread_mutex_unlock(&mutexComandoCpu);
-					socketCpu[i] = -1;
-					printf("CPU desconectada\n");
+					pthread_mutex_unlock(&mutexListasCpu);
+
+					logueoConexionCPUS(*((int*)list_get(listaCpus,i)));
+					printf("CPU desconectada: %d\n", *((int*)list_get(listaCpus,i)));
 				}
 			}
 		}
@@ -270,23 +247,22 @@ void * selector(void * arg) {
 			logueoConexionCPUS(nuevaCpu);
 			if (nuevaCpu != -1){
 
-				/*se agrega el nuevo socket*/
-				agregarNuevaCpu(nuevaCpu, &socketCpu, &numeroCpus);
-
-				int * puntero = malloc(sizeof(int));
-				*puntero = nuevaCpu;
-				pthread_mutex_lock(&mutexListaCpus);
+				int * cpu1 = malloc(sizeof(int));
+				*cpu1 = nuevaCpu;
+				pthread_mutex_lock(&mutexListaCpusLibres);
 				/*agreo la cpu a lista disponible*/
-				list_add(listaCpuLibres, puntero);
-				pthread_mutex_unlock(&mutexListaCpus);
+				list_add(listaCpuLibres, cpu1);
+				pthread_mutex_unlock(&mutexListaCpusLibres);
+
+				int * cpu2 = malloc(sizeof(int));
+				*cpu2 = nuevaCpu;
+				pthread_mutex_lock(&mutexListasCpu);
+				/*agreo la cpu a lista de cpu conectadas*/
+				list_add(listaCpus,cpu2);
+				numeroCpus++;
+				pthread_mutex_unlock(&mutexListasCpu);
+
 				sem_post(&hayCPU);
-
-				int* p = malloc(sizeof(int));
-				*p = nuevaCpu;
-				pthread_mutex_lock(&mutexComandoCpu);
-				list_add(listaCpus,p);
-				pthread_mutex_unlock(&mutexComandoCpu);
-
 				printf("Nueva CPU conectada: %d\n", nuevaCpu);
 			}
 		}

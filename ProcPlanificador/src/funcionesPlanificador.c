@@ -135,18 +135,34 @@ int buscoPCB(int pidBuscado,t_list* lista){
 	return -1;
 }
 
-bool hayQueFinalizarlo(int pid,t_list* lista){
+void ponerPrimero(t_queue ** cola, tpcb * pcb){
+	t_queue * aux = queue_create();
 
+	queue_push(aux,pcb);
+	/*paso a cola aux que ya tiene primero el pcb a terminar*/
+	while(!queue_is_empty(*cola))
+		queue_push(aux, queue_pop(*cola));
+	/*vuelvo a pasar a la cola*/
+	while(!queue_is_empty(aux))
+		queue_push(*cola, queue_pop(aux));
+
+	queue_destroy(aux);
+}
+
+bool hayQueFinalizarlo(int pid){
+
+	bool r = false;
 	int i;
-	for(i=0 ; i<list_size(lista); i++){
-		int* aux = list_get(lista,i);
-
+	pthread_mutex_lock(&mutexFinalizarPid);
+	for(i=0 ; i<list_size(listaAfinalizar); i++){
+		int* aux = list_get(listaAfinalizar,i);
 		if(*aux == pid){
-			free(list_remove(lista,i));
-			return true;
+			free(list_remove(listaAfinalizar,i));
+			r = true;
 		}
 	}
-    return false;
+	pthread_mutex_unlock(&mutexFinalizarPid);
+    return r;
 }
 
 void finalizarPID(char* pidBuscado){
@@ -165,9 +181,7 @@ void finalizarPID(char* pidBuscado){
 	else {
 		pcb = list_get(lista,posicion);
 		pcb->siguiente = pcb->maximo;
-
 	}
-
 }
 
 int clasificarComando(char* message) {//OK
@@ -230,23 +244,25 @@ void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 		}
 			break;
 		case 2:{
-			int tamanio,p;
+			int tamanio;
 			protocolo_planificador_cpu* package = malloc(sizeof(protocolo_planificador_cpu));
 			package->mensaje = malloc(2);
 			strcpy(package->mensaje," ");
 			package->tamanioMensaje = strlen(package->mensaje) +1;
 			package->tipoOperacion = 'u';
 			void* message = serializarPaqueteCPU(package, &tamanio);
-			pthread_mutex_lock(&mutexComandoCpu);
-			int* socketCPU;
+			pthread_mutex_lock(&mutexListasPorcentajes);
 			if (list_size(listaPorcentajeCpus) == 0){
-				for(p = 0; p < list_size(listaCpus); p++){
-					socketCPU = list_get(listaCpus, p);
-					int a = send(*socketCPU,message,tamanio,0);
-					if(a == -1) printf("fallo envio a cpu %d\n", *socketCPU);
+				pthread_mutex_lock(&mutexListasCpu);
+				int i;
+				for(i = 0; i < list_size(listaCpus); i++){
+					int *socketCPU = list_get(listaCpus, i);
+					if(send(*socketCPU,message,tamanio,0) < 0)
+						printf("fallo envio a cpu %d\n", *socketCPU);
 				}
+				pthread_mutex_unlock(&mutexListasCpu);
 			}
-			pthread_mutex_unlock(&mutexComandoCpu);
+			pthread_mutex_unlock(&mutexListasPorcentajes);
 			free(package->mensaje);
 			free(package);
 			free(message);

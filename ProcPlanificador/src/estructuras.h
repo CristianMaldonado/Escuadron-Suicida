@@ -1,10 +1,3 @@
-/*
- * estructuras.h
- *
- *  Created on: 12/9/2015
- *      Author: utnso
- */
-
 #ifndef SRC_ESTRUCTURAS_H_
 #define SRC_ESTRUCTURAS_H_
 
@@ -36,14 +29,15 @@ t_list* listaAfinalizar;
 t_list* listaCpus;
 t_list* listaPorcentajeCpus;
 
-pthread_mutex_t mutexListaCpus;
+pthread_mutex_t mutexListaCpusLibres;
 pthread_mutex_t mutexProcesoListo;
 pthread_mutex_t mutexListaEjecutando;
 pthread_mutex_t mutexIO;
 pthread_mutex_t mutexInicializando;
 pthread_mutex_t mutexSwitchProc;
 pthread_mutex_t mutexFinalizarPid;
-pthread_mutex_t mutexComandoCpu;
+pthread_mutex_t mutexListasCpu;
+pthread_mutex_t mutexListasPorcentajes;
 
 t_log* logPlanificador;
 
