@@ -249,23 +249,7 @@ void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
 		list_add(*tlb, nueva_entrada);
 	}
 }
-/* otra solucion a la funcion
-void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
-	int i = 0, size = list_size(*tlb);
-	while(i < size) {
-		cache_13 * aux = list_get(*tlb, i);
-		if(aux->pid == pid && aux->esta_en_uso) {
-			list_remove(*tlb, i);
-			cache_13 * nueva_entrada = malloc(sizeof(cache_13));
-			nueva_entrada->pid = -1;
-			nueva_entrada->esta_en_uso = false;
-			list_add(*tlb, nueva_entrada);
-		}
-		else
-			i++;
-	}
-}
-*/
+
 void limpiar_la_tlb(t_list ** tlb){
 	int cant_entradas = list_size(*tlb);
 	while(!list_is_empty(*tlb))
