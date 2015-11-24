@@ -27,7 +27,7 @@ void * serializarPaquetePlanificador(protocolo_planificador_cpu * protocolo, int
 
 void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete, int* tamanio) {
 
-	size_t messageLength = strlen(paquete->mensaje);
+	size_t messageLength = strlen(paquete->mensaje) + 1;
 
 	void* paqueteSerializado = malloc(sizeof(protocolo_cpu_memoria) + messageLength);
 	int offset = 0;
@@ -56,7 +56,6 @@ void* serializarPaqueteMemoria(protocolo_cpu_memoria* paquete, int* tamanio) {
 
 	*tamanio = offset;
 	return paqueteSerializado;
-
 }
 
 int deserializarPlanificador(protocolo_planificador_cpu *package,int socketPlanificador) {

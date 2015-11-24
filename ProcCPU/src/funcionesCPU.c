@@ -18,8 +18,8 @@
 
 void enviarAMemoria(protocolo_cpu_memoria* message) {
 	int tamanio;
-	void* empaquetado = serializarPaqueteMemoria(message,&tamanio);
-	send(socketMemoria, empaquetado, tamanio,0);
+	void* empaquetado = serializarPaqueteMemoria(message, &tamanio);
+	send(socketMemoria, empaquetado, tamanio, 0);
 	free(empaquetado);
 }
 
@@ -28,7 +28,7 @@ void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete,
 	//TODO: Modificar estado (?
 }
 
-void actualizarOperacionPaquetePlanificadorIO(protocolo_planificador_cpu* paquete, char tipoOperacion,int IO){
+void actualizarOperacionPaquetePlanificadorIO(protocolo_planificador_cpu* paquete, char tipoOperacion, int IO){
 	paquete->tipoOperacion = tipoOperacion;
 	paquete->mensaje = (char*)malloc(sizeof(int));
 	strcpy(paquete->mensaje,string_itoa(IO));

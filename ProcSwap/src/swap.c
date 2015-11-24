@@ -79,7 +79,7 @@ int main(void) {
 						log_proc_rechazado(logSwap, paquete_de_memoria.pid);
 					}
 				}
-				avisar_a_memoria(cod_aux, paquete_de_memoria.pid, "-", socket_memoria, strlen("-"));
+				avisar_a_memoria(cod_aux, paquete_de_memoria.pid, "-", socket_memoria);
 			}
 			break;
 
@@ -112,15 +112,13 @@ int main(void) {
 				int desplazamiento_en_bytes = (pag_inicio + pag_leer) * config_swap->tamanioPagina;
 				fseek(swap, desplazamiento_en_bytes, SEEK_SET);
 
-				char * lectura_pagina = malloc(config_swap->tamanioPagina + 1);
+				char * lectura_pagina = malloc(config_swap->tamanioPagina);
 				fread(lectura_pagina, config_swap->tamanioPagina, 1, swap);
-				lectura_pagina[config_swap->tamanioPagina] = '\0';
 
-				/*tlista_ocupado * la_estructura = dame_la_estructura_del_pid(lista_ocupado);
-				la_estructura->catidad_paginas_leidas++;
-*/
+
+
 				log_lectura(logSwap, paquete_de_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, lectura_pagina);
-				avisar_a_memoria('i', paquete_de_memoria.pid, lectura_pagina, socket_memoria, config_swap->tamanioPagina);
+				avisar_a_memoria('i', paquete_de_memoria.pid, lectura_pagina, socket_memoria);
 			}
 			break;
 
@@ -132,8 +130,10 @@ int main(void) {
 				//me posiciono sobre la pagina a escribir
 				int desplazamiento_en_bytes = (pag_inicio + pagina_a_escribir) * config_swap->tamanioPagina;
 				log_escritura(logSwap, paquete_de_memoria.pid, pag_inicio, config_swap->tamanioPagina, pagina_a_escribir,paquete_de_memoria.mensaje);
+
 				fseek(swap, desplazamiento_en_bytes, SEEK_SET);
-				fwrite(paquete_de_memoria.mensaje ,paquete_de_memoria.tamanio_mensaje, 1, swap);
+				printf("por escribir : %s  tamanio: %d", paquete_de_memoria.mensaje, paquete_de_memoria.tamanio_mensaje);
+				fwrite(paquete_de_memoria.mensaje, paquete_de_memoria.tamanio_mensaje, 1, swap);
 			}
 			break;
 		}

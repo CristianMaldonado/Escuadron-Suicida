@@ -159,9 +159,9 @@ void asignar_espacio(int pid, int comienzo, int cantidad_pagina, t_list **lista_
 }
 
 
-void avisar_a_memoria(char cod_aux, int pid, char * pag_data, int socket_memoria, int tamanio_pag) {
+void avisar_a_memoria(char cod_aux, int pid, char * pag_data, int socket_memoria) {
 	tprotocolo_swap_memoria swap_memoria;
 	armar_estructura_protocolo_a_memoria(&swap_memoria, cod_aux, pid, pag_data);
 	void * buffer = serializar_a_memoria(&swap_memoria);
-	send(socket_memoria, buffer, 9 + tamanio_pag, 0);
+	send(socket_memoria, buffer, 9 + swap_memoria.tamanio, 0);
 }

@@ -140,9 +140,8 @@ int dame_un_marco_libre(t_list *lista_tabla_de_paginas, int cantidad_marcos) {
 
 char * dame_mensaje_de_memoria(char **memoria, int nro_marco, int tamanio_marco) {
 	char *mensaje_memoria = *memoria + nro_marco * tamanio_marco;
-	char *mensaje = malloc(tamanio_marco + 1);
-	memcpy(mensaje, mensaje_memoria, tamanio_marco);
-	mensaje[tamanio_marco] = '\0';
+	char *mensaje = malloc(tamanio_marco);
+	strcpy(mensaje, mensaje_memoria);
 	return mensaje;
 }
 
@@ -150,7 +149,7 @@ void avisar_a_cpu(char cod_op, char cod_aux, int pid, int paginas, char *mensaje
 	tprotocolo_memoria_cpu memoria_cpu;
 	armar_estructura_protocolo_a_cpu(&memoria_cpu, cod_op, cod_aux, pid, paginas, mensaje);
 	void * buffer = serializar_a_cpu(&memoria_cpu);
-	send(socket_cli_cpu, buffer, strlen(memoria_cpu.mensaje) + 15, 0);
+	send(socket_cli_cpu, buffer, memoria_cpu.tamanio_mensaje + 15, 0);
 	free(buffer);
 }
 
@@ -158,7 +157,7 @@ void avisar_a_swap(char cod_op, int pid, int paginas, char *mensaje, int socket_
 	tprotocolo_desde_cpu_y_hacia_swap paquete_a_swap;
 	armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, cod_op, pid, paginas, mensaje);
 	void * buffer = serializar_a_swap(&paquete_a_swap);
-	send(socket_ser_swap, buffer, strlen(paquete_a_swap.mensaje) + 13, 0);
+	send(socket_ser_swap, buffer, paquete_a_swap.tamanio_mensaje + 13, 0);
 	free(buffer);
 }
 
@@ -251,11 +250,28 @@ void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
 	}
 }
 */
+/*
+void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
+	int i = 0, size = list_size(*tlb);
+	while(i < size) {
+		cache_13 * aux = list_get(*tlb, i);
+		if(aux->pid == pid && aux->esta_en_uso) {
+			list_remove(*tlb, i);
+			cache_13 * nueva_entrada = malloc(sizeof(cache_13));
+			nueva_entrada->pid = -1;
+			nueva_entrada->esta_en_uso = false;
+			list_add(*tlb, nueva_entrada);
+		}
+		else
+			i++;
+	}
+}
+*/
 
 void borrame_las_entradas_del_proceso(int pid, t_list ** tlb) {
 	int entradas_borradas = 0;
 	int i;
-	for (i = list_size(*tlb) - 1; i >= 0 ; i++){
+	for (i = list_size(*tlb) - 1; i >= 0 ; i--){
 		cache_13 * aux = list_get(*tlb, i);
 		if(aux->pid == pid && aux->esta_en_uso){
 			free(list_remove(*tlb, i));

@@ -116,7 +116,7 @@ int main(void) {
 			case 'i': {
 				pthread_mutex_lock(&mutex);
 				void* buffer = serializar_a_swap(&paquete_desde_cpu);
-				send(socketClienteSWAP, buffer, strlen(paquete_desde_cpu.mensaje) + 13, 0);
+				send(socketClienteSWAP, buffer, paquete_desde_cpu.tamanio_mensaje + 13, 0);
 				free(buffer);
 
 				log_inicializar(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas);
@@ -136,7 +136,7 @@ int main(void) {
 			case 'f': {
 				pthread_mutex_lock(&mutex);
 				void* buffer = serializar_a_swap(&paquete_desde_cpu);
-				send(socketClienteSWAP, buffer, strlen(paquete_desde_cpu.mensaje) + 13, 0);
+				send(socketClienteSWAP, buffer, paquete_desde_cpu.tamanio_mensaje + 13, 0);
 				free(buffer);
 
 				eliminar_tabla_de_proceso(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
@@ -215,8 +215,10 @@ int main(void) {
 								//la pagina ocupada la paso a la swap si esta modificada
 								llevar_a_swap(socketClienteSWAP,memoria,pagina_ocupada,config->tamanio_marco,paquete_desde_cpu.pid);
 
-								//traerse la pagina nueva desde swap
-								traer_de_swap(socketClienteSWAP,memoria,pagina_nueva->nro_marco,pagina_nueva->nro_pagina,config->tamanio_marco,paquete_desde_cpu.pid);
+								if(paquete_desde_cpu.cod_op == 'l') {
+									//traerse la pagina nueva desde swap
+									traer_de_swap(socketClienteSWAP,memoria,pagina_nueva->nro_marco,pagina_nueva->nro_pagina,config->tamanio_marco,paquete_desde_cpu.pid);
+								}
 
 								char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
 								int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, pagina_nueva->nro_marco);
@@ -262,8 +264,10 @@ int main(void) {
 									free(pagina_ocupada);
 								}
 
-								//traerse la pagina nueva desde swap
-								traer_de_swap(socketClienteSWAP,memoria,nro_marco,paquete_desde_cpu.paginas,config->tamanio_marco,paquete_desde_cpu.pid);
+								if(paquete_desde_cpu.cod_op == 'l') {
+									//traerse la pagina nueva desde swap
+									traer_de_swap(socketClienteSWAP,memoria,nro_marco,paquete_desde_cpu.paginas,config->tamanio_marco,paquete_desde_cpu.pid);
+								}
 
 								char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
 								int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, nro_marco);
@@ -306,8 +310,10 @@ int main(void) {
 											if(config->habilitadaTLB)
 												fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, pagina->nro_marco, paquete_desde_cpu.paginas);
 
-											//traerse la pagina nueva desde swap
-											traer_de_swap(socketClienteSWAP,memoria,nro_marco,paquete_desde_cpu.paginas,config->tamanio_marco,paquete_desde_cpu.pid);
+											if(paquete_desde_cpu.cod_op == 'l') {
+												//traerse la pagina nueva desde swap
+												traer_de_swap(socketClienteSWAP,memoria,nro_marco,paquete_desde_cpu.paginas,config->tamanio_marco,paquete_desde_cpu.pid);
+											}
 
 											char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
 											int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, pagina->nro_marco);
@@ -348,8 +354,10 @@ int main(void) {
 									if(config->habilitadaTLB)
 										fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, pagina->nro_marco, paquete_desde_cpu.paginas);
 
-									//traerse la pagina nueva desde swap
-									traer_de_swap(socketClienteSWAP,memoria,nro_marco,paquete_desde_cpu.paginas,config->tamanio_marco,paquete_desde_cpu.pid);
+									if(paquete_desde_cpu.cod_op == 'l') {
+										//traerse la pagina nueva desde swap
+										traer_de_swap(socketClienteSWAP,memoria,nro_marco,paquete_desde_cpu.paginas,config->tamanio_marco,paquete_desde_cpu.pid);
+									}
 
 									char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
 									int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, pagina->nro_marco);
