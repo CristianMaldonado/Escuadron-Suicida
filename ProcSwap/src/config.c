@@ -6,8 +6,8 @@
 #include "estructuras.h"
 #include "paquetes.h"
 #include <commons/string.h>
+#include <commons/collections/list.h>
 #include <string.h>
-
 
 tconfig_swap* leerConfiguracion() {
 	tconfig_swap* datosSwap = malloc(sizeof(tconfig_swap));
@@ -22,8 +22,6 @@ tconfig_swap* leerConfiguracion() {
 	return datosSwap;
 }
 
-
-
 void log_inicializar(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pagina, int paginas_asignadas) {
 	char * str = malloc(20);
 	strcpy(str, "inicializar-> pid: ");
@@ -36,12 +34,33 @@ void log_inicializar(t_log *log, int pid, int nro_pagina_inicial, int tamanio_pa
 	log_info(log,str);
 }
 
-void log_finalizar(t_log *log, int pid, int tamanio_pagina, int paginas_asignadas) {
-	char * str = malloc(20);;
+void log_finalizar(t_log *log, t_list * lista_procesado, int pid, int pag_ocupadas, int tamanio_pagina) {
+	char * str = malloc(20);
 	strcpy(str, "finalizado-> pid: ");
 	string_append(&str, string_itoa(pid));
 	string_append(&str, ", tamanio_en_bytes_liberados: ");
-	string_append(&str, string_itoa(paginas_asignadas*tamanio_pagina));
+	string_append(&str, string_itoa(pag_ocupadas*tamanio_pagina));
+
+	int leidas = 0;
+	int escritas = 0;
+	int i;
+	for(i = list_size(lista_procesado) - 1; i >= 0 ; i--){
+		tpagina_procesada * aux = list_get(lista_procesado,i);
+		if (aux->pid == pid){
+			if (aux->leida)
+				leidas++;
+			if (aux->escrita)
+				escritas++;
+
+			list_remove(lista_procesado,i);
+		}
+		free(aux);
+	}
+
+	string_append(&str, ", paginas leidas: ");
+	string_append(&str, string_itoa(leidas));
+	string_append(&str, ", paginas escritas: ");
+	string_append(&str, string_itoa(escritas));
 	string_append(&str, "\n");
 	log_info(log,str);
 }

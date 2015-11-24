@@ -9,7 +9,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-
 void reinicar_archivo_swap(FILE **swap, t_list **lista_ocupada) {
 	fclose(*swap);
 	*swap = iniciar_archivo_swap();
@@ -38,15 +37,13 @@ t_list *pasar_ocupada_a_lista_auxiliar(FILE **swap, t_list **lista_ocupada, int 
 int get_comienzo_espacio_asignado(t_list * lista_ocupado, int pid) {
 	int i;
 	for (i = 0; i < list_size(lista_ocupado); i++){
-		tlista_ocupado * ocupado = malloc(sizeof(tlista_ocupado));
-		ocupado = list_get(lista_ocupado, i);
+		tlista_ocupado * ocupado = list_get(lista_ocupado, i);
 		if (ocupado->pid == pid)
 			return ocupado->comienzo;
 	}
 	return -1; // si no encuentra el pid en la lista
 }
 
-// 1: hay espacio ; 0: no hay espacio
 int dame_si_hay_espacio(t_list** lista_vacia, int paginas_pedidas, int* comienzo) {
 	int i;
 	tlista_vacio *aux;
@@ -145,23 +142,54 @@ void arreglar_lista_vacia(t_list ** lista_vacia) {
 	*lista_vacia = list_aux;
 }
 
-
 void asignar_espacio(int pid, int comienzo, int cantidad_pagina, t_list **lista_ocupado, t_log **log_swap, int tamanio_pagina) {
 	//asignar el espacio solicitado
 	tlista_ocupado *ocupado = malloc(sizeof(tlista_ocupado));
 	ocupado->pid = pid;
 	ocupado->comienzo = comienzo;
 	ocupado->paginas_ocupadas = cantidad_pagina;
-	/*ocupado->cantidad_paginas_escritas = 0;
-	ocupado->catidad_paginas_leidas = 0;*/
 	list_add(*lista_ocupado, ocupado);
 	log_inicializar(*log_swap, pid, comienzo, tamanio_pagina, cantidad_pagina);
 }
-
 
 void avisar_a_memoria(char cod_aux, int pid, char * pag_data, int socket_memoria) {
 	tprotocolo_swap_memoria swap_memoria;
 	armar_estructura_protocolo_a_memoria(&swap_memoria, cod_aux, pid, pag_data);
 	void * buffer = serializar_a_memoria(&swap_memoria);
 	send(socket_memoria, buffer, 9 + swap_memoria.tamanio, 0);
+}
+
+tpagina_procesada * buscar_pagina(t_list * lista_paginas_procesadas, int num_pagina, int pid){
+	int i;
+	for (i = 0; i < list_size(lista_paginas_procesadas); i++){
+		tpagina_procesada * aux = list_get(lista_paginas_procesadas, i);
+		if (aux->num_pagina == num_pagina && aux->pid == pid)
+			return aux;
+	}
+	return 0;
+}
+
+void registrarOperacion(t_list ** lista_procesado, int pid, int num_pagina, bool es_lectura){
+
+	tpagina_procesada * pag = buscar_pagina(*lista_procesado, num_pagina, pid);
+	if (pag){
+		if (es_lectura)
+			pag->leida = true;
+		else
+			pag->escrita = true;
+	}
+	else{
+		pag = malloc(sizeof(tpagina_procesada));
+		pag->pid = pid;
+		pag->num_pagina = num_pagina;
+		pag->escrita = false;
+		pag->leida = false;
+
+		if (es_lectura)
+			pag->leida = true;
+		else
+			pag->escrita = true;
+
+		list_add(*lista_procesado, pag);
+	}
 }

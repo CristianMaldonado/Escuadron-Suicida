@@ -25,6 +25,9 @@ t_log * logMem;
 char * memoria;
 int socketClienteSWAP;
 pthread_mutex_t mutex;
+pthread_mutex_t mutexLog;
+int cant_aciertos_tlb = 0;
+int cant_accedidas_tlb = 0;
 
 void sig_handler(int numSignal){
 
@@ -54,12 +57,28 @@ void sig_handler(int numSignal){
 	}
 }
 
+void * mostrar_tasa_tlb(){
+	while (1){
+		sleep(5);
+		pthread_mutex_lock(&mutexLog);
+		log_info(logMem,"tasa acierto en la tlb: %f\n", (cant_aciertos_tlb*100.0f)/cant_accedidas_tlb);
+		pthread_mutex_unlock(&mutexLog);
+	}
+}
+
 int main(void) {
 	system("clear");
 	config = leerConfiguracion();
 	logMem = log_create("log.txt", "memoria.c", false, LOG_LEVEL_INFO);
 
 	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_init(&mutexLog, NULL);
+
+	pthread_t tasa_tlb;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	/*creacion de hilos*/
+	pthread_create(&tasa_tlb,&attr,mostrar_tasa_tlb,NULL);
 
 	//Definimos datos Cliente listener
 	int socketServidorCPU, socketClienteCPU;
@@ -87,39 +106,15 @@ int main(void) {
 		sleep(config->retardoMemoria);
 		printf("pid-> %d operacion %c\n", paquete_desde_cpu.pid, toupper(paquete_desde_cpu.cod_op));
 
-		//system("clear");
-		/*
-		if (list_size(lista_tabla_de_paginas) > 0){
-			int i;
-			tabla_paginas * tabla = list_get(lista_tabla_de_paginas,0);
-			printf("pagina:%d, op:%c\n",paquete_desde_cpu.paginas, paquete_desde_cpu.cod_op);
-			printf("puntero pos: %d\n",tabla->pos_puntero);
-
-
-			for (i = list_size(tabla->list_pagina_direccion) - 1; i>=0 ;i--){
-
-				pagina_direccion * pagina = list_get(tabla->list_pagina_direccion,i);
-				if (pagina->nro_pagina != -1)
-					printf("%d, uso: %d, mod: %d\n", pagina->nro_pagina,pagina->en_uso,pagina->fue_modificado);
-			}
-
-			for (i = 0; i <list_size(tabla->list_pagina_direccion) ;i++){
-
-				pagina_direccion * pagina = list_get(tabla->list_pagina_direccion,i);
-				if (pagina->nro_pagina != -1)
-					printf("%d, uso: %d, mod: %d\n", pagina->nro_pagina,pagina->en_uso,pagina->fue_modificado);
-			}
-		}
-		*/
-
 		switch (paquete_desde_cpu.cod_op) {
 			case 'i': {
 				pthread_mutex_lock(&mutex);
 				void* buffer = serializar_a_swap(&paquete_desde_cpu);
 				send(socketClienteSWAP, buffer, paquete_desde_cpu.tamanio_mensaje + 13, 0);
 				free(buffer);
-
+				pthread_mutex_lock(&mutexLog);
 				log_inicializar(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas);
+				pthread_mutex_unlock(&mutexLog);
 				tprotocolo_swap_memoria swap_memoria;
 				recibir_paquete_desde_swap(socketClienteSWAP, &swap_memoria);
 
@@ -139,11 +134,14 @@ int main(void) {
 				send(socketClienteSWAP, buffer, paquete_desde_cpu.tamanio_mensaje + 13, 0);
 				free(buffer);
 
+				tabla_paginas *tabla = dame_la_tabla_de_paginas(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
+				pthread_mutex_lock(&mutexLog);
+				log_info(logMem, "proceso finalizado -> pid: %d, fallos de paginas: %d, paginas accedidas: %d\n", paquete_desde_cpu.pid,tabla->cant_fallos_paginas,list_size(tabla->paginas_accedidas));
+				pthread_mutex_unlock(&mutexLog);
+
 				eliminar_tabla_de_proceso(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
 				if(config->habilitadaTLB)
 					borrame_las_entradas_del_proceso(paquete_desde_cpu.pid, &tlb);
-
-				log_info(logMem, "proceso finalizado -> pid: %d\n", paquete_desde_cpu.pid);
 
 				avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteCPU);
 				free(paquete_desde_cpu.mensaje);
@@ -154,6 +152,7 @@ int main(void) {
 			case 'e':
 			case 'l': {
 				pthread_mutex_lock(&mutex);
+				cant_accedidas_tlb++;
 				//si la tlb esta activada
 				int marco_en_tlb = -1;
 				if(config->habilitadaTLB)
@@ -171,7 +170,9 @@ int main(void) {
 							nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, nro_marco);
 						}
 
+						pthread_mutex_lock(&mutexLog);
 						log_acceso_memoria(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_marco);
+						pthread_mutex_unlock(&mutexLog);
 
 						if(config->algoritmo_reemplazo == 'L')
 							aplicar_LRU(&(tabla_de_paginas->list_pagina_direccion), paquete_desde_cpu.paginas);
@@ -179,14 +180,18 @@ int main(void) {
 						if(paquete_desde_cpu.cod_op == 'l') {
 							char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
 							char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanio_marco);
+							pthread_mutex_lock(&mutexLog);
 							log_lectura_escritura('l', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, mensaje);
+							pthread_mutex_unlock(&mutexLog);
 							avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
 							free(paquete_desde_cpu.mensaje);
 							free(mensaje);
 						}
 						else{
 							char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
+							pthread_mutex_lock(&mutexLog);
 							log_lectura_escritura('e', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, paquete_desde_cpu.mensaje);
+							pthread_mutex_unlock(&mutexLog);
 							memcpy(memoria + nro_marco * config->tamanio_marco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
 							poneme_en_modificado_la_entrada(tabla_de_paginas, paquete_desde_cpu.paginas);
 							avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
@@ -194,7 +199,11 @@ int main(void) {
 						}
 					}
 					else {//si no esta en la memoria
+						pthread_mutex_lock(&mutexLog);
 						log_acceso_a_swap(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas);
+						pthread_mutex_unlock(&mutexLog);
+						tabla_de_paginas->cant_fallos_paginas++;
+						registrar_acceso(&(tabla_de_paginas->paginas_accedidas),paquete_desde_cpu.paginas);
 						if(estan_los_frames_ocupados(tabla_de_paginas->list_pagina_direccion, config->algoritmo_reemplazo == 'C')) {
 							if (config->algoritmo_reemplazo != 'C') {
 								pagina_direccion *pagina_ocupada = list_remove(tabla_de_paginas->list_pagina_direccion, 0);
@@ -227,12 +236,16 @@ int main(void) {
 								//avisar a la cpu
 								if(paquete_desde_cpu.cod_op == 'l') {
 									char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanio_marco);
+									pthread_mutex_lock(&mutexLog);
 									log_lectura_escritura('l', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, mensaje);
+									pthread_mutex_unlock(&mutexLog);
 									avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
 									free(mensaje);
 								}
 								else{
+									pthread_mutex_lock(&mutexLog);
 									log_lectura_escritura('e', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, paquete_desde_cpu.mensaje);
+									pthread_mutex_unlock(&mutexLog);
 									memcpy(memoria + nro_marco * config->tamanio_marco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
 									pagina_nueva->fue_modificado = true;
 									avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
@@ -275,11 +288,15 @@ int main(void) {
 								//avisar a la cpu
 								if(paquete_desde_cpu.cod_op == 'l') {
 									char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanio_marco);
+									pthread_mutex_lock(&mutexLog);
 									log_lectura_escritura('l', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, mensaje);
+									pthread_mutex_unlock(&mutexLog);
 									avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
 									free(mensaje);
 								} else {
+									pthread_mutex_lock(&mutexLog);
 									log_lectura_escritura('e', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, paquete_desde_cpu.mensaje);
+									pthread_mutex_unlock(&mutexLog);
 									memcpy(memoria + nro_marco * config->tamanio_marco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
 									poneme_en_modificado_la_entrada(tabla_de_paginas, paquete_desde_cpu.paginas);
 									avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
@@ -321,12 +338,16 @@ int main(void) {
 											//avisar a la cpu
 											if(paquete_desde_cpu.cod_op == 'l') {
 												char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanio_marco);
+												pthread_mutex_lock(&mutexLog);
 												log_lectura_escritura('l', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, mensaje);
+												pthread_mutex_unlock(&mutexLog);
 												avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
 												free(mensaje);
 											}
 											else{
+												pthread_mutex_lock(&mutexLog);
 												log_lectura_escritura('e', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, paquete_desde_cpu.mensaje);
+												pthread_mutex_unlock(&mutexLog);
 												memcpy(memoria + nro_marco * config->tamanio_marco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
 												pagina->fue_modificado = true;
 												avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
@@ -365,11 +386,15 @@ int main(void) {
 									//avisar a la cpu
 									if(paquete_desde_cpu.cod_op == 'l') {
 										char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanio_marco);
+										pthread_mutex_lock(&mutexLog);
 										log_lectura_escritura('l', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, mensaje);
+										pthread_mutex_unlock(&mutexLog);
 										avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
 										free(mensaje);
 									}else{
+										pthread_mutex_lock(&mutexLog);
 										log_lectura_escritura('e', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, paquete_desde_cpu.mensaje);
+										pthread_mutex_unlock(&mutexLog);
 										memcpy(memoria + nro_marco * config->tamanio_marco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
 										pagina->fue_modificado = true;
 										avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
@@ -385,28 +410,34 @@ int main(void) {
 					}
 				} else {//si esta en la tlb
 
+					cant_aciertos_tlb++;
 					int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, marco_en_tlb);
 
 					tabla_paginas *tabla_de_paginas = dame_la_tabla_de_paginas(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
 					if(config->algoritmo_reemplazo == 'L')
 						aplicar_LRU(&(tabla_de_paginas->list_pagina_direccion), paquete_desde_cpu.paginas);
 
+					pthread_mutex_lock(&mutexLog);
 					log_acceso_memoria(logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, marco_en_tlb);
-
+					pthread_mutex_unlock(&mutexLog);
 
 					if(config->algoritmo_reemplazo == 'C')
 						poneme_en_uso_la_entrada(tabla_de_paginas, paquete_desde_cpu.paginas);
 
 					if(paquete_desde_cpu.cod_op == 'l') {
 						char * mensaje = dame_mensaje_de_memoria(&memoria, marco_en_tlb, config->tamanio_marco);
+						pthread_mutex_lock(&mutexLog);
 						log_lectura_escritura('l', "-", logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, true,marco_en_tlb, mensaje);
+						pthread_mutex_unlock(&mutexLog);
 						avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
 						free(mensaje);
 					}
 					else{
 						memcpy(memoria + marco_en_tlb * config->tamanio_marco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
 						tabla_paginas * tabla_de_paginas = dame_la_tabla_de_paginas(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
+						pthread_mutex_lock(&mutexLog);
 						log_lectura_escritura('e', "-", logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, true, marco_en_tlb, paquete_desde_cpu.mensaje);
+						pthread_mutex_unlock(&mutexLog);
 						poneme_en_modificado_la_entrada(tabla_de_paginas, paquete_desde_cpu.paginas);
 						avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
 					}
@@ -422,6 +453,7 @@ int main(void) {
 	close(socketClienteCPU);
 	close(socketServidorCPU);
 	pthread_mutex_destroy(&mutex);
+	pthread_mutex_destroy(&mutexLog);
 	return 0;
 	// la lista esta alreves, list_add te agrega al final, y en fifo lo que sacamos esta al principio, lru mandamos al final
 }

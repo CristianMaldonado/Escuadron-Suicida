@@ -15,13 +15,13 @@
 #include <unistd.h>
 #include <ctype.h>
 
-
 int main(void) {
 	system("clear");
 	t_log *logSwap = log_create("log.txt", "swap.c", false, LOG_LEVEL_INFO);
  	tconfig_swap* config_swap = leerConfiguracion();
 	t_list * lista_ocupado = list_create();
 	t_list * lista_vacia = list_create();
+	t_list * lista_procesado = list_create();
 	FILE *swap = iniciar_archivo_swap();
 
 	tlista_vacio *vacio = malloc(sizeof(tlista_vacio));
@@ -95,7 +95,7 @@ int main(void) {
 						list_add(lista_vacia,espacio_vacio);
 
 						//saco espacio de lista ocupado
-						log_finalizar(logSwap,espacio_ocupado->pid,config_swap->tamanioPagina, espacio_ocupado->paginas_ocupadas);
+						log_finalizar(logSwap,lista_procesado, espacio_ocupado->pid, espacio_ocupado->paginas_ocupadas, config_swap->tamanioPagina);
 						free(list_remove(lista_ocupado, i));
 						arreglar_lista_vacia(&lista_vacia);
 					}
@@ -115,9 +115,9 @@ int main(void) {
 				char * lectura_pagina = malloc(config_swap->tamanioPagina);
 				fread(lectura_pagina, config_swap->tamanioPagina, 1, swap);
 
-
-
 				log_lectura(logSwap, paquete_de_memoria.pid, pag_inicio,config_swap->tamanioPagina, pag_leer, lectura_pagina);
+				registrarOperacion(&lista_procesado,paquete_de_memoria.pid,pag_leer,true);
+
 				avisar_a_memoria('i', paquete_de_memoria.pid, lectura_pagina, socket_memoria);
 			}
 			break;
@@ -129,10 +129,11 @@ int main(void) {
 
 				//me posiciono sobre la pagina a escribir
 				int desplazamiento_en_bytes = (pag_inicio + pagina_a_escribir) * config_swap->tamanioPagina;
+
 				log_escritura(logSwap, paquete_de_memoria.pid, pag_inicio, config_swap->tamanioPagina, pagina_a_escribir,paquete_de_memoria.mensaje);
+				registrarOperacion(&lista_procesado,paquete_de_memoria.pid,pagina_a_escribir,false);
 
 				fseek(swap, desplazamiento_en_bytes, SEEK_SET);
-				printf("por escribir : %s  tamanio: %d", paquete_de_memoria.mensaje, paquete_de_memoria.tamanio_mensaje);
 				fwrite(paquete_de_memoria.mensaje, paquete_de_memoria.tamanio_mensaje, 1, swap);
 			}
 			break;

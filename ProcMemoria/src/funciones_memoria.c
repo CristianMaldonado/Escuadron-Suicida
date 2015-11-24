@@ -17,6 +17,8 @@ tabla_paginas * inicializar_tabla_de_paginas(int cantidad_maxima_marcos_por_proc
 	tabla->list_pagina_direccion = list_create();
 	tabla->pid = pid;
 	tabla->pos_puntero = 0;
+	tabla->paginas_accedidas = list_create();
+	tabla->cant_fallos_paginas = 0;
 	int i;
 	for(i = 0 ; i < cantidad_maxima_marcos_por_proceso ; i++) {
 		pagina_direccion *pagina = malloc(sizeof(pagina_direccion));
@@ -34,6 +36,7 @@ void eliminar_tabla_de_proceso(int pid, t_list ** lista_tabla_de_paginas) {
 	for(i = 0 ; i < count ; i++) {
 		tabla_paginas *tabla = list_get(*lista_tabla_de_paginas, i);
 		if(tabla->pid == pid) {
+			list_destroy_and_destroy_elements(tabla->paginas_accedidas,free);
 			list_destroy_and_destroy_elements(tabla->list_pagina_direccion, free);
 			free(list_remove(*lista_tabla_de_paginas, i));
 			break;
@@ -431,6 +434,18 @@ void traer_de_swap(int socket_Swap, char * memoria, int nro_marco, int nro_pagin
 	//pasar la pagina desde el swap a la memoria
 	memcpy(memoria + nro_marco * tamanio_marco, swap_memoria.mensaje, swap_memoria.tamanio);
 	free(swap_memoria.mensaje);
+}
+
+void registrar_acceso(t_list ** lista, int num_pagina){
+	int i;
+	for (i = 0; i < list_size(*lista); i++){
+		int *num = list_get(*lista,i);
+		if (*num == num_pagina)
+			return;
+	}
+	int * num = malloc(sizeof(int));
+	*num = num_pagina;
+	list_add(*lista,num);
 }
 
 

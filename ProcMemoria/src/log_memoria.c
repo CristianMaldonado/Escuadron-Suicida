@@ -35,7 +35,6 @@ void log_lectura_escritura(char operacion, char * resultado, t_log *log, int pid
 	log_info(log,str);
 }
 
-
 void log_acceso_memoria(t_log * log, int pid, int pagina, int nro_marco) {
 	char * str = string_new();
 	string_append(&str, "acceso a memoria -> pid: ");
@@ -64,5 +63,4 @@ void log_seniales(t_log * log, char * mensaje) {
 	string_append(&str, mensaje);
 	string_append(&str, "\n");
 	log_info(log, mensaje);
-
 }

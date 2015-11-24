@@ -296,7 +296,7 @@ void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 
 int deserializarCPU(protocolo_planificador_cpu * package, int socketCPU) {
 	void* buffer = malloc(sizeof(protocolo_planificador_cpu)-4);
-	if (recv(socketCPU, buffer, sizeof(protocolo_planificador_cpu)-4, 0) <= 0) return -1;
+	if (recv(socketCPU, buffer, sizeof(protocolo_planificador_cpu)-4, 0) <= 0) return 0;
 	memcpy(&(package->tipoProceso), buffer, 1);
 	memcpy(&(package->tipoOperacion), buffer + 1, 1);
 	memcpy(&(package->estado), buffer + 2 ,4);
@@ -306,7 +306,7 @@ int deserializarCPU(protocolo_planificador_cpu * package, int socketCPU) {
 	memcpy(&(package->tamanioMensaje), buffer + 18, 4);
 	// ahora el mensaje posta
 	package->mensaje = (char*)malloc(package->tamanioMensaje + 1);
-	if(recv(socketCPU, package->mensaje, package->tamanioMensaje, 0) <= 0) return -1;
+	if(recv(socketCPU, package->mensaje, package->tamanioMensaje, 0) <= 0) return 0;
 	package->mensaje[package->tamanioMensaje] = '\0';
 	free(buffer);
 	return 1;

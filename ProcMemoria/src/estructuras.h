@@ -24,9 +24,10 @@ typedef struct {
 typedef struct {
 	int pid;
 	int pos_puntero;
+	int cant_fallos_paginas;
+	t_list * paginas_accedidas;
 	t_list * list_pagina_direccion;
 } tabla_paginas;
-
 
 typedef struct {
 	char* puertoEscucha;

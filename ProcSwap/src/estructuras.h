@@ -1,5 +1,6 @@
 #ifndef SRC_ESTRUCTURAS_H_
 #define SRC_ESTRUCTURAS_H_
+#include <stdbool.h>
 
 // estructura para leer el archivo de configuracion
 typedef struct {
@@ -9,7 +10,7 @@ typedef struct {
 	int tamanioPagina;
 	int retardo;
 	int retardo_swap;
-}   tconfig_swap;
+} tconfig_swap;
 
 typedef struct {
 	int pid;
@@ -28,10 +29,15 @@ typedef struct {
 
 typedef struct{
 	int pid;
+	int num_pagina;
+	bool escrita;
+	bool leida;
+} tpagina_procesada;
+
+typedef struct{
+	int pid;
 	int comienzo;
 	int paginas_ocupadas;
-	/*int catidad_paginas_leidas;
-	int cantidad_paginas_escritas;*/
 } tlista_ocupado;
 
 typedef struct{

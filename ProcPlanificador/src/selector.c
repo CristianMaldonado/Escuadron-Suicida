@@ -218,6 +218,9 @@ void * selector(void * arg) {
 				}
 				else
 				{
+					logueoConexionCPUS(*((int*)list_get(listaCpus,i)));
+					printf("CPU desconectada: %d\n", *((int*)list_get(listaCpus,i)));
+
 					/*elimino cpu*/
 					pthread_mutex_lock(&mutexListasCpu);
 					int j;
@@ -230,9 +233,6 @@ void * selector(void * arg) {
 						}
 					}
 					pthread_mutex_unlock(&mutexListasCpu);
-
-					logueoConexionCPUS(*((int*)list_get(listaCpus,i)));
-					printf("CPU desconectada: %d\n", *((int*)list_get(listaCpus,i)));
 				}
 			}
 		}

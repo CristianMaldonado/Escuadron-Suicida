@@ -25,7 +25,6 @@ void enviarAMemoria(protocolo_cpu_memoria* message) {
 
 void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete, char tipoOperacion){
 	paquete->tipoOperacion = tipoOperacion;
-	//TODO: Modificar estado (?
 }
 
 void actualizarOperacionPaquetePlanificadorIO(protocolo_planificador_cpu* paquete, char tipoOperacion, int IO){
@@ -68,9 +67,24 @@ bool interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 			entendio = true;
 		}
 		if(string_starts_with(instruccion,"escribir")) {
+
+			char * str = lineaFiltrada[2];
+			int lng = strlen(str);
+			char * aux = malloc(lng);
+			int i;
+			for(i = 1; i < lng; i++){
+				if (str[i] == '\"'){
+					aux[i-1] = '\0';
+					break;
+				}
+				aux[i-1] = str[i];
+			}
+
 			int numero = atoi(lineaFiltrada[1]);
-			armarPaqueteMemoria(mensajeParaArmar, 'e',mensajeDePlanificador->pid, numero, lineaFiltrada[2]);
+			armarPaqueteMemoria(mensajeParaArmar, 'e',mensajeDePlanificador->pid, numero,aux);
 			entendio = true;
+
+			free(aux);
 		}
 		if(string_starts_with(instruccion,"entrada-salida")) {
 			int tiempo = atoi(lineaFiltrada[1]);
