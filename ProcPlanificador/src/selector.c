@@ -102,7 +102,7 @@ void * selector(void * arg) {
 							pthread_mutex_unlock(&mutexSwitchProc);
 
 							logueoProcesos(respuestaDeCPU.pid,respuestaDeCPU.mensaje,'i');
-							logueoAlgoritmo(respuestaDeCPU.quantum,respuestaDeCPU.mensaje);
+							logueoAlgoritmo(respuestaDeCPU.quantum,pcb->nombre);
 							printf("pid-> %d inicio correctamente\n", respuestaDeCPU.pid);
 
 						}
@@ -218,7 +218,7 @@ void * selector(void * arg) {
 				}
 				else
 				{
-					logueoConexionCPUS(*((int*)list_get(listaCpus,i)));
+					log_info(logPlanificador,"Conexion en socket %d cerrada\n",*((int*)list_get(listaCpus,i)));
 					printf("CPU desconectada: %d\n", *((int*)list_get(listaCpus,i)));
 
 					/*elimino cpu*/
@@ -244,7 +244,7 @@ void * selector(void * arg) {
 			/*acepto la cpu*/
 			server_acept(servidor, &nuevaCpu);
 
-			logueoConexionCPUS(nuevaCpu);
+			log_info(logPlanificador,"Nueva conexion en socket %d\n",nuevaCpu);
 			if (nuevaCpu != -1){
 
 				int * cpu1 = malloc(sizeof(int));

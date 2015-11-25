@@ -15,10 +15,10 @@
 #include "estructuras.h"
 
 void logueoProcesos(int pid, char* path, char operacion);
-void logueoConexionCPUS(int socket);
 void logueoAlgoritmo(int algoritmo,char* mProc);
 void logueoRafaga();
 char* contenidoDeColas(t_list* lista);
+char* contenidoDeColasIO(t_list* lista);
 
 
 

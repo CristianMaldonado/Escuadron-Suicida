@@ -52,7 +52,7 @@ int dame_si_hay_espacio(t_list** lista_vacia, int paginas_pedidas, int* comienzo
 		if (aux->paginas_vacias >= paginas_pedidas) {
 			//actualizar el hueco vacio y si sigue existiendo un hueco osea != 0
 			*comienzo = aux->comienzo;
-			if (aux->paginas_vacias - paginas_pedidas != 0) {
+			if (aux->paginas_vacias - paginas_pedidas > 0) {
 				//*comienzo = aux->comienzo;
 				tlista_vacio *nueva = malloc(sizeof(tlista_vacio));
 				nueva->comienzo = paginas_pedidas + aux->comienzo;

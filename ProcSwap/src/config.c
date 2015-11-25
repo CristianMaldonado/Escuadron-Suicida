@@ -52,9 +52,9 @@ void log_finalizar(t_log *log, t_list * lista_procesado, int pid, int pag_ocupad
 			if (aux->escrita)
 				escritas++;
 
-			list_remove(lista_procesado,i);
+			free(list_remove(lista_procesado,i));
 		}
-		free(aux);
+
 	}
 
 	string_append(&str, ", paginas leidas: ");

@@ -57,14 +57,17 @@ int maxLineas(char* path){
 }
 
 char* nombrePrograma(char* path){
-	int i= 0;
-	char** vector = string_split(path,"/");
 
-	while(vector[i] != NULL){
-		i++;
+	int tamanio = strlen(path);
+	int i;
+
+	for(i= tamanio; i>=0; i--){
+
+		if(path[i]=='/') return path + i + 1;
 	}
 
-	return vector[i-1];
+
+	return path;
 }
 
 tpcb * armarPCB(char* path, int cant) {
@@ -74,6 +77,7 @@ tpcb * armarPCB(char* path, int cant) {
 	path[strlen(path)-1] = '\0';
 	pcb->pid = cant;
 	pcb->nombre = string_new();
+	string_append(&pcb->nombre,nombrePrograma(path));
 	pcb->estado = LISTO;
 	pcb->siguiente = 1;
 	pcb->maximo = maxLineas(path);
