@@ -63,4 +63,71 @@ void logueoAlgoritmo(int inicial,char* mProc){//TODO tiene que loguear todas las
 	//Ver si la cpu envia toda la rafaga en un mensaje y loguear eso
 
 	free(logueo);
+}
+
+void loguearColas(t_list* lista){
+	tpcb* pcb;
+	int i;
+	if (list_is_empty(lista)){
+
+		log_info(logPlanificador,"Esta Vacia\n");
+	}
+	else{
+		for(i = 0; i < list_size(lista); i++){
+			pcb = list_get(lista,i);
+
+			log_info(logPlanificador,"En la posicion %d esta el proceso %s \n",i,nombrePrograma(pcb->ruta));
+		}
+	}
+}
+
+void loguearColaIO(t_list* lista){
+	tpcb* pcb;
+	int i;
+	if (list_is_empty(lista)){
+
+		log_info(logPlanificador,"Esta Vacia\n");
+	}
+	else{
+		for(i = 0; i < list_size(lista); i++){
+			pcb = ((tprocIO*)list_get(colaIO->elements,i))->pcb;
+
+			log_info(logPlanificador,"En la posicion %d esta el proceso %s \n",i,nombrePrograma(pcb->ruta));
+		}
+	}
+}
+
+
+void loguearRafaga(){
+
+}
+
+
+
+void logueoAnteultimo(char* mProc, int inicial){
+	pthread_mutex_lock(&mutexSwitchProc);
+	char* algoritmo=string_new();
+	if(inicial == 0) string_append(&algoritmo,"FIFO");
+	else string_append(&algoritmo,"RR");
+	//char* logueo = (char*) malloc (65+strlen(mProc));
+	log_info(logPlanificador,"De acuerdo al algoritmo %s El proceso seleccionado para ejecutar es %s\n",algoritmo,nombrePrograma(mProc));
+	log_info(logPlanificador,"Estado de la cola de Redy\n");
+	logearColas(colaListos->elements);
+	log_info(logPlanificador,"Estado de la lista de Ejecutando\n");
+	logearColas(listaEjecutando);
+	log_info(logPlanificador,"Estado de la lista de Inicializando\n");
+	logearColas(listaInicializando);
+	log_info(logPlanificador,"Estado de la cola de IO\n");
+	logearColaIO(colaIO->elements);
+	pthread_mutex_unlock(&mutexSwitchProc);
+
+	//free(logueo);
+	free(algoritmo);
 }*/
+
+
+
+void loguearFinalizado(tpcb* pcb){
+	log_info(logPlanificador,"Proceso %s con PID: %d Finalizado\n",nombrePrograma(pcb->ruta),pcb->pid);
+	log_info(logPlanificador,"Paso %d Ejecutando, %d Bloqueado, %d desde que se inicio hasta que finalizo\n",pcb->tpoCPU,pcb->tpoBloqueado,(pcb->llegada-time(NULL)));
+}

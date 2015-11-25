@@ -76,6 +76,11 @@ typedef struct {
 	testado estado;
 	int siguiente;
 	int maximo;
+	time_t llegada;
+	time_t entroIO;
+	time_t entroCPU;
+	time_t tpoBloqueado;
+	time_t tpoCPU;
 }tpcb;
 
 typedef struct{

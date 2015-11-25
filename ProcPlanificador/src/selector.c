@@ -108,6 +108,7 @@ void * selector(void * arg) {
 							aux->pcb->siguiente = respuestaDeCPU.counterProgram;
 							aux->tiempo = atoi(respuestaDeCPU.mensaje);
 							aux->pcb->estado = IO;
+							aux->pcb->entroIO = time(NULL);
 							pthread_mutex_lock(&mutexIO);
 							queue_push(colaIO,aux);
 							pthread_mutex_unlock(&mutexIO);
@@ -126,6 +127,7 @@ void * selector(void * arg) {
 							pcb = list_remove(listaInicializando,buscoPCB(respuestaDeCPU.pid,listaInicializando));
 							pthread_mutex_unlock(&mutexInicializando);
 							pcb->estado = EJECUTANDO;
+							pcb->entroCPU=time(NULL);
 							pthread_mutex_lock(&mutexListaEjecutando);
 							list_add(listaEjecutando,pcb);
 							pthread_mutex_unlock(&mutexListaEjecutando);
@@ -184,7 +186,7 @@ void * selector(void * arg) {
 							pthread_mutex_unlock(&mutexListaEjecutando);
 							pcb->siguiente = respuestaDeCPU.counterProgram;
 							pcb->estado = LISTO;
-
+							pcb->tpoCPU=pcb->tpoCPU+(time(NULL)-pcb->entroCPU);
 							pthread_mutex_lock(&mutexFinalizarPid);
 								if(hayQueFinalizarlo(pcb->pid,listaAfinalizar))
 									pcb->siguiente = pcb->maximo;
@@ -204,17 +206,21 @@ void * selector(void * arg) {
 						case 'f':{
 							int* puntero = malloc(sizeof(int));
 							*puntero = socketCpu[i];
+							printf("llego un finalizar");
 							pthread_mutex_lock(&mutexListaCpus);
 							/*agreo la cpu a lista disponible*/
 							list_add(listaCpuLibres, puntero);
 							pthread_mutex_unlock(&mutexListaCpus);
 							pthread_mutex_lock(&mutexSwitchProc);
 							pthread_mutex_lock(&mutexListaEjecutando);
-							free(list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando)));
+							tpcb* pcb=list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando));
 							pthread_mutex_unlock(&mutexListaEjecutando);
 							pthread_mutex_unlock(&mutexSwitchProc);
+							pcb->tpoCPU=pcb->tpoCPU+(time(NULL)-pcb->entroCPU);
+							loguearFinalizado(pcb);
+							free(pcb);
 							sem_post(&hayCPU);
-							logueoProcesos(respuestaDeCPU.pid,respuestaDeCPU.mensaje,'f');
+							//logueoProcesos(respuestaDeCPU.pid,respuestaDeCPU.mensaje,'f');
 							printf("pid-> %d finalizo\n", respuestaDeCPU.pid);
 						}
 						break;

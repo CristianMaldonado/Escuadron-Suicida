@@ -26,7 +26,7 @@ void* consumidor(){
 		pcb = queue_peek(colaIO);
 		pthread_mutex_unlock(&mutexIO);
 		sleep(pcb->tiempo);
-
+		pcb->pcb->tpoBloqueado=pcb->pcb->tpoBloqueado+(time(NULL)-pcb->pcb->entroIO);
 		pthread_mutex_lock(&mutexSwitchProc);
 		pthread_mutex_lock(&mutexIO);
 		queue_pop(colaIO);
@@ -80,11 +80,13 @@ void *enviar(){
 		pthread_mutex_unlock(&mutexProcesoListo);
 		if(pcb->siguiente == 1){
 			pcb->estado = EJECUTANDO;
+			//pcb->entroCPU=time(NULL);
 			pthread_mutex_lock(&mutexInicializando);
 			list_add(listaInicializando,pcb);
 			pthread_mutex_unlock(&mutexInicializando);
 		}else{
 			pcb->estado = EJECUTANDO;
+			pcb->entroCPU=time(NULL);
 			pthread_mutex_lock(&mutexListaEjecutando);
 			list_add(listaEjecutando,pcb);
 			pthread_mutex_unlock(&mutexListaEjecutando);
