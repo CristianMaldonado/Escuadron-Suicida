@@ -25,7 +25,7 @@ void * selector(void * arg) {
 		/*busco el descriptor mas grande*/
 		int maxfdset = 0;
 
-		if (numeroCpus > 1){
+		if (numeroCpus > 0){
 			maxfdset = *((int*)list_get(listaCpus,0));
 			for (i = 0; i < numeroCpus; i++)
 				if (*((int*)list_get(listaCpus,i)) > maxfdset)

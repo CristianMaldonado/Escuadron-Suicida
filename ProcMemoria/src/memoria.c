@@ -405,6 +405,9 @@ int main(void) {
 								//avisale a la cpu que no hay mas memoria y no se puede agregar una nueva entrada de paginas
 								avisar_a_cpu(paquete_desde_cpu.cod_op, 'a', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "fallo", socketClienteCPU);
 								free(paquete_desde_cpu.mensaje);
+
+								//TODO
+								//deberiamos liberar memoria y swap
 							}
 						}
 					}
