@@ -14,7 +14,7 @@ entrada-salida 1;
 leer 4;
 leer 5;
 leer 1;
-escribir 5 hola;
+escribir 5 "hola";
 leer 0;
 leer 0;
 entrada-salida 2;
