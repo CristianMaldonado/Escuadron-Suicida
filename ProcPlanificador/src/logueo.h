@@ -20,7 +20,6 @@ void logueoRafaga();
 char* contenidoDeColas(t_list* lista);
 char* contenidoDeColasIO(t_list* lista);
 
-void logueoFinalizado(tpcb* pcb);
 
 
 

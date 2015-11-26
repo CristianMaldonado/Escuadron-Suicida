@@ -104,8 +104,3 @@ void logueoAlgoritmo(int inicial,char* mProc){
 
 	free(logueo);
 }*/
-
-void loguearFinalizado(tpcb* pcb){
-	log_info(logPlanificador,"Proceso %s con PID: %d Finalizado\n",nombrePrograma(pcb->ruta),pcb->pid);
-	log_info(logPlanificador,"Paso %d segundos Ejecutando, %d segundos Bloqueado, %d segundos desde que se inicio hasta que finalizo\n",pcb->tpoCPU,pcb->tpoBloqueado,(time(NULL)-pcb->llegada));
-}

@@ -85,11 +85,6 @@ tpcb * armarPCB(char* path, int cant) {
 		free(pcb);
 		return 0;
 	}
-	pcb->llegada=time(NULL);
-	pcb->tpoBloqueado=0;
-	pcb->tpoCPU=0;
-	pcb->entroCPU=time(NULL);
-	pcb->entroIO=time(NULL);
 	return pcb;
 }
 

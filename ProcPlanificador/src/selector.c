@@ -77,7 +77,6 @@ void * selector(void * arg) {
 								pcbIO->pcb->siguiente = respuestaDeCPU.counterProgram;
 								pcbIO->tiempo = atoi(respuestaDeCPU.mensaje);
 								pcbIO->pcb->estado = IO;
-								pcbIO->pcb->entroIO=time(NULL);
 								pthread_mutex_lock(&mutexIO);
 								queue_push(colaIO,pcbIO);
 								pthread_mutex_unlock(&mutexIO);
@@ -97,7 +96,6 @@ void * selector(void * arg) {
 							pcb = list_remove(listaInicializando,buscoPCB(respuestaDeCPU.pid,listaInicializando));
 							pthread_mutex_unlock(&mutexInicializando);
 							pcb->estado = EJECUTANDO;
-							pcb->entroCPU=time(NULL);
 							pthread_mutex_lock(&mutexListaEjecutando);
 							list_add(listaEjecutando,pcb);
 							pthread_mutex_unlock(&mutexListaEjecutando);
@@ -160,13 +158,11 @@ void * selector(void * arg) {
 								/*actualizo cp*/
 								pcb->siguiente = pcb->maximo;
 								pcb->estado = LISTO;
-								pcb->tpoCPU=pcb->tpoCPU+(time(NULL)-pcb->entroCPU);
 								ponerPrimero(&colaListos, pcb);
 							}
 							else{
 								pcb->siguiente = respuestaDeCPU.counterProgram;
 								pcb->estado = LISTO;
-								pcb->tpoCPU=pcb->tpoCPU+(time(NULL)-pcb->entroCPU);
 								queue_push(colaListos,pcb);
 							}
 							pthread_mutex_unlock(&mutexProcesoListo);
@@ -188,12 +184,10 @@ void * selector(void * arg) {
 
 							pthread_mutex_lock(&mutexSwitchProc);
 							pthread_mutex_lock(&mutexListaEjecutando);
-							tpcb* pcb=list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando));
+							free(list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando)));
 							pthread_mutex_unlock(&mutexListaEjecutando);
 							pthread_mutex_unlock(&mutexSwitchProc);
-							pcb->tpoCPU=pcb->tpoCPU+(time(NULL)-pcb->entroCPU);
-							loguearFinalizado(pcb);
-							free(pcb);
+
 							sem_post(&hayCPU);
 							logueoProcesos(respuestaDeCPU.pid,respuestaDeCPU.mensaje,'f');
 							printf("pid-> %d finalizo\n", respuestaDeCPU.pid);
