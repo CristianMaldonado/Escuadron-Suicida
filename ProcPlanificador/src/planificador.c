@@ -31,6 +31,7 @@ void* consumidor(){
 		if(!finalizar)
 			sleep(pcbIO->tiempo);
 
+		pcbIO->pcb->tpoBloqueado=pcbIO->pcb->tpoBloqueado+(time(NULL)-pcbIO->pcb->entroIO);
 		pthread_mutex_lock(&mutexSwitchProc);
 		/*una vez que hizo io recien lo saco de la cola de io*/
 		pthread_mutex_lock(&mutexIO);
