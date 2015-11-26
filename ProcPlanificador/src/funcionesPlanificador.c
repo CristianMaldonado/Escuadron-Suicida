@@ -189,7 +189,15 @@ void finalizarPID(char* pidBuscado){
 	}
 	else {
 		pcb = list_get(lista,posicion);
-		pcb->siguiente = pcb->maximo;
+		if (pcb->siguiente != 1)
+			pcb->siguiente = pcb->maximo;
+		else{
+			int* aux = malloc(sizeof(int));
+			*aux = pid;
+			pthread_mutex_lock(&mutexFinalizarPid);
+			list_add(listaAfinalizar,aux);
+			pthread_mutex_unlock(&mutexFinalizarPid);
+		}
 	}
 }
 
