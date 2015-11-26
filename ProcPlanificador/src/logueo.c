@@ -21,14 +21,15 @@
 	}
 }*/
 
-void logueoProcesos(int pid, char* path, char operacion){//faltaria cuando finaliza, mas facil hacemos otra funcion xD
+void logueoProcesos(int pid, char* path, char operacion, tpcb* pcb){
 
-	char* logueo = (char*)malloc(40+strlen(path));
 	if (operacion == 'i')
 		log_info(logPlanificador,"Proceso %s con PID: %d Iniciado\n",nombrePrograma(path),pid);
-	else
+	else {
 		log_info(logPlanificador,"Proceso %s con PID: %d Finalizado\n",nombrePrograma(path),pid);
-	free(logueo);
+		log_info(logPlanificador,"Paso %d segundos Ejecutando, %d segundos Bloqueado, %d segundos desde que se inicio hasta que finalizo\n",pcb->tpoCPU,pcb->tpoBloqueado,(time(NULL)-pcb->llegada));
+	}
+
 }
 
 

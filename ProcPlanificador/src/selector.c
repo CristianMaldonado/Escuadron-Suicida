@@ -77,12 +77,14 @@ void * selector(void * arg) {
 								pcbIO->pcb->siguiente = respuestaDeCPU.counterProgram;
 								pcbIO->tiempo = atoi(respuestaDeCPU.mensaje);
 								pcbIO->pcb->estado = IO;
+								pcbIO->pcb->entroIO=time(NULL);
 								pthread_mutex_lock(&mutexIO);
 								queue_push(colaIO,pcbIO);
 								pthread_mutex_unlock(&mutexIO);
 								printf("pid-> %d entro a io\n", respuestaDeCPU.pid);
 								sem_post(&hayIO);
 							}
+							pcbIO->pcb->tpoCPU += (time(NULL)-pcbIO->pcb->entroCPU);
 							pthread_mutex_unlock(&mutexSwitchProc);
 
 							sem_post(&hayCPU);
@@ -96,12 +98,13 @@ void * selector(void * arg) {
 							pcb = list_remove(listaInicializando,buscoPCB(respuestaDeCPU.pid,listaInicializando));
 							pthread_mutex_unlock(&mutexInicializando);
 							pcb->estado = EJECUTANDO;
+
 							pthread_mutex_lock(&mutexListaEjecutando);
 							list_add(listaEjecutando,pcb);
 							pthread_mutex_unlock(&mutexListaEjecutando);
 							pthread_mutex_unlock(&mutexSwitchProc);
 
-							logueoProcesos(respuestaDeCPU.pid,respuestaDeCPU.mensaje,'i');
+							logueoProcesos(respuestaDeCPU.pid,respuestaDeCPU.mensaje,'i',pcb);
 							logueoAlgoritmo(respuestaDeCPU.quantum,pcb->nombre);
 							printf("pid-> %d inicio correctamente\n", respuestaDeCPU.pid);
 
@@ -125,6 +128,7 @@ void * selector(void * arg) {
 								free(list_remove(listaInicializando,buscoPCB(respuestaDeCPU.pid,listaInicializando)));
 								pthread_mutex_unlock(&mutexInicializando);
 								pthread_mutex_unlock(&mutexSwitchProc);
+								log_info(logPlanificador, "Proceso con PID: %d. Fallo la Inicializacion\n", respuestaDeCPU.pid);
 								printf("pid-> %d fallo la inicializacion\n", respuestaDeCPU.pid);
 							}
 
@@ -135,6 +139,7 @@ void * selector(void * arg) {
 								free(list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando)));
 								pthread_mutex_unlock(&mutexListaEjecutando);
 								pthread_mutex_unlock(&mutexSwitchProc);
+								log_info(logPlanificador, "Proceso con PID: %d abortado. Fallo la %s\n",respuestaDeCPU.pid,(respuestaDeCPU.tipoProceso == 'l' ? "lectura":"escritura"));
 								printf("pid-> %d proceso abortado: fallo la %s\n", respuestaDeCPU.pid, (respuestaDeCPU.tipoProceso == 'l' ? "lectura":"escritura"));
 							}
 						}
@@ -165,11 +170,13 @@ void * selector(void * arg) {
 								pcb->estado = LISTO;
 								queue_push(colaListos,pcb);
 							}
+							pcb->tpoCPU += (time(NULL)-pcb->entroCPU);
 							pthread_mutex_unlock(&mutexProcesoListo);
 							pthread_mutex_unlock(&mutexSwitchProc);
 
 							sem_post(&hayProgramas);
 							sem_post(&hayCPU);
+							log_info(logPlanificador, "Rafaga Completada Proceso %s PID: %d\n",pcb->nombre,pcb->pid);
 							printf("pid-> %d volvio por quantum\n", respuestaDeCPU.pid);
 						}
 						break;
@@ -184,12 +191,14 @@ void * selector(void * arg) {
 
 							pthread_mutex_lock(&mutexSwitchProc);
 							pthread_mutex_lock(&mutexListaEjecutando);
-							free(list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando)));
+							tpcb* pcb=list_remove(listaEjecutando,buscoPCB(respuestaDeCPU.pid,listaEjecutando));
 							pthread_mutex_unlock(&mutexListaEjecutando);
 							pthread_mutex_unlock(&mutexSwitchProc);
 
+							pcb->tpoCPU += (time(NULL)-pcb->entroCPU);
+							logueoProcesos(respuestaDeCPU.pid,respuestaDeCPU.mensaje,'f',pcb);
+							free(pcb);
 							sem_post(&hayCPU);
-							logueoProcesos(respuestaDeCPU.pid,respuestaDeCPU.mensaje,'f');
 							printf("pid-> %d finalizo\n", respuestaDeCPU.pid);
 						}
 						break;

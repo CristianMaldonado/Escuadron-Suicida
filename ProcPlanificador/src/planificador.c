@@ -31,6 +31,8 @@ void* consumidor(){
 		if(!finalizar)
 			sleep(pcbIO->tiempo);
 
+		pcbIO->pcb->tpoBloqueado += (time(NULL)-pcbIO->pcb->entroIO);
+
 		pthread_mutex_lock(&mutexSwitchProc);
 		/*una vez que hizo io recien lo saco de la cola de io*/
 		pthread_mutex_lock(&mutexIO);
@@ -96,6 +98,7 @@ void *enviar(){
 			list_add(listaEjecutando,pcb);
 			pthread_mutex_unlock(&mutexListaEjecutando);
 		}
+		pcb->entroCPU=time(NULL);
 		pthread_mutex_unlock(&mutexSwitchProc);
 		adaptadorPCBaProtocolo(pcb,package);
 		void* message = serializarPaqueteCPU(package, &tamanio);

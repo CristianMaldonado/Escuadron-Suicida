@@ -72,7 +72,7 @@ void * procesarInstruccion() {
 			for(i = 0; i < list_size(listaTiempos); i++){
 				time_t * tiempoInstruccion = list_get(listaTiempos,i);
 
-				if (tiempoActual - (*tiempoInstruccion) < 60)
+				if (tiempoActual - (*tiempoInstruccion) <= 60)
 					cantidadInstruccionesLeidas++;
 			}
 
