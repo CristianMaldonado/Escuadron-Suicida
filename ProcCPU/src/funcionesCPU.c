@@ -29,7 +29,7 @@ void actualizarOperacionPaquetePlanificador(protocolo_planificador_cpu* paquete,
 
 void actualizarOperacionPaquetePlanificadorIO(protocolo_planificador_cpu* paquete, char tipoOperacion, int IO){
 	paquete->tipoOperacion = tipoOperacion;
-	paquete->mensaje = (char*)malloc(sizeof(int));
+	paquete->mensaje =malloc(sizeof(int));
 	strcpy(paquete->mensaje,string_itoa(IO));
 }
 
@@ -54,6 +54,7 @@ bool interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 
 		char** linea = string_split(instruccion, ";");
 		char** lineaFiltrada = string_split(linea[0]," ");
+		free(*linea);
 		bool entendio = false;
 
 		if (string_starts_with(instruccion, "iniciar")) {
@@ -97,14 +98,14 @@ bool interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 				armarPaqueteMemoria(mensajeParaArmar, 'f', mensajeDePlanificador->pid, 0, "-");
 				entendio = true;
 		}
-		free(linea);
-		free(lineaFiltrada);
+		free(*lineaFiltrada);
 		return entendio;
 }
 
 /*Lee del archivo la linea indicada por el Instruction Pointer*/
-char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo, int tam) {
+char* leerInstruccion(int* instructionPointer, FILE* archivo, int tam) {
 	fseek(archivo,0,SEEK_SET);
+	char* lineaLeida = malloc(tam);
 	int cont = 1;
 
 	while (!feof(archivo) && cont <= (*instructionPointer) ) {
@@ -119,5 +120,3 @@ char* leerInstruccion(int* instructionPointer,char* lineaLeida, FILE* archivo, i
 	return lineaLeida;
 
 }
-
-

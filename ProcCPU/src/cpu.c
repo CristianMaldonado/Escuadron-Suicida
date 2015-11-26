@@ -102,13 +102,12 @@ void * procesarInstruccion() {
 			fseek(archivo, 0, SEEK_END);
 			int tamanio = ftell(archivo);
 			fseek(archivo, 0, SEEK_SET);
-			char* lineaLeida = malloc(tamanio);
 			int quantum = 0;
 
 			while ((!feof(archivo) && (quantum < datosParaProcesar->quantum || datosParaProcesar->quantum == 0))) {
 
 				//calcularTamanioDeLinea(archivo,&tamanio);
-				char* instruccionLeida = leerInstruccion(&(datosParaProcesar->counterProgram), lineaLeida, archivo,tamanio);
+				char* instruccionLeida = leerInstruccion(&(datosParaProcesar->counterProgram), archivo,tamanio);
 				char** linea = string_split(instruccionLeida, ";");
 				printf("pid-> %d ejecutar %s\n", datosParaProcesar->pid, *linea);
 				free(*linea);
@@ -179,6 +178,7 @@ void * procesarInstruccion() {
 					*tiempoInstruccion = time(NULL);
 					list_add(listaTiempos, tiempoInstruccion);
 				}
+				free(instruccionLeida);
 			}
 
 			/*es rr y salio por quantum y no por io*/
@@ -191,13 +191,13 @@ void * procesarInstruccion() {
 					}
 				}
 			}
-			free(lineaLeida);
 			fclose(archivo);
 		}
 	}
 	free(mensajeAMemoria);
 	free(mensajeDeMemoria);
 	free(datosParaProcesar);
+	list_destroy_and_destroy_elements(listaTiempos,free);
 	close(socketPlanifAux);
 	log_info(logCpu, "Cerrada conexion saliente");
 	log_destroy(logCpu);
@@ -231,6 +231,7 @@ int main() {
 	printf("Finalizo el planificador...\n");
 	pthread_mutex_destroy(&mutex);
 	pthread_mutex_destroy(&mutexConectarPlanificador);
+	pthread_attr_destroy(&atrib);
 	return 0;
 }
 

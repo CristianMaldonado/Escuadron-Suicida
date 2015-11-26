@@ -12,26 +12,22 @@
 #include <commons/string.h>
 
 void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int tid,t_log* logCpu) {
-	char* logueoContexto = (char*)malloc(50);
-	char* estado;
+	char* logueoContexto = string_new();
+	char* estado = string_new();
 	if (contextoDeEjecucion->estado == LISTO) {
-		estado = malloc(7);
-		strcpy(estado, "LISTO");
+		string_append(&estado, "LISTO");
 	}
 	if (contextoDeEjecucion->estado == IO) {
-		estado = malloc(7);
-		strcpy(estado, "IO");
+		string_append(&estado, "IO");
 	}
 	if (contextoDeEjecucion->estado == EJECUTANDO) {
-		estado = malloc(12);
-		strcpy(estado, "EJECUTANDO");
+		string_append(&estado, "EJECUTANDO");
 	}
 	if (contextoDeEjecucion->estado == FINALIZADO) {
-		estado = malloc(12);
-		strcpy(estado, "FINALIZADO");
+		string_append(&estado, "FINALIZADO");
 	}
 
-	strcpy(logueoContexto, "Contexto de ejecucion recibido: \nPID: ");
+	string_append(&logueoContexto, "Contexto de ejecucion recibido: \nPID: ");
 	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->pid);
 	string_append(&logueoContexto, "\nInstruccion: ");
 	string_append_with_format(&logueoContexto, "%d", contextoDeEjecucion->counterProgram);
@@ -51,9 +47,9 @@ void logueoRecepcionDePlanif(protocolo_planificador_cpu* contextoDeEjecucion,int
 
 void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instruccionLeida,t_log* logCpu){
 
-	char* logueoMemoria = malloc(sizeof(char) * 10);
+	char* logueoMemoria = string_new();
 
-	strcpy(logueoMemoria, "mProc: ");
+	string_append(&logueoMemoria, "mProc: ");
 	string_append_with_format(&logueoMemoria, "%d", respuestaMemoria->pid);
 	string_append(&logueoMemoria, " - ");
 
@@ -87,8 +83,8 @@ void loguearEstadoMemoria(protocolo_memoria_cpu* respuestaMemoria, char*instrucc
 }
 
 void loguearPlanificadorIO(protocolo_planificador_cpu* mensajeDePlanificador, int tiempo,t_log* logCpu){
-	char* logueoIO = malloc(sizeof(char) * 10);
-	strcpy(logueoIO, "mProc: ");
+	char* logueoIO = string_new();
+	string_append(&logueoIO, "mProc: ");
 	string_append_with_format(&logueoIO, "%d", mensajeDePlanificador->pid);
 	string_append(&logueoIO, " en entrada-salida de tiempo ");
 	string_append_with_format(&logueoIO, "%d", tiempo);
