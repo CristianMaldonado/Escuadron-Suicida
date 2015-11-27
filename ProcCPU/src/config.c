@@ -24,5 +24,6 @@ tipoConfiguracionCPU* leerConfiguracion() {
 	datosCPU->puertoPlanificador = config_get_string_value(config,
 			"PUERTO_PLANIFICADOR");
 	datosCPU->retardo = config_get_int_value(config, "RETARDO");
+
 	return datosCPU;
 }

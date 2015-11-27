@@ -109,9 +109,13 @@ char* leerInstruccion(int* instructionPointer, FILE* archivo, int tam) {
 	int cont = 1;
 
 	while (!feof(archivo) && cont <= (*instructionPointer) ) {
+
 		fgets(lineaLeida, tam, archivo);
+
 		cont++;
 	}
+
+	lineaLeida = realloc(lineaLeida,strlen(lineaLeida) + 1);
 
 	(*instructionPointer) = (*instructionPointer) + 1;
 
@@ -120,3 +124,4 @@ char* leerInstruccion(int* instructionPointer, FILE* archivo, int tam) {
 	return lineaLeida;
 
 }
+

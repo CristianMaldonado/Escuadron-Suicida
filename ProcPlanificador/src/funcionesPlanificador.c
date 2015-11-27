@@ -147,10 +147,12 @@ int buscoPCB(int pidBuscado,t_list* lista){
 void ponerPrimero(t_queue ** cola, tpcb * pcb){
 	t_queue * aux = queue_create();
 
-	queue_push(aux,pcb);
 	/*paso a cola aux que ya tiene primero el pcb a terminar*/
 	while(!queue_is_empty(*cola))
 		queue_push(aux, queue_pop(*cola));
+
+	queue_push(aux,pcb);
+
 	/*vuelvo a pasar a la cola*/
 	while(!queue_is_empty(aux))
 		queue_push(*cola, queue_pop(aux));
@@ -256,6 +258,7 @@ void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 			/*ordeno por pid para luego mostrar*/
 			list_sort(aux,comparadorPid);
 			mostrarEstadoProcesosLista(aux,message);
+			list_destroy(aux);
 
 			pthread_mutex_unlock(&mutexSwitchProc);
 		}
@@ -299,7 +302,7 @@ void procesarComando(int nro_comando, char* message, int* cantProc) {//OK
 				printf("No se encontro %s\n", &message[7]);
 			break;
 		case 4:
-			pthread_mutex_lock(&mutexSwitchProc);//TODO este va??
+			pthread_mutex_lock(&mutexSwitchProc);
 			pthread_mutex_lock(&mutexProcesoListo);
 			finalizarPID(&message[10]);
 			pthread_mutex_unlock(&mutexProcesoListo);
