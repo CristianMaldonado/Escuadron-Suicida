@@ -47,38 +47,26 @@ int main(void) {
 			case 'i': {
 				int comienzo = -1;
 				char cod_aux = 'i';
-				int hay_espacio = dame_si_hay_espacio(&lista_vacia, paquete_de_memoria.cantidad_pagina, &comienzo);
-
-				if (hay_espacio)
-					asignar_espacio(paquete_de_memoria.pid, comienzo, paquete_de_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
-				else {
+				/*reservamos un pedaso de memoria si es posible*/
+				if (!dame_si_hay_espacio(&lista_vacia, paquete_de_memoria.cantidad_pagina, &comienzo)){
+					/*el espacio total libre es mayor a lo pedido*/
 					if (espacio_total_disponible(lista_vacia) >= paquete_de_memoria.cantidad_pagina) {
 						//compactamos, y retorno el comienzo del espacio vacio
 						log_info(logSwap,"compactacion iniciada /n");
 						sleep(config_swap->retardo);
-						int comienzo = compactar_swap(&swap, &lista_vacia, &lista_ocupado, config_swap->tamanioPagina, config_swap->cantidadPaginas);
+						compactar_swap(&swap, &lista_vacia, &lista_ocupado, config_swap->tamanioPagina, config_swap->cantidadPaginas);
 						log_info(logSwap,"compactacion finalizada /n");
-
-						//asignar el espacio solicitado
-						asignar_espacio(paquete_de_memoria.pid, comienzo, paquete_de_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
-
-						// actualizar la lista de vacios, con los espacios vacios que resultaron de compactar menos los solicitados
-						// esto es lo que hace la lista dame_espacio, sacamos el espacio que asignamos al proceso
-
-						tlista_vacio *update = malloc(sizeof(tlista_vacio));
-						update = list_get(lista_vacia, 0);
-						update->comienzo += paquete_de_memoria.cantidad_pagina;
-						update->paginas_vacias -= paquete_de_memoria.cantidad_pagina;
-						list_destroy_and_destroy_elements(lista_vacia,free);
-
-						lista_vacia = list_create();
-						list_add(lista_vacia, update);
+						/*reservo*/
+						dame_si_hay_espacio(&lista_vacia, paquete_de_memoria.cantidad_pagina, &comienzo);
 					}
 					else {
 						cod_aux = 'a';
 						log_proc_rechazado(logSwap, paquete_de_memoria.pid);
 					}
 				}
+				if (cod_aux == 'i')
+					asignar_espacio(paquete_de_memoria.pid, comienzo, paquete_de_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
+				/*se avisa sobre el resultado*/
 				avisar_a_memoria(cod_aux, paquete_de_memoria.pid, "-", socket_memoria);
 			}
 			break;
