@@ -210,6 +210,7 @@ int main(void) {
 						else {
 							int nro_marco = dame_un_marco_libre(lista_tabla_de_paginas, config->cantidad_marcos);
 							//si hay algun frame libre
+
 							if(nro_marco != -1) {
 								if (config->algoritmo_reemplazo != 'C'){
 									/*asignar un marco libre, bucar en las tablas de paginas de cada proceso y si hay uno libre es porque
@@ -300,6 +301,7 @@ int main(void) {
 									free(paquete_desde_cpu.mensaje);
 								}
 							} else {
+
 								//podes aplicar el algoritmo sobre los marcos de la tabla de pagina(que no esta llena)
 								if (hay_algun_marco_en_la_tabla_de_pagina(tabla_de_paginas->list_pagina_direccion)){
 
@@ -311,8 +313,8 @@ int main(void) {
 									tabla_de_paginas_aux->list_pagina_direccion = list_create();
 
 									int i;
-									for (i = 0; i < list_size(tabla_de_paginas->list_pagina_direccion);i++){
-										pagina_direccion * pagina = list_get(tabla_de_paginas->list_pagina_direccion,i);
+									for (i = 0; i < list_size(tabla_de_paginas->list_pagina_direccion);i++ ) {
+										pagina_direccion * pagina = list_get(tabla_de_paginas->list_pagina_direccion, i);
 										if (pagina->nro_pagina != -1){
 											list_add(tabla_de_paginas_aux->list_pagina_direccion,pagina);
 										}
@@ -321,13 +323,26 @@ int main(void) {
 									//aplico sobre tabla auxiliar
 									aplicar_algoritmos_a_la_tabla(paquete_desde_cpu,socketClienteCPU,socketClienteSWAP,&tabla_de_paginas_aux,logMem,config,&tlb,&memoria);
 
-									list_destroy(tabla_de_paginas_aux->list_pagina_direccion);
+									int cantidad_paginas_vacias = list_size(tabla_de_paginas->list_pagina_direccion) - list_size(tabla_de_paginas_aux->list_pagina_direccion);
+
+									for(i = 0 ; i < cantidad_paginas_vacias ; i++ ) {
+										pagina_direccion * pagina = malloc(sizeof(pagina_direccion));
+										pagina->en_uso = false;
+										pagina->fue_modificado = false;
+										pagina->nro_pagina = -1;
+										pagina->nro_marco = -1;
+										list_add(tabla_de_paginas_aux->list_pagina_direccion, pagina);
+									}
+
+									list_destroy(tabla_de_paginas->list_pagina_direccion);
+									tabla_de_paginas->list_pagina_direccion = tabla_de_paginas_aux->list_pagina_direccion;
+
 									free(tabla_de_paginas_aux);
+
 								}
 								//es como finalizar
-								else
-								{
-									pthread_mutex_lock(&mutex);
+								else {
+
 									void* buffer = serializar_a_swap(&paquete_desde_cpu);
 									send(socketClienteSWAP, buffer, paquete_desde_cpu.tamanio_mensaje + 13, 0);
 									free(buffer);
@@ -341,13 +356,10 @@ int main(void) {
 									if(config->habilitadaTLB)
 										borrame_las_entradas_del_proceso(paquete_desde_cpu.pid, &tlb);
 
-									avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteCPU);
-									free(paquete_desde_cpu.mensaje);
-									pthread_mutex_unlock(&mutex);
-
 									//avisale a la cpu que no hay mas memoria y no se puede agregar una nueva entrada de paginas
 									avisar_a_cpu(paquete_desde_cpu.cod_op, 'a', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "fallo", socketClienteCPU);
 									free(paquete_desde_cpu.mensaje);
+
 								}
 							}
 						}
