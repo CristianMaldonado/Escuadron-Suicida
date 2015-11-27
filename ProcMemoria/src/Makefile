@@ -1,10 +1,10 @@
 # makefile para memoria
 
-memoria	: memoria.o configuracion.o funciones_memoria.o libSocket.o paquetes.o log_memoria.o
-	gcc -o memoria memoria.o configuracion.o funciones_memoria.o libSocket.o paquetes.o log_memoria.o -lcommons
+memoria : memoria.o configuracion.o funciones_memoria.o libSocket.o paquetes.o log_memoria.o
+	gcc -o memoria memoria.o configuracion.o funciones_memoria.o libSocket.o paquetes.o log_memoria.o -lcommons -pthread
 
 memoria.o : memoria.c libSocket.h estructuras.h paquetes.h configuracion.h funciones_memoria.h log_memoria.h
-	gcc -c memoria.c -lcommons
+	gcc -c memoria.c -lcommons -pthread
 
 log_memoria.o : log_memoria.c
 	gcc -c log_memoria.c -lcommons
