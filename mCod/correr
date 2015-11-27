@@ -10,3 +10,9 @@ correr IO.cod
 correr MuyCorto.cod
 correr MuyLargo.cod
 correr TLB.cod
+correr cpu.cod
+correr io.cod
+correr localidad.cod
+correr mem.cod
+correr nosoy.cod
+correr planificador.cod
