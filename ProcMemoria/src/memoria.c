@@ -34,6 +34,7 @@ void sig_handler(int numSignal){
 		//borrar tlb
 		case SIGUSR1:
 			pthread_mutex_lock(&mutex);
+				printf("borrar tlb...\n");
 				log_seniales(logMem, "SIGUSR1, limpiar tlb");
 				limpiar_la_tlb(&tlb);
 			pthread_mutex_unlock(&mutex);
@@ -41,14 +42,16 @@ void sig_handler(int numSignal){
 		//borrar memoria
 		case SIGUSR2:
 			pthread_mutex_unlock(&mutex);
+				printf("borrar memoria...\n");
 				log_seniales(logMem, "SIGUSR2, limpiar memoria y tlb");
 				limpiar_la_tlb(&tlb);
 				limpiar_memoria(&lista_tabla_de_paginas,memoria,config->tamanio_marco, socketClienteSWAP);
 			pthread_mutex_unlock(&mutex);
 		break;
-		//volcar, en la consola es SIGIO (kill -l SIGIO <pid>)
+		//volcar, en la consola es SIGIO (kill -s SIGIO pid)
 		case SIGPOLL:
 			pthread_mutex_lock(&mutex);
+				printf("volcado de memoria...\n");
 				log_seniales(logMem, "SIGPOLL, volcar memoria");
 				volcar_memoria(memoria, config, logMem);
 			pthread_mutex_unlock(&mutex);

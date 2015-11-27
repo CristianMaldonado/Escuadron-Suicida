@@ -53,6 +53,7 @@ int main(void) {
 					if (espacio_total_disponible(lista_vacia) >= paquete_de_memoria.cantidad_pagina) {
 						//compactamos, y retorno el comienzo del espacio vacio
 						log_info(logSwap,"compactacion iniciada /n");
+						printf("compactacion...\n");
 						sleep(config_swap->retardo);
 						compactar_swap(&swap, &lista_vacia, &lista_ocupado, config_swap->tamanioPagina, config_swap->cantidadPaginas);
 						log_info(logSwap,"compactacion finalizada /n");
@@ -64,8 +65,10 @@ int main(void) {
 						log_proc_rechazado(logSwap, paquete_de_memoria.pid);
 					}
 				}
-				if (cod_aux == 'i')
+				if (cod_aux == 'i') {
 					asignar_espacio(paquete_de_memoria.pid, comienzo, paquete_de_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
+					arreglar_lista_vacia(&lista_vacia);
+				}
 				/*se avisa sobre el resultado*/
 				avisar_a_memoria(cod_aux, paquete_de_memoria.pid, "-", socket_memoria);
 			}
