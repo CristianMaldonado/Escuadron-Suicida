@@ -33,5 +33,7 @@ void llevar_a_swap(int socket_Swap, char * memoria, pagina_direccion * pagina, i
 void traer_de_swap(int socket_Swap, char * memoria, int nro_marco, int nro_pagina, int tamanio_marco, int pid);
 void poneme_en_uso_la_entrada(tabla_paginas *tabla, int pagina);
 void registrar_acceso(t_list ** lista, int num_pagina);
+bool hay_algun_marco_en_la_tabla_de_pagina(t_list * paginas);
+void aplicar_algoritmos_a_la_tabla(tprotocolo_desde_cpu_y_hacia_swap paquete_desde_cpu, int socketClienteCPU,int socketClienteSWAP, tabla_paginas ** tabla_de_paginas, t_log * logMem,tconfig_memoria * config, t_list ** tlb,char ** memoria);
 
 #endif /* SRC_FUNCIONES_MEMORIA_H_ */

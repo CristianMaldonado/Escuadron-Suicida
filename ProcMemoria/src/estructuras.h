@@ -3,7 +3,10 @@
 
 #include <stdbool.h>
 #include <commons/collections/list.h>
+#include <pthread.h>
 
+pthread_mutex_t mutex;
+pthread_mutex_t mutexLog;
 
 typedef struct {
 	int pid;
@@ -11,7 +14,6 @@ typedef struct {
 	int nro_marco;
 	bool esta_en_uso;
 } cache_13;
-
 
 // tabla de paginas
 typedef struct {

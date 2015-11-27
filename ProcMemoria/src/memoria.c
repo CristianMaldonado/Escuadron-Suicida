@@ -14,7 +14,6 @@
 #include <unistd.h>
 #include "funciones_memoria.h"
 #include <signal.h>
-#include <pthread.h>
 #include "log_memoria.h"
 #include <ctype.h>
 
@@ -204,102 +203,13 @@ int main(void) {
 						pthread_mutex_unlock(&mutexLog);
 						tabla_de_paginas->cant_fallos_paginas++;
 						registrar_acceso(&(tabla_de_paginas->paginas_accedidas),paquete_desde_cpu.paginas);
-						if(estan_los_frames_ocupados(tabla_de_paginas->list_pagina_direccion, config->algoritmo_reemplazo == 'C')) {
-							if (config->algoritmo_reemplazo != 'C') {
-								pagina_direccion *pagina_ocupada = list_remove(tabla_de_paginas->list_pagina_direccion, 0);
-								pagina_direccion *pagina_nueva = malloc(sizeof(pagina_direccion));
-
-								pagina_nueva->en_uso = true;
-								pagina_nueva->fue_modificado = false;
-								pagina_nueva->nro_pagina = paquete_desde_cpu.paginas;
-								pagina_nueva->nro_marco = pagina_ocupada->nro_marco;
-
-								char fifo = 'n';
-								list_add(tabla_de_paginas->list_pagina_direccion, pagina_nueva);
-								if(config->habilitadaTLB) {
-									eliminar_entrada_tlb(&tlb, paquete_desde_cpu.pid, pagina_ocupada->nro_pagina);
-									fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, pagina_nueva->nro_marco, paquete_desde_cpu.paginas);
-								}
-
-								//la pagina ocupada la paso a la swap si esta modificada
-								llevar_a_swap(socketClienteSWAP,memoria,pagina_ocupada,config->tamanio_marco,paquete_desde_cpu.pid);
-
-								traer_de_swap(socketClienteSWAP,memoria,pagina_nueva->nro_marco,pagina_nueva->nro_pagina,config->tamanio_marco,paquete_desde_cpu.pid);
-
-								char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
-								int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, pagina_nueva->nro_marco);
-								int nro_marco = obtener_marco_pagina(tabla_de_paginas, paquete_desde_cpu.paginas,config->algoritmo_reemplazo == 'C');
-
-								//avisar a la cpu
-								if(paquete_desde_cpu.cod_op == 'l') {
-									char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanio_marco);
-									pthread_mutex_lock(&mutexLog);
-									log_lectura_escritura('l', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, mensaje);
-									pthread_mutex_unlock(&mutexLog);
-									avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
-									free(mensaje);
-								}
-								else{
-									pthread_mutex_lock(&mutexLog);
-									log_lectura_escritura('e', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, paquete_desde_cpu.mensaje);
-									pthread_mutex_unlock(&mutexLog);
-									memcpy(memoria + nro_marco * config->tamanio_marco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
-									pagina_nueva->fue_modificado = true;
-									avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
-								}
-								free(paquete_desde_cpu.mensaje);
-								free(pagina_ocupada);
-							}
-							/*aplicamos clock*/
-							else
-							{
-								int pagina_reemplazada = -1;
-								bool llevarSwap = aplicar_clock_modificado(paquete_desde_cpu.paginas,&pagina_reemplazada,tabla_de_paginas->list_pagina_direccion,&(tabla_de_paginas->pos_puntero),paquete_desde_cpu.cod_op == 'e');
-
-								int nro_marco = obtener_marco_pagina(tabla_de_paginas, paquete_desde_cpu.paginas,config->algoritmo_reemplazo == 'C');
-
-								char fifo = 'n';
-								if(config->habilitadaTLB) {
-									eliminar_entrada_tlb(&tlb, paquete_desde_cpu.pid, pagina_reemplazada);
-									fifo = actualizame_la_tlb(&tlb, paquete_desde_cpu.pid, nro_marco, paquete_desde_cpu.paginas);
-								}
-								//la pagina ocupada la paso a la swap si esta modificada
-								if (llevarSwap){
-									pagina_direccion * pagina_ocupada = malloc(sizeof(pagina_direccion));
-									pagina_ocupada->nro_pagina = pagina_reemplazada;
-									pagina_ocupada->nro_marco = nro_marco;
-									pagina_ocupada->fue_modificado = true;
-
-									llevar_a_swap(socketClienteSWAP,memoria,pagina_ocupada,config->tamanio_marco,paquete_desde_cpu.pid);
-									free(pagina_ocupada);
-								}
-
-								traer_de_swap(socketClienteSWAP,memoria,nro_marco,paquete_desde_cpu.paginas,config->tamanio_marco,paquete_desde_cpu.pid);
-
-								char * operacion = fifo == 'n' ? "-" : (fifo == 'e' ? "encontro una entrada en la tlb" : "apĺico fifo en la tlb");
-								int nro_tlb = dame_el_numero_de_entrada_de_la_tlb(tlb, nro_marco);
-
-								//avisar a la cpu
-								if(paquete_desde_cpu.cod_op == 'l') {
-									char * mensaje = dame_mensaje_de_memoria(&memoria, nro_marco, config->tamanio_marco);
-									pthread_mutex_lock(&mutexLog);
-									log_lectura_escritura('l', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, mensaje);
-									pthread_mutex_unlock(&mutexLog);
-									avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, mensaje, socketClienteCPU);
-									free(mensaje);
-								} else {
-									pthread_mutex_lock(&mutexLog);
-									log_lectura_escritura('e', operacion ,logMem, paquete_desde_cpu.pid, paquete_desde_cpu.paginas, nro_tlb, false, nro_marco, paquete_desde_cpu.mensaje);
-									pthread_mutex_unlock(&mutexLog);
-									memcpy(memoria + nro_marco * config->tamanio_marco, paquete_desde_cpu.mensaje, paquete_desde_cpu.tamanio_mensaje);
-									poneme_en_modificado_la_entrada(tabla_de_paginas, paquete_desde_cpu.paginas);
-									avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "nada", socketClienteCPU);
-								}
-								free(paquete_desde_cpu.mensaje);
-							}
-						}
-						else {//si hay algun frame libre
+						if(estan_los_frames_ocupados(tabla_de_paginas->list_pagina_direccion, config->algoritmo_reemplazo == 'C'))
+							//sobre la tabla llena
+							aplicar_algoritmos_a_la_tabla(paquete_desde_cpu,socketClienteCPU,socketClienteSWAP,&tabla_de_paginas,logMem,config,&tlb,&memoria);
+						//la tabla no esta "llena"
+						else {
 							int nro_marco = dame_un_marco_libre(lista_tabla_de_paginas, config->cantidad_marcos);
+							//si hay algun frame libre
 							if(nro_marco != -1) {
 								if (config->algoritmo_reemplazo != 'C'){
 									/*asignar un marco libre, bucar en las tablas de paginas de cada proceso y si hay uno libre es porque
@@ -390,13 +300,55 @@ int main(void) {
 									free(paquete_desde_cpu.mensaje);
 								}
 							} else {
-								//avisale a la cpu que no hay mas memoria y no se puede agregar una nueva entrada de paginas
-								avisar_a_cpu(paquete_desde_cpu.cod_op, 'a', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "fallo", socketClienteCPU);
-								free(paquete_desde_cpu.mensaje);
+								//podes aplicar el algoritmo sobre los marcos de la tabla de pagina(que no esta llena)
+								if (hay_algun_marco_en_la_tabla_de_pagina(tabla_de_paginas->list_pagina_direccion)){
 
-								//TODO
-								//deberiamos liberar memoria y swap
+									tabla_paginas * tabla_de_paginas_aux = malloc(sizeof(tabla_paginas));
+									tabla_de_paginas_aux->pid = tabla_de_paginas->pid;
+									tabla_de_paginas_aux->pos_puntero = tabla_de_paginas->pos_puntero;
+									tabla_de_paginas_aux->cant_fallos_paginas = tabla_de_paginas->cant_fallos_paginas;
+									tabla_de_paginas_aux->paginas_accedidas = tabla_de_paginas->paginas_accedidas;
+									tabla_de_paginas_aux->list_pagina_direccion = list_create();
 
+									int i;
+									for (i = 0; i < list_size(tabla_de_paginas->list_pagina_direccion);i++){
+										pagina_direccion * pagina = list_get(tabla_de_paginas->list_pagina_direccion,i);
+										if (pagina->nro_pagina != -1){
+											list_add(tabla_de_paginas_aux->list_pagina_direccion,pagina);
+										}
+									}
+
+									//aplico sobre tabla auxiliar
+									aplicar_algoritmos_a_la_tabla(paquete_desde_cpu,socketClienteCPU,socketClienteSWAP,&tabla_de_paginas_aux,logMem,config,&tlb,&memoria);
+
+									list_destroy(tabla_de_paginas_aux->list_pagina_direccion);
+									free(tabla_de_paginas_aux);
+								}
+								//es como finalizar
+								else
+								{
+									pthread_mutex_lock(&mutex);
+									void* buffer = serializar_a_swap(&paquete_desde_cpu);
+									send(socketClienteSWAP, buffer, paquete_desde_cpu.tamanio_mensaje + 13, 0);
+									free(buffer);
+
+									tabla_paginas *tabla = dame_la_tabla_de_paginas(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
+									pthread_mutex_lock(&mutexLog);
+									log_info(logMem, "proceso finalizado -> pid: %d, fallos de paginas: %d, paginas accedidas: %d\n", paquete_desde_cpu.pid,tabla->cant_fallos_paginas,list_size(tabla->paginas_accedidas));
+									pthread_mutex_unlock(&mutexLog);
+
+									eliminar_tabla_de_proceso(paquete_desde_cpu.pid, &lista_tabla_de_paginas);
+									if(config->habilitadaTLB)
+										borrame_las_entradas_del_proceso(paquete_desde_cpu.pid, &tlb);
+
+									avisar_a_cpu(paquete_desde_cpu.cod_op, 'i', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, paquete_desde_cpu.mensaje, socketClienteCPU);
+									free(paquete_desde_cpu.mensaje);
+									pthread_mutex_unlock(&mutex);
+
+									//avisale a la cpu que no hay mas memoria y no se puede agregar una nueva entrada de paginas
+									avisar_a_cpu(paquete_desde_cpu.cod_op, 'a', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "fallo", socketClienteCPU);
+									free(paquete_desde_cpu.mensaje);
+								}
 							}
 						}
 					}
