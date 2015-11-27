@@ -48,7 +48,7 @@ void sig_handler(int numSignal){
 				limpiar_memoria(&lista_tabla_de_paginas,memoria,config->tamanio_marco, socketClienteSWAP);
 			pthread_mutex_unlock(&mutex);
 		break;
-		//volcar, en la consola es SIGIO (kill -s SIGIO pid)
+		//volcar, en la consola es SIGIO (kill -s SIGIO pid) buscar los pid con ps -ef
 		case SIGPOLL:
 			pthread_mutex_lock(&mutex);
 				printf("volcado de memoria...\n");

@@ -10,7 +10,7 @@
 #include "log_memoria.h"
 
 char * crear_memoria(int cantidad_marcos, int tamanio_marcos) {
-	return malloc(cantidad_marcos * tamanio_marcos);
+	return calloc(cantidad_marcos * tamanio_marcos, 1);
 }
 
 tabla_paginas * inicializar_tabla_de_paginas(int cantidad_maxima_marcos_por_proceso, int pid) {
