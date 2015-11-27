@@ -107,6 +107,7 @@ int main(void) {
 				registrarOperacion(&lista_procesado,paquete_de_memoria.pid,pag_leer,true);
 
 				avisar_a_memoria('i', paquete_de_memoria.pid, lectura_pagina, socket_memoria);
+				free(lectura_pagina);
 			}
 			break;
 

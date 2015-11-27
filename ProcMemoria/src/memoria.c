@@ -208,7 +208,7 @@ int main(void) {
 							aplicar_algoritmos_a_la_tabla(paquete_desde_cpu,socketClienteCPU,socketClienteSWAP,&tabla_de_paginas,logMem,config,&tlb,&memoria);
 						//la tabla no esta "llena"
 						else {
-							int nro_marco = dame_un_marco_libre(lista_tabla_de_paginas, config->cantidad_marcos);
+							int nro_marco = dame_un_marco_libre(lista_tabla_de_paginas, config->cantidad_marcos,config->algoritmo_reemplazo == 'C');
 							//si hay algun frame libre
 
 							if(nro_marco != -1) {

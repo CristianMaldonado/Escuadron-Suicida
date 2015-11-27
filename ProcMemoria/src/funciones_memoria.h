@@ -10,7 +10,7 @@ void eliminar_tabla_de_proceso(int pid, t_list ** lista_tabla_de_paginas);
 tabla_paginas * dame_la_tabla_de_paginas(int pid, t_list ** lista_tabla_de_paginas);
 int obtener_marco_pagina(tabla_paginas *tabla, int pagina, int es_clock);
 bool estan_los_frames_ocupados(t_list *tabla_paginas, bool es_clock);
-int dame_un_marco_libre(t_list *lista_tabla_de_paginas, int cantidad_marcos);
+int dame_un_marco_libre(t_list *lista_tabla_de_paginas, int cantidad_marcos, bool es_clock);
 char * dame_mensaje_de_memoria(char **memoria, int nro_marco, int tamanio_marco);
 void avisar_a_cpu(char cod_op, char cod_aux, int pid, int paginas, char *mensaje, int socket_cli_cpu);
 void avisar_a_swap(char cod_op, int pid, int paginas, char *mensaje, int socket_ser_swap);

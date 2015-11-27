@@ -119,7 +119,7 @@ bool estan_los_frames_ocupados(t_list *tabla_paginas, bool es_clock) {
 	return true;
 }
 
-int dame_un_marco_libre(t_list *lista_tabla_de_paginas, int cantidad_marcos) {
+int dame_un_marco_libre(t_list *lista_tabla_de_paginas, int cantidad_marcos, bool es_clock) {
 	int i, j, k;
 	for(i = 0 ; i < cantidad_marcos ; i++) {
 		bool libre = true;
@@ -128,7 +128,7 @@ int dame_un_marco_libre(t_list *lista_tabla_de_paginas, int cantidad_marcos) {
 			tabla_paginas *tabla = list_get(lista_tabla_de_paginas, j);
 			for(k = 0 ; k < list_size(tabla->list_pagina_direccion) ; k++) {
 				pagina_direccion *pagina = list_get(tabla->list_pagina_direccion, k);
-				if(pagina->nro_marco == i && pagina->en_uso) {
+				if((pagina->nro_marco == i && pagina->en_uso) || (pagina->nro_marco == i  && es_clock)) {
 					ocupado = true;
 					libre = false;
 					break;
@@ -380,7 +380,7 @@ void reemplazar_pagina(int nro_pagina, int * nro_pagina_reemplazada, t_list * pa
 		(*puntero) = 0;
 }
 
-//hay que llevar la pagina desalojada a la swap
+//si es true hay que llevar la pagina desalojada a la swap
 bool aplicar_clock_modificado(int nro_pagina, int * nro_pagina_reemplazada, t_list * paginas, int * puntero, bool es_escritura){
 
 	while(1){
