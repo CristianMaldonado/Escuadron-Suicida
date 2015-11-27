@@ -171,14 +171,15 @@ void * procesarInstruccion() {
 				}
 				sleep(config->retardo);
 
-				if (mensajeDeMemoria->codOperacion != 'i' && mensajeDeMemoria->codOperacion != 'f'){
-					/*incremento quatum solo para operaciones leer y escribir*/
+				/*guardo tiempo en el que se ejecuto la instruccion*/
+				time_t * tiempoInstruccion = malloc(sizeof(time_t));
+				*tiempoInstruccion = time(NULL);
+				list_add(listaTiempos, tiempoInstruccion);
+
+				/*incremento quatum solo para operaciones leer y escribir*/
+				if (mensajeDeMemoria->codOperacion != 'i' && mensajeDeMemoria->codOperacion != 'f')
 					quantum++;
-					/*guardo tiempo en el que se ejecuto la instruccion*/
-					time_t * tiempoInstruccion = malloc(sizeof(time_t));
-					*tiempoInstruccion = time(NULL);
-					list_add(listaTiempos, tiempoInstruccion);
-				}
+
 			}
 
 			/*es rr y salio por quantum y no por io*/
