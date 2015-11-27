@@ -68,10 +68,18 @@ bool interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 		}
 		if(string_starts_with(instruccion,"escribir")) {
 
-			char * str = lineaFiltrada[2];
+			char * str = string_new();
+			int i = 2;
+			while (lineaFiltrada[i]){
+				if (i > 2)
+					string_append(&str, " ");
+
+				string_append(&str,lineaFiltrada[i]);
+				i++;
+			}
+
 			int lng = strlen(str);
 			char * aux = malloc(lng);
-			int i;
 			for(i = 1; i < lng; i++){
 				if (str[i] == '\"'){
 					aux[i-1] = '\0';
@@ -79,7 +87,6 @@ bool interpretarInstruccion(char* instruccion, protocolo_planificador_cpu* mensa
 				}
 				aux[i-1] = str[i];
 			}
-
 			int numero = atoi(lineaFiltrada[1]);
 			armarPaqueteMemoria(mensajeParaArmar, 'e',mensajeDePlanificador->pid, numero,aux);
 			entendio = true;
