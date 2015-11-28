@@ -14,6 +14,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include "estructuras.h"
+#include "logueo.h"
 
 bool llegoexit = false;
 
