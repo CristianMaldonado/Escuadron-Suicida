@@ -60,18 +60,6 @@ void* consumidor(){
 	return 0;
 }
 
-void definirMensaje(tpcb* pcb,char* message){
-	//char *message=malloc(strlen(pcb[0].ruta)+(2*sizeof(int))+sizeof(testado)+10+1);
-	message[0]='p';
-	message[1]='c';
-	message[2]=pcb[0].estado;
-	message[6]=pcb[0].pid;
-	message[10]=pcb[0].siguiente;
-	message[14]=1;
-	//message[18]=sizeof(pcb[0].ruta);
-	strcpy(&message[22],pcb[0].ruta);
-}
-
 void *enviar(){
 
 	tpcb* pcb;

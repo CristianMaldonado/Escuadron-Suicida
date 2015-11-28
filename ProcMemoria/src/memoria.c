@@ -4,6 +4,7 @@
 #include <commons/config.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
+#include <commons/collections/queue.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "estructuras.h"
@@ -16,9 +17,12 @@
 #include <signal.h>
 #include "log_memoria.h"
 #include <ctype.h>
+#include <semaphore.h>
 
 t_list * tlb;
 t_list * lista_tabla_de_paginas;
+t_queue * colaSeniales;
+sem_t haySenial;
 tconfig_memoria * config;
 t_log * logMem;
 char * memoria;
@@ -28,41 +32,52 @@ pthread_mutex_t mutexLog;
 int cant_aciertos_tlb = 0;
 int cant_accedidas_tlb = 0;
 
-void sig_handler(int numSignal){
-
-	switch(numSignal){
-		//borrar tlb
-		case SIGUSR1:
-			pthread_mutex_lock(&mutex);
-				printf("borrar tlb...\n");
-				pthread_mutex_lock(&mutexLog);
-				log_info(logMem, "SIGUSR1, limpiar tlb\n");
-				pthread_mutex_unlock(&mutexLog);
-				limpiar_la_tlb(&tlb);
-			pthread_mutex_unlock(&mutex);
-		break;
-		//borrar memoria
-		case SIGUSR2:
-			pthread_mutex_lock(&mutex);
-				printf("borrar memoria...\n");
-				pthread_mutex_lock(&mutexLog);
-				log_info(logMem, "SIGUSR2, limpiar memoria y tlb\n");
-				pthread_mutex_unlock(&mutexLog);
-				limpiar_la_tlb(&tlb);
-				limpiar_memoria(&lista_tabla_de_paginas,memoria,config->tamanio_marco, socketClienteSWAP);
-			pthread_mutex_unlock(&mutex);
-		break;
-		//volcar, en la consola es SIGIO (kill -s SIGIO pid) buscar los pid con ps -ef
-		case SIGPOLL:
-			pthread_mutex_lock(&mutex);
-				printf("volcado de memoria...\n");
-				pthread_mutex_lock(&mutexLog);
-				log_info(logMem, "SIGPOLL, volcar memoria\n");
-				pthread_mutex_unlock(&mutexLog);
-				volcar_memoria(memoria, config, logMem);
-			pthread_mutex_unlock(&mutex);
-		break;
+void * sig_handler(){
+	while (true){
+		sem_wait(&haySenial);
+		int * signal = queue_pop(colaSeniales);
+		switch(*signal){
+			//borrar tlb
+			case SIGUSR1:
+				pthread_mutex_lock(&mutex);
+					printf("borrar tlb...\n");
+					pthread_mutex_lock(&mutexLog);
+					log_info(logMem, "SIGUSR1, limpiar tlb\n");
+					pthread_mutex_unlock(&mutexLog);
+					limpiar_la_tlb(&tlb);
+				pthread_mutex_unlock(&mutex);
+			break;
+			//borrar memoria
+			case SIGUSR2:
+				pthread_mutex_lock(&mutex);
+					printf("borrar memoria...\n");
+					pthread_mutex_lock(&mutexLog);
+					log_info(logMem, "SIGUSR2, limpiar memoria y tlb\n");
+					pthread_mutex_unlock(&mutexLog);
+					limpiar_la_tlb(&tlb);
+					limpiar_memoria(&lista_tabla_de_paginas,memoria,config->tamanio_marco, socketClienteSWAP);
+				pthread_mutex_unlock(&mutex);
+			break;
+			//volcar, en la consola es SIGIO (kill -SIGIO pid) buscar los pid con ps -ef
+			case SIGPOLL:
+				pthread_mutex_lock(&mutex);
+					printf("volcado de memoria...\n");
+					pthread_mutex_lock(&mutexLog);
+					log_info(logMem, "SIGPOLL, volcar memoria\n");
+					pthread_mutex_unlock(&mutexLog);
+					volcar_memoria(memoria, config, logMem);
+				pthread_mutex_unlock(&mutex);
+			break;
+		}
+		free(signal);
 	}
+}
+
+void cola_seniales(int signalNum){
+	int * signal = malloc(sizeof(int));
+	*signal = signalNum;
+	queue_push(colaSeniales,signal);
+	sem_post(&haySenial);
 }
 
 void * mostrar_tasa_tlb(){
@@ -81,12 +96,17 @@ int main(void) {
 
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_init(&mutexLog, NULL);
+	sem_init(&haySenial,0,0);
+
+	colaSeniales = queue_create();
 
 	pthread_t tasa_tlb;
+	pthread_t hilo_seniales;
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	/*creacion de hilos*/
 	pthread_create(&tasa_tlb,&attr,mostrar_tasa_tlb,NULL);
+	pthread_create(&hilo_seniales,&attr,sig_handler,NULL);
 
 	//Definimos datos Cliente listener
 	int socketServidorCPU, socketClienteCPU;
@@ -98,9 +118,9 @@ int main(void) {
 	server_acept(socketServidorCPU, &socketClienteCPU);
 	printf("CPU aceptado...\n");
 
-	signal(SIGUSR1, sig_handler);
-	signal(SIGUSR2, sig_handler);
-	signal(SIGPOLL, sig_handler);
+	signal(SIGUSR1, cola_seniales);
+	signal(SIGUSR2, cola_seniales);
+	signal(SIGPOLL, cola_seniales);
 	//creamos la representacion memoria///////////////////////////////////////////////////////////////////////////////////////
 	memoria = crear_memoria(config->cantidad_marcos, config->tamanio_marco);
 	lista_tabla_de_paginas = list_create();
@@ -406,8 +426,8 @@ int main(void) {
 					}
 					free(paquete_desde_cpu.mensaje);
 				}
+				pthread_mutex_unlock(&mutex);
 			}
-			pthread_mutex_unlock(&mutex);
 			break;
 		}
 	}
@@ -417,6 +437,8 @@ int main(void) {
 	close(socketServidorCPU);
 	pthread_mutex_destroy(&mutex);
 	pthread_mutex_destroy(&mutexLog);
+	queue_destroy(colaSeniales);
+	sem_destroy(&haySenial);
 	return 0;
 	// la lista esta alreves, list_add te agrega al final, y en fifo lo que sacamos esta al principio, lru mandamos al final
 }

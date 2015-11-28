@@ -307,11 +307,7 @@ void limpiar_memoria(t_list ** tabla_de_paginas, char * memoria, int tamanio_mar
 			pagina_direccion * pagina = list_get(tabla->list_pagina_direccion, j);
 			if (pagina->nro_pagina != -1 && pagina->fue_modificado){
 				char * mensaje = dame_mensaje_de_memoria(&memoria, pagina->nro_marco, tamanio_marco);
-				tprotocolo_desde_cpu_y_hacia_swap paquete_a_swap;
-				armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, 'e', tabla->pid, pagina->nro_pagina, mensaje);
-				void* buffer = serializar_a_swap(&paquete_a_swap);
-				send(socket_swap, buffer, strlen(mensaje) + 13, 0);
-				free(buffer);
+				avisar_a_swap('e',tabla->pid,pagina->nro_pagina,mensaje,socket_swap);
 				free(mensaje);
 			}
 			pagina->en_uso = false;
