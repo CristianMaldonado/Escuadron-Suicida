@@ -35,7 +35,9 @@ void sig_handler(int numSignal){
 		case SIGUSR1:
 			pthread_mutex_lock(&mutex);
 				printf("borrar tlb...\n");
-				log_seniales(logMem, "SIGUSR1, limpiar tlb");
+				pthread_mutex_lock(&mutexLog);
+				log_info(logMem, "SIGUSR1, limpiar tlb\n");
+				pthread_mutex_unlock(&mutexLog);
 				limpiar_la_tlb(&tlb);
 			pthread_mutex_unlock(&mutex);
 		break;
@@ -43,7 +45,9 @@ void sig_handler(int numSignal){
 		case SIGUSR2:
 			pthread_mutex_lock(&mutex);
 				printf("borrar memoria...\n");
-				log_seniales(logMem, "SIGUSR2, limpiar memoria y tlb");
+				pthread_mutex_lock(&mutexLog);
+				log_info(logMem, "SIGUSR2, limpiar memoria y tlb\n");
+				pthread_mutex_unlock(&mutexLog);
 				limpiar_la_tlb(&tlb);
 				limpiar_memoria(&lista_tabla_de_paginas,memoria,config->tamanio_marco, socketClienteSWAP);
 			pthread_mutex_unlock(&mutex);
@@ -52,7 +56,9 @@ void sig_handler(int numSignal){
 		case SIGPOLL:
 			pthread_mutex_lock(&mutex);
 				printf("volcado de memoria...\n");
-				log_seniales(logMem, "SIGPOLL, volcar memoria");
+				pthread_mutex_lock(&mutexLog);
+				log_info(logMem, "SIGPOLL, volcar memoria\n");
+				pthread_mutex_unlock(&mutexLog);
 				volcar_memoria(memoria, config, logMem);
 			pthread_mutex_unlock(&mutex);
 		break;
@@ -341,7 +347,6 @@ int main(void) {
 									tabla_de_paginas->list_pagina_direccion = tabla_de_paginas_aux->list_pagina_direccion;
 
 									free(tabla_de_paginas_aux);
-
 								}
 								//es como finalizar
 								else {
@@ -362,7 +367,6 @@ int main(void) {
 									//avisale a la cpu que no hay mas memoria y no se puede agregar una nueva entrada de paginas
 									avisar_a_cpu(paquete_desde_cpu.cod_op, 'a', paquete_desde_cpu.pid, paquete_desde_cpu.paginas, "fallo", socketClienteCPU);
 									free(paquete_desde_cpu.mensaje);
-
 								}
 							}
 						}

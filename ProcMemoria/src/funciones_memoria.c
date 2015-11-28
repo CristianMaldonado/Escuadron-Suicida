@@ -305,7 +305,7 @@ void limpiar_memoria(t_list ** tabla_de_paginas, char * memoria, int tamanio_mar
 		int j;
 		for (j = 0 ; j < list_size(tabla->list_pagina_direccion) ; j++) {
 			pagina_direccion * pagina = list_get(tabla->list_pagina_direccion, j);
-			if (pagina->en_uso && pagina->fue_modificado){
+			if (pagina->nro_pagina != -1 && pagina->fue_modificado){
 				char * mensaje = dame_mensaje_de_memoria(&memoria, pagina->nro_marco, tamanio_marco);
 				tprotocolo_desde_cpu_y_hacia_swap paquete_a_swap;
 				armar_estructura_desde_cpu_y_hacia_swap(&paquete_a_swap, 'e', tabla->pid, pagina->nro_pagina, mensaje);
@@ -315,6 +315,9 @@ void limpiar_memoria(t_list ** tabla_de_paginas, char * memoria, int tamanio_mar
 				free(mensaje);
 			}
 			pagina->en_uso = false;
+			pagina->fue_modificado = false;
+			pagina->nro_pagina = -1;
+			pagina->nro_marco = -1;
 		}
 	}
 }

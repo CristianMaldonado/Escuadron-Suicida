@@ -56,11 +56,3 @@ void log_acceso_a_swap(t_log * log, int pid, int pagina) {
 	string_append(&str, "\n");
 	log_info(log,str);
 }
-
-// por ahora
-void log_seniales(t_log * log, char * mensaje) {
-	char * str = string_new();
-	string_append(&str, mensaje);
-	string_append(&str, "\n");
-	log_info(log, mensaje);
-}
