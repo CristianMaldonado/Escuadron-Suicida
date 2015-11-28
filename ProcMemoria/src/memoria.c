@@ -41,7 +41,7 @@ void sig_handler(int numSignal){
 		break;
 		//borrar memoria
 		case SIGUSR2:
-			pthread_mutex_unlock(&mutex);
+			pthread_mutex_lock(&mutex);
 				printf("borrar memoria...\n");
 				log_seniales(logMem, "SIGUSR2, limpiar memoria y tlb");
 				limpiar_la_tlb(&tlb);
