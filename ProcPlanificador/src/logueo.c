@@ -94,6 +94,10 @@ void logueoAlgoritmo(int inicial,char* mProc){
 
 }
 
+void logTpoTotal(){
+	log_info(logPlanificador,"Tiempo total transcurrido de ejecucion %d segundos",(time(NULL)-tiempoEjec));
+}
+
 /*void logueoRafaga(char* mProc, char operacion){
 	char* logueo = (char*)malloc(65+strlen(mProc));
 	char* instruccion = string_new();

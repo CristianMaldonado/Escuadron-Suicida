@@ -40,6 +40,7 @@ pthread_mutex_t mutexListasCpu;
 pthread_mutex_t mutexListasPorcentajes;
 
 t_log* logPlanificador;
+time_t tiempoEjec;
 
 typedef struct {
 	int socket;

@@ -107,6 +107,8 @@ void *enviar(){
 int main(){
 	system("clear");
 
+	tiempoEjec=time(NULL);
+
 	listaEjecutando = list_create();
 	listaCpuLibres = list_create();
 	listaInicializando = list_create();
@@ -216,5 +218,6 @@ int main(){
 	queue_destroy_and_destroy_elements(colaListos,free);
 
 	close(serverSocket);
+	logTpoTotal();
 	return 0;
 }
