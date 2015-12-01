@@ -32,15 +32,11 @@ int dame_si_hay_espacio(t_list** lista_vacia, int paginas_pedidas, int* comienzo
 	for (i = 0 ; i < list_size(*lista_vacia) ; i++) {
 		aux = list_get(*lista_vacia, i);
 		if (aux->paginas_vacias >= paginas_pedidas) {
-			//actualizar el hueco vacio y si sigue existiendo un hueco
 			*comienzo = aux->comienzo;
 			if (aux->paginas_vacias - paginas_pedidas > 0) {
-				//*comienzo = aux->comienzo;
-				tlista_vacio *nueva = malloc(sizeof(tlista_vacio));
-				nueva->comienzo = paginas_pedidas + aux->comienzo;
-				nueva->paginas_vacias = aux->paginas_vacias - paginas_pedidas;
-				free(list_remove(*lista_vacia, i));
-				list_add(*lista_vacia, nueva);
+				//actualizar el hueco vacio si sigue existiendo un hueco
+				aux->comienzo = paginas_pedidas + aux->comienzo;
+				aux->paginas_vacias = aux->paginas_vacias - paginas_pedidas;
 			}
 			else
 				free(list_remove(*lista_vacia, i));
