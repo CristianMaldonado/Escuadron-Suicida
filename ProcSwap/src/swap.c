@@ -65,10 +65,9 @@ int main(void) {
 						log_proc_rechazado(logSwap, paquete_de_memoria.pid);
 					}
 				}
-				if (cod_aux == 'i') {
+				if (cod_aux == 'i')
 					asignar_espacio(paquete_de_memoria.pid, comienzo, paquete_de_memoria.cantidad_pagina, &lista_ocupado, &logSwap, config_swap->tamanioPagina);
-					arreglar_lista_vacia(&lista_vacia);
-				}
+
 				/*se avisa sobre el resultado*/
 				avisar_a_memoria(cod_aux, paquete_de_memoria.pid, "-", socket_memoria);
 			}
